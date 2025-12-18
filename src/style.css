@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  /* 覆蓋或新增自定義斷點 */
+  --breakpoint-tablet: 640px;
+  --breakpoint-laptop: 1024px;
+  --breakpoint-desktop: 1280px;
+  
+  /* 如果你想修改預設的 md 尺寸也可以這樣寫 */
+  --breakpoint-md: 800px;
+}
