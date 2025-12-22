@@ -1,9 +1,46 @@
 <script setup>
-defineProps({
-  post: { type: Object, required: true },
+import { ref, watch, nextTick } from 'vue'
+
+const props = defineProps({
+post: { type: Object, required: true },
 })
 
-defineEmits(['edit', 'preview-image', 'like', 'open-comments', 'share', 'bookmark'])
+const emit = defineEmits(['edit', 'update', 'preview-image', 'like', 'open-comments', 'share', 'bookmark'])
+
+const isEditing = ref(false)
+const editContent = ref('')
+const editTextareaRef = ref(null)
+
+const autoResizeEdit = () => {
+  const el = editTextareaRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${el.scrollHeight}px`
+}
+
+const startEdit = async () => {
+  isEditing.value = true
+  editContent.value = props.post.content
+
+  await nextTick()
+  autoResizeEdit()
+  editTextareaRef.value?.focus()
+}
+
+watch(editContent, () => {
+  autoResizeEdit()
+})
+
+const cancelEdit = () => {
+isEditing.value = false
+editContent.value = ''
+}
+
+const saveEdit = () => {
+if (!editContent.value.trim()) return
+emit('update', { id: props.post.id, content: editContent.value })
+isEditing.value = false
+}
 </script>
 
 <template>
@@ -17,10 +54,10 @@ defineEmits(['edit', 'preview-image', 'like', 'open-comments', 'share', 'bookmar
       <div class="flex items-center gap-2">
         <!--貼文編輯-->
         <button v-if="post.isMine" type="button" class="grid h-9 w-9 place-items-center rounded-lg hover:bg-zinc-100"
-          aria-label="Edit" @click="$emit('edit', post.id)">
+          aria-label="Edit" @click="startEdit">
           <i class="fa-regular fa-pen-to-square"></i>
         </button>
-        
+
         <!--更多按鈕-->
         <button class="grid h-9 w-9 place-items-center rounded-lg hover:bg-zinc-100" aria-label="More">
           <i class="fa-solid fa-ellipsis"></i>
@@ -28,7 +65,23 @@ defineEmits(['edit', 'preview-image', 'like', 'open-comments', 'share', 'bookmar
       </div>
     </div>
 
-    <p class="mt-3 sm:text-base md:text-lg leading-6 text-zinc-800">
+    <div v-if="isEditing" class="mt-3">
+      <textarea ref="editTextareaRef" v-model="editContent"
+        class="w-full resize-none bg-transparent text-base leading-6 outline-none"
+        rows="3"></textarea>
+      <div class="mt-2 flex justify-end gap-2">
+        <button type="button" class="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 hover:bg-zinc-100"
+          @click="cancelEdit">
+          取消
+        </button>
+        <button type="button"
+          class="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-zinc-700"
+          @click="saveEdit">
+          更新
+        </button>
+      </div>
+    </div>
+    <p v-else class="mt-3 sm:text-base md:text-lg leading-6 text-zinc-800">
       {{ post.content }}
     </p>
 
