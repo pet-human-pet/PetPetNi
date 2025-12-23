@@ -5,6 +5,8 @@ import EventMap from '@/components/Events/EventMap.vue'
 import GroupBuySidebar from '@/components/GroupBuy/GroupBuySidebar.vue'
 import GroupBuyForm from '@/components/GroupBuy/GroupBuyForm.vue'
 import GroupBuyDetail from '@/components/GroupBuy/GroupBuyDetail.vue'
+import mapImg from '@/assets/EventMapFinal.jpg'
+
 
 
 
@@ -13,7 +15,7 @@ const locations = {
   1: { name: '101 區域', x: 250, y: 450 },
   2: { name: '國父紀念館', x: 750, y: 380 },
   3: { name: '松菸區域', x: 1100, y: 280 },
-  4: { name: '象山區域', x: 1300, y: 850 },
+  4: { name: '象山區域', x: 1490, y: 815 },
   5: { name: '市府區域', x: 900, y: 820 }
 }
 
@@ -202,7 +204,7 @@ onMounted(() => {
           :events="events"
           :locations="locations"
           :selected-id="selectedEventId"
-          map-src="/EventMapFinal.jpg"
+          :map-src="mapImg"
           @pin-click="(evt) => selectEvent(evt, { scrollCard: true })"
         />
 

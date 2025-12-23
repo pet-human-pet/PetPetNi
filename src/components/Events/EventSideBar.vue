@@ -143,7 +143,7 @@ function submit() {
           </div>
         </div>
 
-        <div class="flex gap-2.5 px-3.75 3.75 max-[800px]:p-3">
+        <div class="flex gap-2.5 px-3.75 pb-3.75 max-[800px]:px-3 max-[800px]:pb-3.75">
           <button class="flex-1 rounded-[17px] bg-[#ff9f43] text-white h-8.5 max-[800px]:h-8 text-[12px] font-bold">
             <i class="fa-solid fa-paw mr-1"></i> 參加
           </button>
