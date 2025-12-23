@@ -1,0 +1,59 @@
+@theme {
+  /* Fonts */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue',
+    Arial;
+
+  /* Background */
+  --color-bg-base: #fcfaf2; /* 米：頁面底色 */
+  --color-bg-surface: #ffffff; /* 白：卡片/內容表面 */
+
+  /* Brand */
+  --color-brand-primary: #2e6256; /* 綠：主品牌（主按鈕/選中/自己訊息） */
+  --color-brand-accent: #edc920; /* 黃：強調（badge/小CTA） */
+
+  /* Foreground (text/border source) */
+  --color-fg-primary: #382710; /* 深棕：主要文字 */
+  --color-fg-secondary: #5c4b3d; /* 棕：次要文字 */
+  --color-fg-muted: #8b7d73; /* 淺棕：輔助文字 */
+
+  /* Link */
+  --color-link-default: #2d5f92; /* 藍：連結文字 */
+  --color-link-hover: #3f7fbf; /* 藍：連結文字懸停 */
+
+  /* Button */
+  --color-btn-primary: #edc920; /* 黃：主要按鈕背景 */
+  --color-btn-secondary: #2e6256; /* 綠：次要按鈕背景 */
+  --color-btn-accent: #949494; /* 灰：輔助按鈕背景 */
+
+  /* Border (recommended: use softened fg) */
+  --color-border-default: rgba(56, 39, 16, 0.18);
+  --color-border-strong: rgba(56, 39, 16, 0.28);
+
+  /* Radius */
+  --radius-card: 1rem;
+  --radius-btn: 0.75rem;
+
+  /* Shadow */
+  --shadow-card: 0 2px 5px rgba(0, 0, 0, 0.08);
+  --shadow-dialog: 0 5px 10px rgba(0, 0, 0, 0.10);
+}
+
+/* 全站預設，讓大家不用每個地方都重複寫 */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply text-fg-primary bg-white text-base;
+  }
+
+  a {
+    @apply text-link-default no-underline;
+  }
+
+  a:hover {
+    @apply text-link-hover;
+  }
+}
