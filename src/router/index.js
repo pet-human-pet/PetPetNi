@@ -10,26 +10,27 @@ const router = createRouter({
       component: HomeView
     },
 
-    {
-      path: '/login',
-      name: 'login',
-      // component: () => import('../views/Login/LoginView.vue')
-    },
-    scrollBehavior(to, from, savedPosition) {
-      if (savedPosition) {
-        return savedPosition
-      } else {
-        return { top: 0 }
-      }
-    }
+    // {
+    //   path: '/login',
+    //   name: 'login',
+    //   // component: () => import('../views/Login/LoginView.vue')
+    // },
     
     // 聊天室路徑
     {
       path: '/chat-test', 
       name: 'chat-test',
       component: () => import('@/views/ChatRoomView.vue')
-    }
+    },
   ],
+
+  scrollBehavior(to, from, savedPosition) {
+      if (savedPosition) {
+        return savedPosition
+      } else {
+        return { top: 0 }
+      }
+    },
 })
 
 export default router
