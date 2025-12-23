@@ -26,6 +26,7 @@ const router = createRouter({
       component: () => import('@/views/ChatRoomView.vue'),
       meta: { headerType: 'none' }
     },
+
     {
       path: '/event',
       name: 'Event',
