@@ -78,7 +78,7 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
       >
         <img :src="props.mapSrc" class="block w-full object-cover" alt="Map" @load="recenter" />
 
-        <!-- 其他活動：用小點點（避免你誤認為「貓掌跳點」） -->
+        <!-- 其他活動：用小點點（避免誤認為「貓掌跳點」） -->
         <div
           v-for="evt in props.events"
           :key="evt.id"
