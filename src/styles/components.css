@@ -1,0 +1,52 @@
+@layer components {
+  /* Foundations (everyone can use) */
+
+  /* =========================
+   * 文字元件基底
+   * ========================= */
+  .c-title {
+    @apply text-xl;
+  }
+
+  .c-subtitle {
+    @apply text-lg;
+  }
+  .c-meta {
+    @apply text-xs;
+  }
+
+  /* =========================
+   * 按鈕元件基底
+   * ========================= */
+  .c-btn {
+    @apply rounded-btn inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* =========================
+   * 黃色按鈕（黃底咖字）
+   * 用途：次要 CTA、強調操作
+   * ========================= */
+  .c-btn--accent {
+    @apply rounded-btn inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-brand-primary text-fg-primary hover:bg-brand-primary/90;
+  }
+
+  /* =========================
+   * 特定元件樣式（僅限內部使用）
+    * ========================= */
+
+  /* Social */
+
+  /* 卡片元件基底 */
+  .c-card {
+    @apply bg-bg-surface shadow-card rounded-card p-4;
+  }
+
+
+  /* Chat */
+
+  /* Profile */
+
+  /* Auth */
+
+  /* UI (modal/dropdown/toast) */
+}
