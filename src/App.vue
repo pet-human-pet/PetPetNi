@@ -1,12 +1,11 @@
 <script setup>
-import { RouterView } from "vue-router";
-import AppHeader from "./components/Share/AppHeader.vue";
-import AppFooter from "./components/Share/AppFooter.vue";
-import MenuOverlay from "./components/Share/MenuOverlay.vue";
-import { onMounted } from 'vue';
-import Header from '@/components/Share/Header.vue';
-import EventView from './views/EventView.vue';
-
+import { RouterView } from 'vue-router'
+import AppHeader from './components/Share/AppHeader.vue'
+import AppFooter from './components/Share/AppFooter.vue'
+import MenuOverlay from './components/Share/MenuOverlay.vue'
+import { onMounted } from 'vue'
+import Header from '@/components/Share/Header.vue'
+import EventView from './views/EventView.vue'
 
 onMounted(() => {
   const ensureLink = (id, href) => {
@@ -19,27 +18,27 @@ onMounted(() => {
   }
 
   ensureLink('fa-cdn', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css')
-  ensureLink('fredoka-font', 'https://fonts.googleapis.com/css2?family=Fredoka:wght@600&display=swap')
+  ensureLink(
+    'fredoka-font',
+    'https://fonts.googleapis.com/css2?family=Fredoka:wght@600&display=swap'
+  )
 })
 </script>
 
 <template>
-  <div class="relative w-full h-full">
-    <MenuOverlay />
+  <div class="relative h-full w-full">
+    <MenuOverlay :open="isMenuOpen" />
 
     <AppHeader />
 
-    <main class="w-full h-full">
+    <main class="h-full w-full">
       <RouterView />
     </main>
     <AppFooter />
   </div>
-  
 
   <Header />
-   header desktop 70 / mobile 60 
   <div class="pt-17.5 max-[800px]:pt-15">
-  <EventView/>
+    <EventView />
   </div>
-
 </template>
