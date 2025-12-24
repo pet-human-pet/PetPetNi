@@ -1,26 +1,15 @@
 <script setup>
-  import { useUIStore } from '../../stores/ui'
-  import NavIcon from './NavIcon.vue'
-  import BackgroundGrid from './BackgroundGrid.vue'
-
-  // 動態控制body滾動鎖定
-  import {watch, onUnmounted} from 'vue';
-
-  const props = defineProps({
+import { useUIStore } from '../../stores/ui'
+import NavIcon from './NavIcon.vue'
+import BackgroundGrid from './BackgroundGrid.vue'
+import { toRef } from 'vue'
+import { useScrollLock } from '@/composables/useScrollLock'
+const props = defineProps({
   open: Boolean
 })
-  watch(
-  () => props.open,
-  (isOpen) => {
-    document.body.classList.toggle('u-lock-scroll', isOpen)
-  },
-  { immediate: true }
-)
 
-onUnmounted(() => {
-  document.body.classList.remove('u-lock-scroll')
-})
-
+// 這一行就像是說：「我要使用鎖定功能，但只在 props.open 為 true 時鎖定」
+useScrollLock(toRef(props, 'open'))
 const uiStore = useUIStore()
 
 const menuItems = [
