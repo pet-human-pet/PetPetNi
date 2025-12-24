@@ -27,7 +27,7 @@ onMounted(() => {
 
 <template>
   <div class="relative h-full w-full">
-    <MenuOverlay :open="isMenuOpen" />
+    <MenuOverlay />
 
     <AppHeader />
 
