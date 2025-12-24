@@ -27,12 +27,23 @@
    * 用途：次要 CTA、強調操作
    * ========================= */
   .c-btn--accent {
-    @apply rounded-btn inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-brand-primary text-fg-primary hover:bg-brand-primary/90;
+    @apply rounded-btn bg-brand-primary text-fg-primary hover:bg-brand-primary/90 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   /* =========================
    * 特定元件樣式（僅限內部使用）
     * ========================= */
+
+  /* Home */
+
+  /* MenuOverlay鎖定 */
+  @layer utilities {
+    .u-lock-scroll {
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+  }
 
   /* Social */
 
@@ -41,12 +52,23 @@
     @apply bg-bg-surface shadow-card rounded-card p-4;
   }
 
-
   /* Chat */
 
   /* Profile */
 
-  /* Auth */
-
+  /* Event */
+  
+  /* =========================
+   * 無滾動條樣式（用於需要隱藏滾動條的區域）
+   * ========================= */
+  @layer utilities {
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
   /* UI (modal/dropdown/toast) */
 }
