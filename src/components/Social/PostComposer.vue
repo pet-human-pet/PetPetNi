@@ -7,7 +7,7 @@ const props = defineProps({
   maxLength: { type: Number, default: 500 }
 })
 
-const emit = defineEmits(['submit'])
+const emit = defineEmits(['submit','toast'])
 
 const open = ref(false)
 const content = ref('')
@@ -82,20 +82,27 @@ const removeImage = (index) => {
 
 // 送出/關閉流程
 const submit = () => {
-  if (!canSubmit.value) return
-
-  // 提取圖片 URL 陣列供上層顯示 (實際專案可能要先上傳到 Server)
+  const text = content.value.trim()
   const imageUrls = images.value.map((img) => img.url)
+  const hasImages = imageUrls.length > 0
+  const textLen = text.length
+
+  if (!hasImages && textLen <= 10){
+    emit('toast', '文字須超過10個字才能發布')
+    return false
+  }
 
   emit('submit', {
     content: content.value,
     images: imageUrls,
     hashtags: []
   })
+
+  // 清空輸入 (成功才清)
   content.value = ''
-  // 清空圖片
   images.value.forEach((img) => URL.revokeObjectURL(img.url))
   images.value = []
+  return true
 }
 // 關掉手機彈窗
 const close = () => {
@@ -103,8 +110,8 @@ const close = () => {
 }
 
 const submitAndClose = () => {
-  submit()
-  close()
+  const ok = submit()
+  if (ok) close()
 }
 // 編輯貼文
 const editing = ref(false)
@@ -210,21 +217,21 @@ const setAudience = (v) => {
               >
                 <button
                   type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-zinc-100"
+                  class="w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer hover:bg-zinc-100"
                   @click="setAudience('🌐所有人')"
                 >
                   🌐 所有人
                 </button>
                 <button
                   type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-zinc-100"
+                  class="w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer hover:bg-zinc-100"
                   @click="setAudience('👥好友')"
                 >
                   👥 好友
                 </button>
                 <button
                   type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-zinc-100"
+                  class="w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer hover:bg-zinc-100"
                   @click="setAudience('🔒只限自己')"
                 >
                   🔒 只限自己
@@ -248,7 +255,6 @@ const setAudience = (v) => {
         </div>
       </div>
     </section>
-
     <!-- 手機：遮罩 + 彈窗 -->
     <div v-if="open" class="fixed inset-0 z-60 md:hidden">
       <!-- 不透明遮罩 -->

@@ -1,4 +1,5 @@
 <script setup>
+import ActionBar from './PostCard/ActionBar.vue'
 import { ref, watch, nextTick } from 'vue'
 
 const props = defineProps({
@@ -53,35 +54,35 @@ const saveEdit = () => {
 
 <template>
   <body>
-    <div class="c-card md:p-6">
+    <div class="c-card p-5 md:p-6">
       <div class="flex items-start justify-between">
         <div class="flex items-center gap-3">
           <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
           <a class="text-m cursor-pointer font-semibold text-blue-800">{{ post.author }}</a>
         </div>
-  
+
         <div class="flex items-center gap-2">
           <!--貼文編輯-->
           <button
             v-if="post.isMine"
             type="button"
-            class="grid h-9 w-9 place-items-center rounded-lg hover:bg-zinc-100"
+            class="grid h-9 w-9 place-items-center rounded-lg hover:bg-zinc-100 cursor-pointer"
             aria-label="Edit"
             @click="startEdit"
           >
             <i class="fa-regular fa-pen-to-square"></i>
           </button>
-  
+
           <!--更多按鈕-->
           <button
-            class="grid h-9 w-9 place-items-center rounded-lg hover:bg-zinc-100"
+            class="grid h-9 w-9 place-items-center rounded-lg cursor-pointer hover:bg-zinc-100"
             aria-label="More"
           >
             <i class="fa-solid fa-ellipsis"></i>
           </button>
         </div>
       </div>
-  
+
       <div v-if="isEditing" class="mt-3">
         <textarea
           ref="editTextareaRef"
@@ -106,10 +107,10 @@ const saveEdit = () => {
           </button>
         </div>
       </div>
-      <p v-else class="mt-3 leading-6 text-zinc-800 sm:text-base md:text-m">
+      <p v-else class="md:text-m mt-3 leading-6 text-zinc-800 sm:text-base">
         {{ post.content }}
       </p>
-  
+
       <!-- hashtags -->
       <div v-if="post.tags?.length" class="mt-3 flex flex-wrap gap-1">
         <a
@@ -120,7 +121,7 @@ const saveEdit = () => {
           {{ t }}
         </a>
       </div>
-  
+
       <!-- 單張圖片 -->
       <div
         v-if="post.images?.length === 1"
@@ -133,7 +134,7 @@ const saveEdit = () => {
           @click="$emit('preview-image', post.images[0])"
         />
       </div>
-  
+
       <!-- 兩張圖片 -->
       <div v-else-if="post.images?.length === 2" class="mt-3 grid grid-cols-2 gap-3">
         <div
@@ -149,49 +150,19 @@ const saveEdit = () => {
           />
         </div>
       </div>
-  
+
       <!-- actions: 只 emit-->
-      <div class="mt-4 flex items-center justify-between">
-        <div class="flex items-center gap-6 text-zinc-800">
-          <button
-            type="button"
-            class="flex items-center gap-2"
-            aria-label="Like"
-            @click="$emit('like', post.id)"
-          >
-            <span class="text-xl"><i class="fa-solid fa-paw"></i></span>
-            <span class="text-sm">{{ post.likeCount }}</span>
-          </button>
-  
-          <button
-            type="button"
-            class="flex items-center gap-2"
-            aria-label="Comment"
-            @click="$emit('open-comments', post.id)"
-          >
-            <span class="text-xl"><i class="fa-solid fa-comment"></i></span>
-            <span class="text-sm">{{ post.commentCount }}</span>
-          </button>
-  
-          <button
-            type="button"
-            class="flex items-center gap-2"
-            aria-label="Share"
-            @click="$emit('share', post.id)"
-          >
-            <span class="text-xl"><i class="fa-solid fa-share"></i></span>
-          </button>
-        </div>
-  
-        <button
-          type="button"
-          class="grid cursor-pointer place-items-center"
-          aria-label="Bookmark"
-          @click="$emit('bookmark', post.id)"
-        >
-          <span class="text-xl"><i class="fa-regular fa-bookmark"></i></span>
-        </button>
-      </div>
+      <ActionBar
+        :post-id="post.id"
+        :like-count="post.likeCount"
+        :comment-count="post.commentCount"
+        :is-liked="post.isLiked"
+        :is-bookmarked="post.isBookmarked"
+        @like="$emit('like', $event)"
+        @open-comments="$emit('open-comments', $event)"
+        @share="$emit('share', $event)"
+        @bookmark="$emit('bookmark', $event)"
+      />
     </div>
   </body>
 </template>
