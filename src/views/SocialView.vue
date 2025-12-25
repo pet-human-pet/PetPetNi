@@ -16,7 +16,9 @@ const rawPosts = ref([
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSum7FwfWAYG3LAVpmMG9e_y3H_u57BstJ5Tg&s'
     ],
     likeCount: 120,
-    commentCount: 12
+    isLiked: false,
+    commentCount: 12,
+    isBookmarked: false
   },
   {
     id: 2,
@@ -28,7 +30,9 @@ const rawPosts = ref([
     tags: ['#貓', '#奴才日常'],
     images: ['https://media.tenor.com/uKayqry3x90AAAAM/goofy-funny-cat.gif'],
     likeCount: 120,
-    commentCount: 12
+    isLiked: true,
+    commentCount: 12,
+    isBookmarked: true
   },
   {
     id: 3,
@@ -41,34 +45,19 @@ const rawPosts = ref([
       'https://tiptopk9.com/nitropack_static/CQBMbUdUxEdJwDWnlMCaRSOixvBddFgB/assets/images/optimized/rev-dcdf01d/tiptopk9.com/wp-content/uploads/hilarious-chihuahua-dog-meme.jpeg'
     ],
     likeCount: 120,
-    commentCount: 12
+    isLiked: false,
+    commentCount: 12,
+    isBookmarked: false
   }
 ])
 
-const mapToUiPost = (p) => ({
-  id: p.id,
-  author: p.author ?? 'unknown',
-  isMine: !!p.isMine,
-  content: p.content ?? '',
-  ellipsis: !!p.ellipsis,
-  tags: p.tags ?? [],
-  images: p.images ?? [],
-  likeCount: p.likeCount ?? 0,
-  commentCount: p.commentCount ?? 0
-})
+/** 桌機雙欄用 */
+const leftPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 === 0))
+const rightPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 !== 0))
 
-const posts = computed(() => rawPosts.value.map(mapToUiPost))
-
-const leftPosts = computed(() => posts.value.filter((_, i) => i % 2 === 0))
-const rightPosts = computed(() => posts.value.filter((_, i) => i % 2 !== 0))
-
+/** 圖片預覽彈窗 */
 const previewOpen = ref(false)
 const previewSrc = ref('')
-
-const openEdit = (postId) => {
-  // 不做編輯流程：只留入口 (Moved to inline edit in PostCard)
-  console.log('edit', postId)
-}
 
 const onPreviewImage = (src) => {
   previewSrc.value = src
@@ -80,49 +69,81 @@ const onClosePreview = () => {
   previewSrc.value = ''
 }
 
+/** 按讚 */
 const toggleLike = (postId) => {
-  // issue/1：只留接口，不做按讚流程
-  console.log('like', postId)
+  const post = rawPosts.value.find((p) => p.id === postId)
+  if (!post) return
+
+  post.isLiked = !post.isLiked
+  post.likeCount += post.isLiked ? 1 : -1
+
+  showToast(post.isLiked ? '已按讚' : '已取消按讚')
 }
 
-const openComments = (postId) => {
-  // issue/1：只留接口，不做留言流程
-  console.log('open comments', postId)
-}
-
-const sharePost = (postId) => {
-  // issue/1：只留接口，不做分享流程
-  console.log('share', postId)
-}
-
+/** 收藏 */
 const toggleBookmark = (postId) => {
-  // issue/1：只留接口，不做收藏流程
-  console.log('bookmark', postId)
+  const post = rawPosts.value.find((p) => p.id === postId)
+  if (!post) return
+
+  post.isBookmarked = !post.isBookmarked
+  showToast(post.isBookmarked ? '已收藏' : '已取消收藏')
 }
 
+/** 編輯：PostCard emit update 後，這裡更新內容 */
 const handleUpdate = (payload) => {
   const post = rawPosts.value.find((p) => p.id === payload.id)
-  if (post) {
-    post.content = payload.content
-  }
+  if (!post) return
+  post.content = payload.content
+
+  showToast(post.payload ? '' : '貼文已更新')
 }
 
+/** 發文：把新貼文塞到最前面 */
 const handleSubmit = (payload) => {
   const text = (payload.content ?? '').trim()
-  if (!text) return
+  const images = payload.images ?? []
+
+  const hasImages = images.length > 0
+  const textLength = text.length
+  
+if (!hasImages && textLength <= 10) {
+  showToast('發文內容請超過10字')
+  return false
+}
 
   rawPosts.value.unshift({
     id: Date.now(),
     author: 'test',
-    content: payload.content,
+    content: text,
     isMine: true,
-    ellipsis: payload.content.length > 50,
-    tags: ['#hashtag'],
-    images: payload.images ?? [],
+    ellipsis: text.length > 50,
+    tags: [''],
+    images,
     likeCount: 0,
-    commentCount: 0
+    commentCount: 0,
+    isLiked: false,
+    isBookmarked: false
   })
+  showToast('貼文已發布')
+  return true
 }
+
+const toast = ref({ open: false, message: '' })
+let toastTimer = null
+const showToast = (message) => {
+  toast.value.open = true
+  toast.value.message = message
+
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
+    toast.value.open = false
+    toast.value.message = ''
+  }, 1600)
+}
+/** 其他功能：先留接口 */
+const openEdit = (postId) => console.log('edit', postId)
+const openComments = (postId) => console.log('open comments', postId)
+const sharePost = (postId) => console.log('share', postId)
 </script>
 
 <template>
@@ -130,12 +151,13 @@ const handleSubmit = (payload) => {
     <div class="mx-10 min-h-screen">
       <main class="mx-auto w-full max-w-260 px-4 pb-16">
         <div>
-          <PostComposer username="" @submit="handleSubmit" />
+          <PostComposer username="" @submit="handleSubmit"
+          @toast="showToast" />
         </div>
         <!-- 手機/平板：單欄 -->
         <section class="mt-4 flex flex-col gap-4 lg:hidden">
           <PostCard
-            v-for="p in posts"
+            v-for="p in rawPosts"
             :key="p.id"
             :post="p"
             @edit="openEdit"
@@ -148,7 +170,7 @@ const handleSubmit = (payload) => {
           />
         </section>
 
-        <!-- 桌機：Masonry 雙欄 -->
+        <!-- 桌機：雙欄 -->
         <section class="mt-6 hidden items-start gap-6 lg:flex">
           <!-- 左欄 -->
           <div class="flex flex-1 flex-col gap-6">
@@ -189,6 +211,7 @@ const handleSubmit = (payload) => {
           ></div>
         </div>
       </main>
+
       <!-- 圖片預覽遮罩 -->
       <div v-if="previewOpen" class="fixed inset-0 z-90">
         <!--遮罩-->
@@ -207,6 +230,14 @@ const handleSubmit = (payload) => {
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- toast -->
+      <div
+        v-if="toast.open"
+        class="fixed bottom-20 left-1/2 z-100 -translate-x-1/2 rounded-3xl bg-zinc-900/50 px-4 py-2 text-sm text-white shadow"
+      >
+        {{ toast.message }}
       </div>
     </div>
   </div>
