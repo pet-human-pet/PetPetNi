@@ -6,7 +6,7 @@ const props = defineProps({
   selectedId: { type: [Number, String, null], default: null }
 })
 
-const emit = defineEmits(['select', 'create'])
+const emit = defineEmits(['select', 'create','open-comments'])
 
 const formOpen = ref(false)
 const form = reactive({ title: '', locId: 1, desc: '' })
@@ -150,9 +150,11 @@ function submit() {
           <button class="flex-1 rounded-[17px] bg-[#f0f2f5] text-[#555] h-8.5 max-[800px]:h-8 text-[12px] font-bold">
             <i class="fa-regular fa-heart"></i>
           </button>
-          <button class="flex-1 rounded-[17px] bg-[#f0f2f5] text-[#555] h-8 max-[800px]:h-8 text-[12px] font-bold">
+          <button type="button" class="flex-1 rounded-[17px] bg-[#f0f2f5] text-[#555] h-8 max-[800px]:h-8 text-[12px] font-bold"
+            @click.stop="emit('open-comments', evt)">
             <i class="fa-regular fa-comment-dots"></i>
           </button>
+
         </div>
       </li>
     </ul>
