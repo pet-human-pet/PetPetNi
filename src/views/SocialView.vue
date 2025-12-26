@@ -1,6 +1,5 @@
 <script setup>
 import { ref, computed } from 'vue'
-import SocialHeader from '@/components/Social/SocialHeader.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import PostComposer from '@/components/Social/PostComposer.vue'
 
@@ -128,9 +127,6 @@ const handleSubmit = (payload) => {
 
 <template>
   <div class="bg-bg-base">
-    <header>
-      <SocialHeader />
-    </header>
     <div class="mx-10 min-h-screen">
       <main class="mx-auto w-full max-w-260 px-4 pb-16">
         <div>
