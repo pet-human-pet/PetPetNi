@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,36 +7,33 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('@/views/HomeView.vue'),
-      meta: {
-        hideFooter: true, // 首頁隱藏 Footer
-        hideHeader: false // 預設顯示 Header
-      }
+      component: HomeView
     },
 
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/Login/LoginView.vue')
-    },
+    // {
+    //   path: '/login',
+    //   name: 'login',
+    //   // component: () => import('../views/Login/LoginView.vue')
+    // },
 
+    // 聊天室路徑
     {
       path: '/chat-test',
       name: 'chat-test',
       component: () => import('@/views/ChatRoomView.vue')
     },
     {
-      path: '/event',
+      path: '/Event',
       name: 'Event',
       component: () => import('@/views/EventView.vue')
     },
     {
-      path: '/social',
+      path: '/Social',
       name: 'Social',
       component: () => import('@/views/SocialView.vue')
     },
     {
-      path: '/profile',
+      path: '/Profile',
       name: 'Profile',
       component: () => import('@/views/ProfileView.vue')
     }

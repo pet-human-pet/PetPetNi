@@ -1,27 +1,39 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterView } from 'vue-router'
 import AppHeader from './components/Share/AppHeader.vue'
 import AppFooter from './components/Share/AppFooter.vue'
 import MenuOverlay from './components/Share/MenuOverlay.vue'
+import { onMounted } from 'vue'
+import Header from '@/components/Share/Header.vue'
+import EventView from './views/EventView.vue'
 
-const route = useRoute()
+onMounted(() => {
+  const ensureLink = (id, href) => {
+    if (document.getElementById(id)) return
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = href
+    document.head.appendChild(link)
+  }
 
-// 2. 計算是否顯示 Footer
-// 如果 meta.hideFooter 為 true，則不顯示
-const showFooter = computed(() => !route.meta.hideFooter)
+  ensureLink('fa-cdn', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css')
+  ensureLink(
+    'fredoka-font',
+    'https://fonts.googleapis.com/css2?family=Fredoka:wght@600&display=swap'
+  )
+})
 </script>
 
 <template>
-  <div class="relative flex min-h-screen w-full flex-col">
+  <div class="relative h-full w-full">
     <MenuOverlay />
 
     <AppHeader />
 
-    <main class="w-full flex-1">
+    <main class="h-full w-full">
       <RouterView />
     </main>
-
-    <AppFooter v-if="showFooter" />
+    <AppFooter />
   </div>
 </template>
