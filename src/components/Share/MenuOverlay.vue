@@ -31,7 +31,7 @@ const getIconUrl = (name) => {
       class="bg-mayekawa fixed inset-0 isolate z-40 transform-gpu cursor-pointer overflow-hidden"
       @click.self="uiStore.closeMenu()"
     >
-      <BackgroundGrid class="pointer-events-none fixed inset-0 opacity-[0.2]" />
+      <BackgroundGrid class="pointer-events-none fixed inset-0 opacity-5" />
 
       <div
         class="pointer-events-none relative flex min-h-screen flex-col px-6 pt-24 pb-10 md:hidden"
@@ -78,9 +78,9 @@ const getIconUrl = (name) => {
             :label-jp="item.jp"
             :icon-name="item.icon"
             :to="item.path"
-            @click="uiStore.closeMenu()"
             class="w-full"
             variant="list"
+            @click="uiStore.closeMenu()"
           >
             <template #icon>
               <img
@@ -166,10 +166,11 @@ const getIconUrl = (name) => {
             :label-jp="item.jp"
             :icon-name="item.icon"
             :to="item.path"
-            @click="uiStore.closeMenu()"
             class="w-full"
             variant="grid"
           >
+            @click="uiStore.closeMenu()"
+
             <template #icon>
               <img
                 :src="getIconUrl(item.icon)"
