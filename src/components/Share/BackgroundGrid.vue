@@ -1,17 +1,17 @@
 <script setup>
-// Shared Background component using the vector pattern
-// Ensures simplified consistency across views
-// Based on user provided CSS spec: size 53.04px 49px, center position
+const svgContent = `<svg width="53.04" height="49" viewBox="0 0 53.04 49" xmlns="http://www.w3.org/2000/svg"><path d="m1.19 48.45 25.33-11.7 25.33 11.7-1.19.55h2.38v-1.1l-25.33-11.7 25.33-11.7v-1.1l-25.33-11.7 25.33-11.7s-2.38 0-2.38 0l-24.13 11.15-24.15-11.15h-2.38l25.33 11.7-25.33 11.7v1.1l25.33 11.7-25.33 11.7v1.1h2.38zm0-24.5 25.33-11.7 25.33 11.7-25.33 11.7z" fill="#fff"/></svg>`
+
+const patternGrid = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`
 </script>
 
 <template>
   <div
-    class="absolute inset-0 pointer-events-none z-0"
-    style="
-      background-image: url('@/assets/images/pattern-grid.svg');
-      background-size: 53.04px 49px;
-      background-position: 0 0;
-      background-repeat: repeat;
-    "
+    class="pointer-events-none absolute inset-0 opacity-5"
+    :style="{
+      backgroundImage: `url('${patternGrid}')`,
+      backgroundSize: '53.04px 49px',
+      backgroundPosition: '0 0',
+      backgroundRepeat: 'repeat'
+    }"
   ></div>
 </template>
