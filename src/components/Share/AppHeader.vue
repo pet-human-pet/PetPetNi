@@ -78,8 +78,8 @@ const uiStore = useUIStore()
     </div>
 
     <button
-      @click="uiStore.toggleMenu()"
       class="group pointer-events-auto relative flex h-12 w-12 shrink-0 flex-col items-center justify-center overflow-hidden rounded-full bg-white shadow-lg transition-transform duration-300 hover:scale-110 active:scale-95 md:h-16 md:w-16"
+      @click="uiStore.toggleMenu()"
     >
       <div
         class="bg-mayekawa absolute inset-0 origin-center scale-0 rounded-full opacity-10 transition-transform duration-300 group-hover:scale-100"
