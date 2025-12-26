@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/Share/AppHeader.vue'
+import MainHeader from './components/Share/Header.vue'
 import AppFooter from './components/Share/AppFooter.vue'
 import MenuOverlay from './components/Share/MenuOverlay.vue'
 
@@ -16,9 +17,16 @@ const showFooter = computed(() => !route.meta.hideFooter)
   <div class="relative flex min-h-screen w-full flex-col">
     <MenuOverlay />
 
-    <AppHeader />
+    <!-- Landing Page Header (Home) -->
+    <AppHeader v-if="route.meta.headerType === 'landing'" />
 
-    <main class="w-full flex-1">
+    <!-- Main App Header (Event, Social, Profile) -->
+    <MainHeader v-if="route.meta.headerType === 'app'" />
+
+    <main 
+      class="w-full flex-1"
+      :class="{ 'pt-17.5': route.meta.headerType === 'app' }"
+    >
       <RouterView />
     </main>
 
