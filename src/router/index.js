@@ -8,36 +8,41 @@ const router = createRouter({
       name: 'home',
       component: () => import('@/views/HomeView.vue'),
       meta: {
-        hideFooter: true, // 首頁隱藏 Footer
-        hideHeader: false // 預設顯示 Header
+        hideFooter: true,
+        headerType: 'landing'
       }
     },
 
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/Login/LoginView.vue')
+      component: () => import('@/views/Login/LoginView.vue'),
+      meta: { headerType: 'none' }
     },
 
     {
       path: '/chat-test',
       name: 'chat-test',
-      component: () => import('@/views/ChatRoomView.vue')
+      component: () => import('@/views/ChatRoomView.vue'),
+      meta: { headerType: 'none' }
     },
     {
       path: '/event',
       name: 'Event',
-      component: () => import('@/views/EventView.vue')
+      component: () => import('@/views/EventView.vue'),
+      meta: { headerType: 'app' }
     },
     {
       path: '/social',
       name: 'Social',
-      component: () => import('@/views/SocialView.vue')
+      component: () => import('@/views/SocialView.vue'),
+      meta: { headerType: 'app' }
     },
     {
       path: '/profile',
       name: 'Profile',
-      component: () => import('@/views/ProfileView.vue')
+      component: () => import('@/views/ProfileView.vue'),
+      meta: { headerType: 'app' }
     }
   ],
 
