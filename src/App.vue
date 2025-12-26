@@ -36,4 +36,9 @@ onMounted(() => {
     </main>
     <AppFooter />
   </div>
+
+  <Header />
+  <div class="pt-17.5 max-[800px]:pt-15">
+    <EventView />
+  </div>
 </template>

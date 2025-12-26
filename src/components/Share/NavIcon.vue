@@ -18,10 +18,7 @@ const getIconUrl = (name) => {
 </script>
 
 <template>
-  <!-- <component :is="...">功能,既可以是連結，也可以是普通區塊div -->
-  <component
-    :is="to ? 'router-link' : 'div'"
-    :to="to"
+  <div
     class="group relative cursor-pointer transition-all duration-300"
     :class="[
       isList
@@ -92,5 +89,5 @@ const getIconUrl = (name) => {
         />
       </svg>
     </div>
-  </component>
+  </div>
 </template>
