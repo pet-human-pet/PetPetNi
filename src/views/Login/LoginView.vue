@@ -1,38 +1,50 @@
 <script setup>
-import { ref } from 'vue'
-import SocialButton from './login-components/SocialButton.vue'
-import BaseInput from './login-components/BaseInput.vue'
+import { ref } from "vue";
+import SocialButton from "./login-components/SocialButton.vue";
+import BaseInput from "./login-components/BaseInput.vue";
 
 // 表單狀態管理
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
+const email = ref("");
+const password = ref("");
+const showPassword = ref(false);
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
 const handleLogin = () => {
-  console.log('登入資訊:', { email: email.value, password: password.value })
-}
+  console.log("登入資訊:", { email: email.value, password: password.value });
+};
 </script>
 
 <template>
   <div
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-400 to-pink-400 p-4"
+    class="min-h-screen bg-gradient-to-br from-red-400 to-pink-400 flex items-center justify-center p-4"
   >
-    <div class="w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-sm md:p-10">
-      <div class="mb-6 flex justify-center">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-black">
-          <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
+    <div
+      class="w-full max-w-md bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-10"
+    >
+      <div class="flex justify-center mb-6">
+        <div
+          class="w-12 h-12 bg-black rounded-xl flex items-center justify-center"
+        >
+          <svg
+            class="w-8 h-8 text-white"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"
+            />
           </svg>
         </div>
       </div>
 
-      <h1 class="mb-8 text-center text-2xl font-bold text-gray-800 md:text-3xl">歡迎回來</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">
+        歡迎回來
+      </h1>
 
-      <div class="mb-6 grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-3 gap-3 mb-6">
         <SocialButton type="apple" />
         <SocialButton type="google" />
         <SocialButton type="linkedin" />
@@ -43,14 +55,19 @@ const handleLogin = () => {
           <div class="w-full border-t border-gray-300"></div>
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="bg-white px-4 text-gray-500">OR</span>
+          <span class="px-4 bg-white text-gray-500">OR</span>
         </div>
       </div>
 
       <form @submit.prevent="handleLogin">
-        <BaseInput v-model="email" label="帳號" placeholder="Enter your email..." type="email" />
+        <BaseInput
+          v-model="email"
+          label="帳號"
+          placeholder="Enter your email..."
+          type="email"
+        />
 
-        <div class="relative mb-4">
+        <div class="mb-4 relative">
           <BaseInput
             v-model="password"
             label="密碼"
@@ -60,11 +77,11 @@ const handleLogin = () => {
           <button
             type="button"
             @click="togglePassword"
-            class="absolute top-[42px] right-4 text-gray-500 hover:text-gray-700"
+            class="absolute right-4 top-[42px] text-gray-500 hover:text-gray-700"
           >
             <svg
               v-if="!showPassword"
-              class="h-5 w-5"
+              class="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -76,7 +93,13 @@ const handleLogin = () => {
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
               />
             </svg>
-            <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              v-else
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -87,25 +110,27 @@ const handleLogin = () => {
           </button>
         </div>
 
-        <div class="mb-6 flex items-center justify-between">
-          <label class="flex cursor-pointer items-center">
-            <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+        <div class="flex items-center justify-between mb-6">
+          <label class="flex items-center cursor-pointer">
+            <input type="checkbox" class="w-4 h-4 rounded border-gray-300" />
             <span class="ml-2 text-sm text-gray-700">我會記得你的</span>
           </label>
-          <a href="#" class="text-sm text-gray-500 hover:underline">忘記密碼？</a>
+          <a href="#" class="text-sm text-gray-500 hover:underline"
+            >忘記密碼？</a
+          >
         </div>
 
         <button
           type="submit"
-          class="w-full rounded-xl bg-gray-900 py-3 font-medium text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
+          class="w-full bg-gray-900 text-white py-3 rounded-xl font-medium hover:bg-gray-800 transition-all shadow-lg active:scale-95"
         >
           登入
         </button>
       </form>
 
-      <p class="mt-6 text-center text-sm text-gray-600">
+      <p class="text-center text-sm text-gray-600 mt-6">
         還不是會員？
-        <a href="#" class="font-medium text-gray-900 hover:underline">註冊</a>
+        <a href="#" class="text-gray-900 font-medium hover:underline">註冊</a>
       </p>
     </div>
   </div>
