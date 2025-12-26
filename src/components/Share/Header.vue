@@ -1,6 +1,8 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const defaultAvatar =
   'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=100&q=60'
 
@@ -241,14 +243,14 @@ onBeforeUnmount(() => {
     <div
       class="mx-auto flex h-17.5 max-w-300 items-center justify-between px-6 max-[800px]:h-15 max-[800px]:px-4"
     >
-      <a href="#" class="flex items-center no-underline">
+      <router-link :to="{ name: 'home' }" class="flex items-center no-underline">
         <span
           class="text-[26px] font-semibold text-[#ff9f43] max-[800px]:text-[22px]"
           style="font-family: 'Fredoka', sans-serif"
         >
           PetPetNi
         </span>
-      </a>
+      </router-link>
 
       <div class="flex items-center gap-3">
         <!-- desktop icons -->
@@ -264,6 +266,7 @@ onBeforeUnmount(() => {
           class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#ff9f43] max-[800px]:hidden"
           title="訊息"
           type="button"
+          @click="router.push({ name: 'chat-test' })"
         >
           <i class="fa-regular fa-comment-dots"></i>
           <span class="absolute right-2 top-2 h-2 w-2 rounded-full border border-white bg-[#ff5e57]" />
@@ -318,8 +321,8 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f0f2f5] text-[#666] transition hover:bg-[#fffcf7] hover:text-[#ff9f43]"
-          @click="closeCrop"
           aria-label="關閉"
+          @click="closeCrop"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
