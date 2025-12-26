@@ -1,45 +1,47 @@
 <script setup>
-import MarqueeBorder from "./MarqueeBorder.vue";
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import MarqueeBorder from './MarqueeBorder.vue'
 
-// Define marquee text constants
-const marqueeTextWhite =
-  "THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 2027";
-const marqueeTextRed =
-  "THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 2027";
+const route = useRoute()
+
+// 邏輯定義：
+// 判斷當前是否為首頁 (假設首頁的路由名稱是 'home' 或路徑是 '/')
+// 如果是首頁 -> true (顯示跑馬燈)
+// 如果是內頁 -> false (隱藏跑馬燈)
+const isHomePage = computed(() => route.name === 'home' || route.path === '/')
+
+const marqueeTextWhite = 'THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 2027'
+const marqueeTextRed = 'THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 2027'
 </script>
 
 <template>
-  <footer class="w-full flex flex-col pointer-events-auto z-20">
-    <!-- Footer Links & Copyright -->
+  <footer class="pointer-events-auto z-20 flex w-full flex-col">
     <div
-      class="w-full p-4 md:px-8 md:pb-4 flex justify-between items-end text-[10px] md:text-xs text-black font-medium tracking-wide"
+      class="flex w-full items-end justify-between p-4 text-[10px] font-medium tracking-wide text-black md:px-8 md:pb-4 md:text-xs"
     >
-      <!-- Copyright -->
       <div class="opacity-80">&copy; MAYEKAWA MFG. CO., LTD.</div>
 
-      <!-- Links & Social -->
       <div class="flex items-center gap-6">
-        <!-- Social Icons -->
         <div class="flex gap-3">
           <img
             src="@/assets/icons/icon-social-instagram.svg"
-            class="w-6 h-6 hover:opacity-80 cursor-pointer"
+            class="h-6 w-6 cursor-pointer hover:opacity-80"
           />
           <img
             src="@/assets/icons/icon-social-tiktok.svg"
-            class="w-6 h-6 hover:opacity-80 cursor-pointer"
+            class="h-6 w-6 cursor-pointer hover:opacity-80"
           />
           <img
             src="@/assets/icons/icon-social-youtube.svg"
-            class="w-6 h-6 hover:opacity-80 cursor-pointer"
+            class="h-6 w-6 cursor-pointer hover:opacity-80"
           />
         </div>
-        <!-- Links -->
-        <div class="hidden md:flex gap-4">
-          <a href="#" class="hover:underline flex items-center gap-1">
+        <div class="hidden gap-4 md:flex">
+          <a href="#" class="flex items-center gap-1 hover:underline">
             CORPORATE SITE <span class="text-[10px]">↗</span>
           </a>
-          <a href="#" class="hover:underline flex items-center gap-1">
+          <a href="#" class="flex items-center gap-1 hover:underline">
             採用活動におけるプライバシーポリシー
             <span class="text-[10px]">↗</span>
           </a>
@@ -47,8 +49,7 @@ const marqueeTextRed =
       </div>
     </div>
 
-    <!-- White Marquee -->
-    <div class="w-full bg-white border-t border-mayekawa/20 flex items-center">
+    <div v-if="isHomePage" class="border-mayekawa/20 flex w-full items-center border-t bg-white">
       <MarqueeBorder
         :text="marqueeTextWhite"
         bg-color="bg-white"
@@ -56,8 +57,8 @@ const marqueeTextRed =
         :speed="40"
       />
     </div>
-    <!-- Red Marquee -->
-    <div class="w-full bg-mayekawa">
+
+    <div v-if="isHomePage" class="bg-mayekawa w-full">
       <MarqueeBorder
         :text="marqueeTextRed"
         bg-color="bg-mayekawa"
