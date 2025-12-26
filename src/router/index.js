@@ -15,37 +15,22 @@ const router = createRouter({
     //   name: 'login',
     //   // component: () => import('../views/Login/LoginView.vue')
     // },
-
+    
     // 聊天室路徑
     {
-      path: '/chat-test',
+      path: '/chat-test', 
       name: 'chat-test',
       component: () => import('@/views/ChatRoomView.vue')
     },
-    {
-      path: '/Event',
-      name: 'Event',
-      component: () => import('@/views/EventView.vue')
-    },
-    {
-      path: '/Social',
-      name: 'Social',
-      component: () => import('@/views/SocialView.vue')
-    },
-    {
-      path: '/Profile',
-      name: 'Profile',
-      component: () => import('@/views/ProfileView.vue')
-    }
   ],
 
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    } else {
-      return { top: 0 }
-    }
-  }
+      if (savedPosition) {
+        return savedPosition
+      } else {
+        return { top: 0 }
+      }
+    },
 })
 
 export default router
