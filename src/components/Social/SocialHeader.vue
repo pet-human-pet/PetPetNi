@@ -5,8 +5,10 @@
         <button class="rounded-lg border px-3 py-1 text-sm font-semibold">Logo</button>
 
         <!-- 手機：搜尋 icon -->
-        <button class="grid h-9 w-9 place-items-center rounded-full bg-zinc-100 md:hidden cursor-pointer"
-          aria-label="Search">
+        <button
+          class="grid h-9 w-9 cursor-pointer place-items-center rounded-full bg-zinc-100 md:hidden"
+          aria-label="Search"
+        >
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
 
@@ -19,30 +21,37 @@
 
       <!-- 平板：顯示社群標題；桌機：顯示 tabs -->
       <div class="hidden items-center gap-6 md:flex">
-        <div class="lg:hidden text-base font-semibold">社群</div>
+        <div class="text-base font-semibold lg:hidden">社群</div>
         <nav class="hidden items-center gap-6 lg:flex">
-          <button class="text-sm text-zinc-600 hover:text-zinc-900 cursor-pointer">活動地圖</button>
-          <button class="text-sm text-zinc-600 hover:text-zinc-900 cursor-pointer">配對卡片</button>
-          <button class="text-sm font-semibold text-zinc-900 cursor-pointer">社群</button>
+          <button class="cursor-pointer text-sm text-zinc-600 hover:text-zinc-900">活動地圖</button>
+          <button class="cursor-pointer text-sm text-zinc-600 hover:text-zinc-900">配對卡片</button>
+          <button class="cursor-pointer text-sm font-semibold text-zinc-900">社群</button>
         </nav>
       </div>
 
       <div class="flex items-center gap-3">
-        <button class="grid h-9 w-9 place-items-center rounded-full hover:bg-zinc-100 cursor-pointer" aria-label="Chat">
+        <button
+          class="grid h-9 w-9 cursor-pointer place-items-center rounded-full hover:bg-zinc-100"
+          aria-label="Chat"
+        >
           <i class="fa-regular fa-comment"></i>
         </button>
 
-        <button class="grid h-9 w-9 place-items-center rounded-full hover:bg-zinc-100 cursor-pointer" aria-label="Bell">
+        <button
+          class="grid h-9 w-9 cursor-pointer place-items-center rounded-full hover:bg-zinc-100"
+          aria-label="Bell"
+        >
           <i class="fa-regular fa-bell"></i>
         </button>
 
         <!-- 手機：漢堡；平板/桌機：頭像 -->
-        <button class="grid h-9 w-9 place-items-center rounded-full hover:bg-zinc-100 md:hidden cursor-pointer"
-          aria-label="Menu">
+        <button
+          class="grid h-9 w-9 cursor-pointer place-items-center rounded-full hover:bg-zinc-100 md:hidden"
+          aria-label="Menu"
+        >
           <i class="fa-solid fa-bars"></i>
         </button>
-        <div class="hidden h-9 w-9 rounded-full bg-zinc-200 md:block cursor-pointer">
-        </div>
+        <div class="hidden h-9 w-9 cursor-pointer rounded-full bg-zinc-200 md:block"></div>
       </div>
     </div>
   </header>
