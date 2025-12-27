@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
+import AudiencePicker from './AudiencePicker.vue'
 
 // 發布貼文流程
 const props = defineProps({
@@ -7,7 +8,7 @@ const props = defineProps({
   maxLength: { type: Number, default: 500 }
 })
 
-const emit = defineEmits(['submit','toast'])
+const emit = defineEmits(['submit', 'toast'])
 
 const open = ref(false)
 const content = ref('')
@@ -43,8 +44,6 @@ watch(open, async (v) => {
 watch(content, () => {
   autoResize()
 })
-
-// 圖片上傳流程
 
 // 觸發圖片上傳
 const triggerImageUpload = () => {
@@ -87,15 +86,16 @@ const submit = () => {
   const hasImages = imageUrls.length > 0
   const textLen = text.length
 
-  if (!hasImages && textLen <= 10){
-    emit('toast', '文字須超過10個字才能發布')
+  if (!hasImages && textLen <= 5) {
+    emit('toast', '文字須超過五個字才能發布')
     return false
   }
 
   emit('submit', {
     content: content.value,
     images: imageUrls,
-    hashtags: []
+    hashtags: [],
+    audience: audience.value
   })
 
   // 清空輸入 (成功才清)
@@ -116,19 +116,13 @@ const submitAndClose = () => {
 // 編輯貼文
 const editing = ref(false)
 
-// 電腦版-分享對象設定
-const audience = ref('🌐所有人')
-const audienceOpen = ref(false)
-
-const setAudience = (v) => {
-  audience.value = v
-  audienceOpen.value = false
-}
+// 分享對象下拉選單
+const audience = ref('public')
 </script>
 
 <template>
   <body>
-  <!-- 隱藏的檔案輸入框 -->
+    <!-- 隱藏的檔案輸入框 -->
     <input
       ref="fileInputRef"
       type="file"
@@ -141,7 +135,7 @@ const setAudience = (v) => {
     <!-- 手機：入口（點了開彈窗） -->
     <button
       type="button"
-      class="c-card mt-4 flex w-full items-center gap-3 py-3 text-left md:hidden"
+      class="c-card flex w-full items-center gap-3 py-3 text-left md:hidden"
       @click="open = true"
     >
       <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
@@ -149,7 +143,7 @@ const setAudience = (v) => {
     </button>
 
     <!-- 平板/桌機：inline 發文 -->
-    <section class="c-card mt-4 hidden bg-white p-4 md:block">
+    <section class="c-card hidden bg-white p-4 md:block">
       <div class="flex items-start gap-3">
         <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
 
@@ -199,44 +193,7 @@ const setAudience = (v) => {
             </div>
 
             <div class="relative flex items-center gap-3">
-              <!-- 分享對象膠囊 -->
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-2 text-sm hover:bg-zinc-200"
-                @click="audienceOpen = !audienceOpen"
-              >
-                <span class="text-base"></span>
-                <span>{{ audience }}</span>
-                <span class="text-zinc-500">▼</span>
-              </button>
-
-              <!-- 下拉選單 -->
-              <div
-                v-if="audienceOpen"
-                class="absolute top-11 right-0 z-10 w-40 rounded-xl border bg-white p-1 shadow"
-              >
-                <button
-                  type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer hover:bg-zinc-100"
-                  @click="setAudience('🌐所有人')"
-                >
-                  🌐 所有人
-                </button>
-                <button
-                  type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer hover:bg-zinc-100"
-                  @click="setAudience('👥好友')"
-                >
-                  👥 好友
-                </button>
-                <button
-                  type="button"
-                  class="w-full rounded-lg px-3 py-2 text-left text-sm cursor-pointer hover:bg-zinc-100"
-                  @click="setAudience('🔒只限自己')"
-                >
-                  🔒 只限自己
-                </button>
-              </div>
+              <AudiencePicker v-model="audience" />
 
               <!-- 字數 -->
               <div class="text-sm text-zinc-400">{{ countText }}</div>
@@ -269,14 +226,7 @@ const setAudience = (v) => {
               <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
               <div class="min-w-0">
                 <div class="text-sm font-semibold">{{ username }}</div>
-                <button
-                  type="button"
-                  class="mt-1 inline-flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5 text-xs"
-                >
-                  <span class="text-sm">🌐</span>
-                  <span>所有人</span>
-                  <span class="text-zinc-500">▼</span>
-                </button>
+                <AudiencePicker v-model="audience" />
               </div>
             </div>
 
