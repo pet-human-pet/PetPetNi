@@ -6,15 +6,16 @@ import PostComposer from '@/components/Social/PostComposer.vue'
 const rawPosts = ref([
   {
     id: 1,
+    audience: 'friends',
     author: 'test',
     isMine: true,
     content:
-      '這是一段用於版面配置的示意文字，主要用來模擬實際內容呈現時的視覺效果，請勿當作正式文案。五十個字隱藏',
-    ellipsis: true,
+      '這是一段用於版面配置的示意文字，主要用來模擬實際內容呈現時的視覺效果，請勿當作正式文案。',
     tags: ['#狗', '#柯基', '#日常生活'],
     images: [
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSum7FwfWAYG3LAVpmMG9e_y3H_u57BstJ5Tg&s'
     ],
+    isNew: false,
     likeCount: 120,
     isLiked: false,
     commentCount: 12,
@@ -23,27 +24,29 @@ const rawPosts = ref([
   {
     id: 2,
     author: 'test',
+    audience: 'public',
     content:
       '這是一段用於版面配置的示意文字，主要用來模擬實際內容呈現時的視覺效果，請勿當作正式文案。',
     isMine: false,
-    ellipsis: false,
     tags: ['#貓', '#奴才日常'],
     images: ['https://media.tenor.com/uKayqry3x90AAAAM/goofy-funny-cat.gif'],
+    isNew: false,
     likeCount: 120,
     isLiked: true,
     commentCount: 12,
-    isBookmarked: true
+    isBookmarked: false
   },
   {
     id: 3,
+    audience: 'public',
     author: 'test',
-    content: '這是一段用於版面配置的示意文字，主要用來模擬實際內容呈現時的視覺效果，五十個字隱藏',
-    ellipsis: true,
+    content: '這是一段用於版面配置的示意文字，主要用來模擬實際內容呈現時的視覺效果',
     tags: [],
     images: [
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSn4pPgkiCwbIXkTfSgfhp4BMEjVOJXJItR1FkRMuWplvtUZo4yzGtfKgC1Dqyi7R9lM3Y&usqp=CAU',
       'https://tiptopk9.com/nitropack_static/CQBMbUdUxEdJwDWnlMCaRSOixvBddFgB/assets/images/optimized/rev-dcdf01d/tiptopk9.com/wp-content/uploads/hilarious-chihuahua-dog-meme.jpeg'
     ],
+    isNew: false,
     likeCount: 120,
     isLiked: false,
     commentCount: 12,
@@ -94,6 +97,7 @@ const handleUpdate = (payload) => {
   const post = rawPosts.value.find((p) => p.id === payload.id)
   if (!post) return
   post.content = payload.content
+  post.audience = payload.audience || post.audience
 
   showToast(post.payload ? '' : '貼文已更新')
 }
@@ -105,29 +109,40 @@ const handleSubmit = (payload) => {
 
   const hasImages = images.length > 0
   const textLength = text.length
-  
-if (!hasImages && textLength <= 10) {
-  showToast('發文內容請超過10字')
-  return false
-}
+
+  if (!hasImages && textLength <= 5) {
+    showToast('發文內容請超過5字')
+    return false
+  }
+
+  const newPostId = Date.now()
 
   rawPosts.value.unshift({
     id: Date.now(),
+    audience: payload.audience ?? 'public',
     author: 'test',
     content: text,
     isMine: true,
-    ellipsis: text.length > 50,
     tags: [''],
     images,
+    isNew: true,
     likeCount: 0,
     commentCount: 0,
     isLiked: false,
     isBookmarked: false
   })
+
+  // 新增貼文後，4秒後移除 isNew 標記
+  setTimeout(() => {
+    const post = rawPosts.value.find((p) => p.id === newPostId)
+    if (post) post.isNew = false
+  }, 2000)
+
   showToast('貼文已發布')
   return true
 }
 
+// Toast 提示
 const toast = ref({ open: false, message: '' })
 let toastTimer = null
 const showToast = (message) => {
@@ -150,12 +165,11 @@ const sharePost = (postId) => console.log('share', postId)
   <div class="bg-bg-base">
     <div class="mx-10 min-h-screen">
       <main class="mx-auto w-full max-w-260 px-4 pb-16">
-        <div>
-          <PostComposer username="" @submit="handleSubmit"
-          @toast="showToast" />
+        <div class="pt-5 md:pt-8">
+          <PostComposer username="" @submit="handleSubmit" @toast="showToast" />
         </div>
         <!-- 手機/平板：單欄 -->
-        <section class="mt-4 flex flex-col gap-4 lg:hidden">
+        <section class="mt-4 flex flex-col gap-4 md:hidden">
           <PostCard
             v-for="p in rawPosts"
             :key="p.id"
@@ -171,7 +185,7 @@ const sharePost = (postId) => console.log('share', postId)
         </section>
 
         <!-- 桌機：雙欄 -->
-        <section class="mt-6 hidden items-start gap-6 lg:flex">
+        <section class="mt-6 hidden items-start gap-6 md:flex">
           <!-- 左欄 -->
           <div class="flex flex-1 flex-col gap-6">
             <PostCard

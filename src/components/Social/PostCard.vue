@@ -1,6 +1,8 @@
 <script setup>
 import ActionBar from './PostCard/ActionBar.vue'
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import AudiencePicker from './AudiencePicker.vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   post: { type: Object, required: true }
@@ -16,6 +18,9 @@ const emit = defineEmits([
   'bookmark'
 ])
 
+const router = useRouter()
+const toProfile = () => router.push({ path: '/profile' })
+
 const isEditing = ref(false)
 const editContent = ref('')
 const editTextareaRef = ref(null)
@@ -30,6 +35,7 @@ const autoResizeEdit = () => {
 const startEdit = async () => {
   isEditing.value = true
   editContent.value = props.post.content
+  editAudience.value = props.post.audience || 'public'
 
   await nextTick()
   autoResizeEdit()
@@ -43,22 +49,51 @@ watch(editContent, () => {
 const cancelEdit = () => {
   isEditing.value = false
   editContent.value = ''
+  editAudience.value = 'public'
 }
 
 const saveEdit = () => {
   if (!editContent.value.trim()) return
-  emit('update', { id: props.post.id, content: editContent.value })
+  emit('update', {
+    id: props.post.id,
+    content: editContent.value,
+    audience: editAudience.value
+  })
   isEditing.value = false
 }
+
+const editAudience = ref('public')
 </script>
 
 <template>
   <body>
-    <div class="c-card p-5 md:p-6">
+    <div
+      class="c-card p-5 transition-colors duration-500 md:p-6"
+      :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
+    >
       <div class="flex items-start justify-between">
         <div class="flex items-center gap-3">
-          <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
-          <a class="text-m cursor-pointer font-semibold text-blue-800">{{ post.author }}</a>
+          <div class="cursor-pointer flex items-center gap-3" @click="toProfile">
+            <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
+            <a class="text-m cursor-pointer font-semibold text-blue-800">{{ post.author }}</a>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-zinc-500">·</span>
+
+            <!-- 編輯中：顯示 Picker -->
+            <AudiencePicker v-if="isEditing" v-model="editAudience" />
+
+            <!-- 非編輯：只顯示目前 audience -->
+            <span v-else class="text-xs text-zinc-500">
+              {{
+                post.audience === 'public'
+                  ? '🌐 所有人'
+                  : post.audience === 'friends'
+                    ? '👥 好友'
+                    : '🔒 只限自己'
+              }}
+            </span>
+          </div>
         </div>
 
         <div class="flex items-center gap-2">
@@ -66,7 +101,7 @@ const saveEdit = () => {
           <button
             v-if="post.isMine"
             type="button"
-            class="grid h-9 w-9 place-items-center rounded-lg hover:bg-zinc-100 cursor-pointer"
+            class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
             aria-label="Edit"
             @click="startEdit"
           >
@@ -75,7 +110,7 @@ const saveEdit = () => {
 
           <!--更多按鈕-->
           <button
-            class="grid h-9 w-9 place-items-center rounded-lg cursor-pointer hover:bg-zinc-100"
+            class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
             aria-label="More"
           >
             <i class="fa-solid fa-ellipsis"></i>
@@ -90,6 +125,7 @@ const saveEdit = () => {
           class="w-full resize-none bg-transparent text-base leading-6 outline-none"
           rows="3"
         ></textarea>
+
         <div class="mt-2 flex justify-end gap-2">
           <button
             type="button"
