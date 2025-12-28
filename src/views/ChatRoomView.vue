@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat.js'
+import ChatRules from '@/components/Social/ChatRules.vue' // 引入 ChatRules 元件
 
 const router = useRouter()
 const store = useChatStore()
@@ -23,28 +24,41 @@ const contextMenu = ref({ visible: false, x: 0, y: 0, chatId: null, chatType: nu
 
 const openContextMenu = (e, chat) => {
   e.preventDefault()
-  contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, chatId: chat.id, chatType: chat.type, pinned: chat.pinned }
+  contextMenu.value = {
+    visible: true,
+    x: e.clientX,
+    y: e.clientY,
+    chatId: chat.id,
+    chatType: chat.type,
+    pinned: chat.pinned
+  }
 }
-const closeContextMenu = () => { contextMenu.value.visible = false }
+const closeContextMenu = () => {
+  contextMenu.value.visible = false
+}
 const handleMenuAction = (action) => {
   const { chatId } = contextMenu.value
   if (action === 'pin') store.togglePin(chatId)
-  if (action === 'delete') { if(confirm('確定要刪除/退出嗎？')) store.deleteChat(chatId) }
+  if (action === 'delete') {
+    if (confirm('確定要刪除/退出嗎？')) store.deleteChat(chatId)
+  }
   closeContextMenu()
 }
 onMounted(() => window.addEventListener('click', closeContextMenu))
 onUnmounted(() => window.removeEventListener('click', closeContextMenu))
 
 // --- 聊天室邏輯 (ChatRoomPanel句數限制) ---
-const usageCount = computed(() => store.activeChat ? store.activeChat.msgs.filter(m => m.sender === 'me').length : 0)
+const usageCount = computed(() =>
+  store.activeChat ? store.activeChat.msgs.filter((m) => m.sender === 'me').length : 0
+)
 const charCount = computed(() => messageInput.value.length)
 const isOverCharLimit = computed(() => store.activeChat?.type === 'knock' && charCount.value > 30)
 const isInputDisabled = computed(() => {
   const chat = store.activeChat
   if (!chat) return true
   if (chat.type === 'knock') {
-      if (chat.status === 'pending') return true
-      if (chat.status === 'trial' && usageCount.value >= 3) return true
+    if (chat.status === 'pending') return true
+    if (chat.status === 'trial' && usageCount.value >= 3) return true
   }
   if (chat.type === 'match' && chat.status === 'matching' && usageCount.value >= 10) return true
   return false
@@ -62,112 +76,163 @@ const handleImageUpload = () => {
 }
 
 const reportMessage = () => {
-  if(confirm('確定要檢舉此訊息嗎？')) alert('已收到檢舉，系統將審核。')
+  if (confirm('確定要檢舉此訊息嗎？')) alert('已收到檢舉，系統將審核。')
 }
 
 // 捲動到底部
-watch(() => store.activeChat?.msgs.length, async () => {
-  await nextTick()
-  if (msgContainer.value) msgContainer.value.scrollTop = msgContainer.value.scrollHeight
-})
+watch(
+  () => store.activeChat?.msgs.length,
+  async () => {
+    await nextTick()
+    if (msgContainer.value) msgContainer.value.scrollTop = msgContainer.value.scrollHeight
+  }
+)
 
 // 活動倒數計時
 let timer
 const updateTime = () => {
   if (store.activeChat?.type === 'event' && store.activeChat.expiryDate) {
-      const diff = new Date(store.activeChat.expiryDate) - new Date()
-      if (diff > 0) {
-          const hrs = Math.floor(diff / (1000 * 60 * 60))
-          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-          timeLeft.value = `剩餘 ${hrs} 小時 ${mins} 分鐘`
-      } else timeLeft.value = '活動已結束'
+    const diff = new Date(store.activeChat.expiryDate) - new Date()
+    if (diff > 0) {
+      const hrs = Math.floor(diff / (1000 * 60 * 60))
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      timeLeft.value = `剩餘 ${hrs} 小時 ${mins} 分鐘`
+    } else timeLeft.value = '活動已結束'
   } else timeLeft.value = ''
 }
-watch(() => store.activeChatId, () => {
-  updateTime()
-  clearInterval(timer)
-  if (store.activeChat?.type === 'event') timer = setInterval(updateTime, 60000)
-})
+watch(
+  () => store.activeChatId,
+  () => {
+    updateTime()
+    clearInterval(timer)
+    if (store.activeChat?.type === 'event') timer = setInterval(updateTime, 60000)
+  }
+)
 </script>
 
 <template>
-  <div class="relative w-screen h-screen overflow-hidden bg-bg-surface flex flex-col-reverse md:flex-row font-sans">
+  <ChatRules />
+  <div
+    class="bg-bg-surface relative flex h-screen w-screen flex-col-reverse overflow-hidden font-sans md:flex-row"
+  >
     <!-- Close Button -->
     <button
-      class="absolute top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-bg-surface/80 text-fg-secondary shadow-md transition-all hover:bg-bg-base hover:text-brand-accent max-md:top-2 max-md:right-2"
+      class="bg-bg-surface/80 text-fg-secondary hover:bg-bg-base hover:text-brand-accent absolute top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full shadow-md transition-all max-md:top-2 max-md:right-2"
       title="關閉"
       type="button"
       @click="router.back()"
     >
       <i class="fa-solid fa-xmark text-xl"></i>
     </button>
-    
+
     <!-- Left Nav -->
     <div
-class="
-      shrink-0 w-full h-15 bg-bg-surface border-t border-border-default flex flex-row justify-around items-center z-50
-      md:w-20 md:h-full md:bg-bg-base md:border-t-0 md:border-r md:flex-col md:justify-start md:pt-7.5 md:z-auto
-    ">
-      <div 
-        v-for="item in navItems" :key="item.key"
-        class="
-          relative flex flex-col justify-center items-center cursor-pointer text-fg-muted transition-all duration-200
-          w-full h-full md:w-15 md:h-15 md:rounded-xl md:mb-3.75 md:flex-none
-          hover:bg-black/5 hover:text-brand-primary
-        "
-        :class="{ 'bg-brand-primary! text-white! shadow-lg shadow-brand-primary/30': store.currentCategory === item.key }"
+      class="bg-bg-surface border-border-default md:bg-bg-base z-50 flex h-15 w-full shrink-0 flex-row items-center justify-around border-t md:z-auto md:h-full md:w-20 md:flex-col md:justify-start md:border-t-0 md:border-r md:pt-7.5"
+    >
+      <div
+        v-for="item in navItems"
+        :key="item.key"
+        class="text-fg-muted hover:text-brand-primary relative flex h-full w-full cursor-pointer flex-col items-center justify-center transition-all duration-200 hover:bg-black/5 md:mb-3.75 md:h-15 md:w-15 md:flex-none md:rounded-xl"
+        :class="{
+          'bg-brand-primary! shadow-brand-primary/30 text-white! shadow-lg':
+            store.currentCategory === item.key
+        }"
         @click="store.switchCategory(item.key)"
       >
-        <i class="fa-solid text-[20px] mb-1" :class="item.icon"></i>
-        <div class="text-[10px] font-bold leading-none">{{ item.label }}</div>
-        <div v-if="item.badge" class="absolute top-1.25 right-1.25 w-4 h-4 bg-brand-accent text-white text-[9px] rounded-full flex justify-center items-center border-2 border-bg-base">
+        <i class="fa-solid mb-1 text-[20px]" :class="item.icon"></i>
+        <div class="text-[10px] leading-none font-bold">{{ item.label }}</div>
+        <div
+          v-if="item.badge"
+          class="bg-brand-accent border-bg-base absolute top-1.25 right-1.25 flex h-4 w-4 items-center justify-center rounded-full border-2 text-[9px] text-white"
+        >
           {{ item.badge }}
         </div>
       </div>
     </div>
 
     <!-- Middle Chat List -->
-    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-15 md:w-[320px] md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
-      <div class="p-4 shrink-0">
-        <input type="text" placeholder="搜尋對話..." class="w-full bg-bg-base rounded-full px-4 py-2 text-sm text-fg-primary outline-none placeholder:text-fg-muted">
+    <div
+      class="bg-bg-surface md:border-border-default relative flex flex-1 shrink-0 flex-col pb-15 md:h-full md:w-[320px] md:flex-none md:border-r md:pb-0"
+    >
+      <div class="shrink-0 p-4">
+        <input
+          type="text"
+          placeholder="搜尋對話..."
+          class="bg-bg-base text-fg-primary placeholder:text-fg-muted w-full rounded-full px-4 py-2 text-sm outline-none"
+        />
       </div>
-      
-      <div class="flex-1 overflow-y-auto px-2 no-scrollbar">
-        <div 
-          v-for="chat in store.currentChatList" :key="chat.id"
-          class="flex items-center p-3 rounded-xl cursor-pointer hover:bg-bg-base mb-1 relative group transition-colors"
-          :class="{'bg-bg-base': store.activeChatId === chat.id, 'bg-bg-base/50': chat.pinned}"
+
+      <div class="no-scrollbar flex-1 overflow-y-auto px-2">
+        <div
+          v-for="chat in store.currentChatList"
+          :key="chat.id"
+          class="hover:bg-bg-base group relative mb-1 flex cursor-pointer items-center rounded-xl p-3 transition-colors"
+          :class="{ 'bg-bg-base': store.activeChatId === chat.id, 'bg-bg-base/50': chat.pinned }"
           @click="store.openChat(chat.id)"
           @contextmenu="openContextMenu($event, chat)"
         >
           <div class="relative">
-            <div class="w-12 h-12 rounded-full bg-cover bg-center bg-gray-200" :style="{backgroundImage: `url(${chat.avatar})`}"></div>
-            <div v-if="store.currentCategory === 'match' && chat.status !== 'pending'" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            <div
+              class="h-12 w-12 rounded-full bg-gray-200 bg-cover bg-center"
+              :style="{ backgroundImage: `url(${chat.avatar})` }"
+            ></div>
+            <div
+              v-if="store.currentCategory === 'match' && chat.status !== 'pending'"
+              class="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"
+            ></div>
           </div>
-          <div class="ml-3 flex-1 min-w-0">
-            <div class="flex justify-between items-center mb-1">
-              <div class="font-bold text-fg-primary text-sm flex items-center gap-1">
-                <i v-if="chat.pinned" class="fa-solid fa-thumbtack text-brand-primary text-xs rotate-45"></i>
+          <div class="ml-3 min-w-0 flex-1">
+            <div class="mb-1 flex items-center justify-between">
+              <div class="text-fg-primary flex items-center gap-1 text-sm font-bold">
+                <i
+                  v-if="chat.pinned"
+                  class="fa-solid fa-thumbtack text-brand-primary rotate-45 text-xs"
+                ></i>
                 <span class="truncate">{{ chat.name }}</span>
-                <span v-if="chat.status === 'matching'" class="bg-orange-100 text-orange-500 text-[10px] px-1 rounded">配對</span>
-                <span v-if="chat.status === 'friend'" class="bg-green-100 text-green-600 text-[10px] px-1 rounded">好友</span>
-                <span v-if="chat.type === 'knock'" class="bg-purple-100 text-purple-600 text-[10px] px-1 rounded">敲敲門</span>
+                <span
+                  v-if="chat.status === 'matching'"
+                  class="rounded bg-orange-100 px-1 text-[10px] text-orange-500"
+                  >配對</span
+                >
+                <span
+                  v-if="chat.status === 'friend'"
+                  class="rounded bg-green-100 px-1 text-[10px] text-green-600"
+                  >好友</span
+                >
+                <span
+                  v-if="chat.type === 'knock'"
+                  class="rounded bg-purple-100 px-1 text-[10px] text-purple-600"
+                  >敲敲門</span
+                >
               </div>
-              <span class="text-[10px] text-fg-muted whitespace-nowrap">{{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].time : '' }}</span>
+              <span class="text-fg-muted text-[10px] whitespace-nowrap">{{
+                chat.msgs.length ? chat.msgs[chat.msgs.length - 1].time : ''
+              }}</span>
             </div>
-            <div class="text-xs text-fg-secondary truncate h-4">
-              {{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].text : '點擊開始聊天' }}
+            <div class="text-fg-secondary h-4 truncate text-xs">
+              {{ chat.msgs.length ? chat.msgs[chat.msgs.length - 1].text : '點擊開始聊天' }}
             </div>
           </div>
         </div>
       </div>
 
       <!-- Context Menu -->
-      <div v-if="contextMenu.visible" class="fixed bg-bg-surface shadow-xl rounded-lg py-2 w-32 z-9999 border border-border-default text-sm text-fg-primary" :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }">
-        <div class="px-4 py-2 hover:bg-bg-base cursor-pointer flex items-center gap-2" @click="handleMenuAction('pin')">
-          <i class="fa-solid fa-thumbtack text-fg-muted"></i> {{ contextMenu.pinned ? '取消置頂' : '置頂' }}
+      <div
+        v-if="contextMenu.visible"
+        class="bg-bg-surface border-border-default text-fg-primary fixed z-9999 w-32 rounded-lg border py-2 text-sm shadow-xl"
+        :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
+      >
+        <div
+          class="hover:bg-bg-base flex cursor-pointer items-center gap-2 px-4 py-2"
+          @click="handleMenuAction('pin')"
+        >
+          <i class="fa-solid fa-thumbtack text-fg-muted"></i>
+          {{ contextMenu.pinned ? '取消置頂' : '置頂' }}
         </div>
-        <div class="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer flex items-center gap-2 border-t border-border-default mt-1" @click="handleMenuAction('delete')">
+        <div
+          class="border-border-default mt-1 flex cursor-pointer items-center gap-2 border-t px-4 py-2 text-red-500 hover:bg-red-50"
+          @click="handleMenuAction('delete')"
+        >
           <i class="fa-solid fa-trash-can"></i> 刪除/退出
         </div>
       </div>
@@ -175,89 +240,199 @@ class="
 
     <!-- Right Chat Area -->
     <div
-class="
-      flex-1 h-full min-w-0 bg-bg-base relative flex flex-col
-      fixed inset-0 z-20 md:static md:translate-x-0 transition-transform duration-300 transform translate-x-full
-    " :class="{ 'translate-x-0!': store.activeChatId }">
-      
-      <div v-if="!store.activeChat" class="hidden md:flex flex-col items-center justify-center h-full text-fg-muted">
-        <i class="fa-solid fa-comments text-5xl mb-4 text-gray-200"></i>
+      class="bg-bg-base fixed relative inset-0 z-20 flex h-full min-w-0 flex-1 translate-x-full transform flex-col transition-transform duration-300 md:static md:translate-x-0"
+      :class="{ 'translate-x-0!': store.activeChatId }"
+    >
+      <div
+        v-if="!store.activeChat"
+        class="text-fg-muted hidden h-full flex-col items-center justify-center md:flex"
+      >
+        <i class="fa-solid fa-comments mb-4 text-5xl text-gray-200"></i>
         <p>請選擇一個對話開始聊天</p>
       </div>
 
-      <div v-else class="flex flex-col h-full relative">
-        <div class="h-17.5 bg-bg-surface border-b border-border-default flex items-center justify-between px-6 shrink-0 z-10">
+      <div v-else class="relative flex h-full flex-col">
+        <div
+          class="bg-bg-surface border-border-default z-10 flex h-17.5 shrink-0 items-center justify-between border-b px-6"
+        >
           <div class="flex items-center gap-3">
-             <i class="fa-solid fa-chevron-left md:hidden text-xl cursor-pointer text-fg-primary" @click="store.activeChatId=null"></i>
-             <div class="w-10 h-10 rounded-full bg-cover bg-gray-200" :style="{backgroundImage: `url(${store.activeChat.avatar})`}"></div>
-             <div>
-               <div class="font-bold text-fg-primary flex items-center gap-2">
-                   {{ store.activeChat.name }}
-                   <span v-if="timeLeft" class="text-xs bg-red-100 text-red-500 px-2 rounded-full">{{ timeLeft }}</span>
-               </div>
-               <div class="text-xs text-fg-secondary">{{ store.activeChat.status === 'matching' ? '配對互動中' : '線上' }}</div>
-             </div>
+            <i
+              class="fa-solid fa-chevron-left text-fg-primary cursor-pointer text-xl md:hidden"
+              @click="store.activeChatId = null"
+            ></i>
+            <div
+              class="h-10 w-10 rounded-full bg-gray-200 bg-cover"
+              :style="{ backgroundImage: `url(${store.activeChat.avatar})` }"
+            ></div>
+            <div>
+              <div class="text-fg-primary flex items-center gap-2 font-bold">
+                {{ store.activeChat.name }}
+                <span v-if="timeLeft" class="rounded-full bg-red-100 px-2 text-xs text-red-500">{{
+                  timeLeft
+                }}</span>
+              </div>
+              <div class="text-fg-secondary text-xs">
+                {{ store.activeChat.status === 'matching' ? '配對互動中' : '線上' }}
+              </div>
+            </div>
           </div>
-          <div class="flex gap-4 text-fg-muted pr-10 md:pr-12">
-              <i class="fa-solid fa-triangle-exclamation hover:text-red-500 cursor-pointer" @click="reportMessage"></i>
+          <div class="text-fg-muted flex gap-4 pr-10 md:pr-12">
+            <i
+              class="fa-solid fa-triangle-exclamation cursor-pointer hover:text-red-500"
+              @click="reportMessage"
+            ></i>
           </div>
         </div>
 
-        <div v-if="store.activeChat.notice" class="bg-yellow-50 text-yellow-800 px-4 py-2 text-sm flex items-center border-b border-yellow-100 shrink-0">
+        <div
+          v-if="store.activeChat.notice"
+          class="flex shrink-0 items-center border-b border-yellow-100 bg-yellow-50 px-4 py-2 text-sm text-yellow-800"
+        >
           <i class="fa-solid fa-bullhorn mr-2"></i> {{ store.activeChat.notice }}
         </div>
-        
+
         <!-- Knock Pending Banner -->
-        <div v-if="store.activeChat.type === 'knock' && store.activeChat.status === 'pending'" class="absolute bottom-0 left-0 w-full bg-red-50 p-4 border-t border-red-100 z-20 flex flex-col items-center gap-2">
-            <div class="text-red-500 font-bold text-sm">這是一則敲敲門訊息，是否接受？</div>
-            <div class="flex gap-4">
-                <button class="px-4 py-1 bg-gray-200 rounded-full text-gray-600 text-sm" @click="store.rejectStranger(store.activeChatId)">刪除</button>
-                <button class="px-4 py-1 bg-brand-primary text-white rounded-full text-sm" @click="store.acceptStranger(store.activeChatId)">接受</button>
-            </div>
+        <div
+          v-if="store.activeChat.type === 'knock' && store.activeChat.status === 'pending'"
+          class="absolute bottom-0 left-0 z-20 flex w-full flex-col items-center gap-2 border-t border-red-100 bg-red-50 p-4"
+        >
+          <div class="text-sm font-bold text-red-500">這是一則敲敲門訊息，是否接受？</div>
+          <div class="flex gap-4">
+            <button
+              class="rounded-full bg-gray-200 px-4 py-1 text-sm text-gray-600"
+              @click="store.rejectStranger(store.activeChatId)"
+            >
+              刪除
+            </button>
+            <button
+              class="bg-brand-primary rounded-full px-4 py-1 text-sm text-white"
+              @click="store.acceptStranger(store.activeChatId)"
+            >
+              接受
+            </button>
+          </div>
         </div>
-        
+
         <!-- Friend Request Banner -->
-        <div v-if="isInputDisabled && store.activeChat.status !== 'pending' && store.activeChat.status !== 'friend'" class="absolute bottom-0 left-0 w-full bg-bg-base p-4 border-t border-border-default z-20 flex flex-col items-center gap-2">
-            <div class="text-brand-primary font-bold text-sm">互動已達上限，是否成為好友？</div>
-            <div class="flex gap-4">
-                <button class="px-4 py-1 bg-gray-200 rounded-full text-gray-600 text-sm" @click="store.rejectFriend(store.activeChatId)">拒絕</button>
-                <button class="px-4 py-1 bg-brand-primary text-white rounded-full text-sm" @click="store.becomeFriend(store.activeChatId)">成為好友</button>
-            </div>
+        <div
+          v-if="
+            isInputDisabled &&
+            store.activeChat.status !== 'pending' &&
+            store.activeChat.status !== 'friend'
+          "
+          class="bg-bg-base border-border-default absolute bottom-0 left-0 z-20 flex w-full flex-col items-center gap-2 border-t p-4"
+        >
+          <div class="text-brand-primary text-sm font-bold">互動已達上限，是否成為好友？</div>
+          <div class="flex gap-4">
+            <button
+              class="rounded-full bg-gray-200 px-4 py-1 text-sm text-gray-600"
+              @click="store.rejectFriend(store.activeChatId)"
+            >
+              拒絕
+            </button>
+            <button
+              class="bg-brand-primary rounded-full px-4 py-1 text-sm text-white"
+              @click="store.becomeFriend(store.activeChatId)"
+            >
+              成為好友
+            </button>
+          </div>
         </div>
-        
+
         <!-- AI Prompts -->
-        <div v-if="store.activeChat.type === 'ai'" class="bg-bg-base p-2 flex gap-2 overflow-x-auto no-scrollbar border-b border-border-default shrink-0">
-          <button v-for="prompt in store.activeChat.prompts" :key="prompt" class="whitespace-nowrap px-3 py-1 bg-bg-surface border border-brand-primary text-brand-primary rounded-full text-xs hover:bg-brand-primary hover:text-white" @click="store.sendAiPrompt(prompt)">{{ prompt }}</button>
+        <div
+          v-if="store.activeChat.type === 'ai'"
+          class="bg-bg-base no-scrollbar border-border-default flex shrink-0 gap-2 overflow-x-auto border-b p-2"
+        >
+          <button
+            v-for="prompt in store.activeChat.prompts"
+            :key="prompt"
+            class="bg-bg-surface border-brand-primary text-brand-primary hover:bg-brand-primary rounded-full border px-3 py-1 text-xs whitespace-nowrap hover:text-white"
+            @click="store.sendAiPrompt(prompt)"
+          >
+            {{ prompt }}
+          </button>
         </div>
 
         <!-- Message Container -->
-        <div ref="msgContainer" class="flex-1 overflow-y-auto p-6 space-y-4 bg-bg-base no-scrollbar">
-          <div v-for="msg in store.activeChat.msgs" :key="msg.id" class="flex" :class="msg.sender === 'me' ? 'justify-end' : 'justify-start'">
-            <div v-if="msg.sender !== 'me'" class="w-9 h-9 rounded-full bg-gray-300 mr-2 bg-cover" :style="{backgroundImage: `url(${store.activeChat.avatar})`}"></div>
+        <div
+          ref="msgContainer"
+          class="bg-bg-base no-scrollbar flex-1 space-y-4 overflow-y-auto p-6"
+        >
+          <div
+            v-for="msg in store.activeChat.msgs"
+            :key="msg.id"
+            class="flex"
+            :class="msg.sender === 'me' ? 'justify-end' : 'justify-start'"
+          >
+            <div
+              v-if="msg.sender !== 'me'"
+              class="mr-2 h-9 w-9 rounded-full bg-gray-300 bg-cover"
+              :style="{ backgroundImage: `url(${store.activeChat.avatar})` }"
+            ></div>
             <div class="group relative max-w-[70%]">
-              <div 
-                class="px-4 py-3 rounded-2xl text-sm leading-relaxed break-all shadow-sm" 
-                :class="msg.sender === 'me' ? 'bg-brand-primary text-white rounded-br-sm' : 'bg-bg-surface text-fg-primary rounded-bl-sm border border-border-default'"
+              <div
+                class="rounded-2xl px-4 py-3 text-sm leading-relaxed break-all shadow-sm"
+                :class="
+                  msg.sender === 'me'
+                    ? 'bg-brand-primary rounded-br-sm text-white'
+                    : 'bg-bg-surface text-fg-primary border-border-default rounded-bl-sm border'
+                "
               >
                 {{ msg.text }}
               </div>
-              <div v-if="msg.sender !== 'me'" class="hidden group-hover:block absolute -right-6 top-2 text-fg-muted hover:text-red-400 cursor-pointer" @click="reportMessage"><i class="fa-solid fa-flag"></i></div>
-              <div class="text-[10px] text-fg-muted mt-1" :class="msg.sender==='me'?'text-right':''">{{ msg.time }} <span v-if="msg.sender==='me'">已讀 {{msg.read}}</span></div>
+              <div
+                v-if="msg.sender !== 'me'"
+                class="text-fg-muted absolute top-2 -right-6 hidden cursor-pointer group-hover:block hover:text-red-400"
+                @click="reportMessage"
+              >
+                <i class="fa-solid fa-flag"></i>
+              </div>
+              <div
+                class="text-fg-muted mt-1 text-[10px]"
+                :class="msg.sender === 'me' ? 'text-right' : ''"
+              >
+                {{ msg.time }} <span v-if="msg.sender === 'me'">已讀 {{ msg.read }}</span>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Input Area -->
-        <div v-if="!isInputDisabled" class="p-4 bg-bg-surface border-t border-border-default flex items-end gap-3 shrink-0 pb-7.5 md:pb-4">
-          <div class="flex-1 bg-bg-base rounded-2xl flex items-center px-4 py-2 relative border border-transparent focus-within:border-brand-primary transition-colors">
-            <textarea v-model="messageInput" placeholder="輸入訊息..." rows="1" class="flex-1 bg-transparent border-none outline-none resize-none text-sm text-fg-primary placeholder:text-fg-muted max-h-20" @keydown.enter.prevent="handleSend"></textarea>
-            <div v-if="store.activeChat.type === 'knock'" class="text-[10px] mr-2" :class="isOverCharLimit ? 'text-red-500 font-bold' : 'text-fg-muted'">{{ charCount }}/30</div>
-            <i class="fa-solid fa-image text-fg-muted ml-2 cursor-pointer hover:text-brand-primary" @click="handleImageUpload"></i>
+        <div
+          v-if="!isInputDisabled"
+          class="bg-bg-surface border-border-default flex shrink-0 items-end gap-3 border-t p-4 pb-7.5 md:pb-4"
+        >
+          <div
+            class="bg-bg-base focus-within:border-brand-primary relative flex flex-1 items-center rounded-2xl border border-transparent px-4 py-2 transition-colors"
+          >
+            <textarea
+              v-model="messageInput"
+              placeholder="輸入訊息..."
+              rows="1"
+              class="text-fg-primary placeholder:text-fg-muted max-h-20 flex-1 resize-none border-none bg-transparent text-sm outline-none"
+              @keydown.enter.prevent="handleSend"
+            ></textarea>
+            <div
+              v-if="store.activeChat.type === 'knock'"
+              class="mr-2 text-[10px]"
+              :class="isOverCharLimit ? 'font-bold text-red-500' : 'text-fg-muted'"
+            >
+              {{ charCount }}/30
+            </div>
+            <i
+              class="fa-solid fa-image text-fg-muted hover:text-brand-primary ml-2 cursor-pointer"
+              @click="handleImageUpload"
+            ></i>
           </div>
-          <button class="w-10 h-10 rounded-full bg-btn-primary flex items-center justify-center text-fg-primary hover:scale-95 transition-transform shadow-md" @click="handleSend"><i class="fa-solid fa-paper-plane"></i></button>
+          <button
+            class="bg-btn-primary text-fg-primary flex h-10 w-10 items-center justify-center rounded-full shadow-md transition-transform hover:scale-95"
+            @click="handleSend"
+          >
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
         </div>
       </div>
     </div>
-
   </div>
 </template>
