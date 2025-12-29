@@ -156,4 +156,19 @@
   }
 
   /* UI (modal/dropdown/toast) */
+  .c-toast {
+    @apply pointer-events-auto relative flex min-w-[250px] items-center gap-3 overflow-hidden rounded-lg px-4 py-3 shadow-lg transition-all text-white;
+  }
+
+  .c-toast--success {
+    @apply bg-green-600;
+  }
+
+  .c-toast--error {
+    @apply bg-red-600;
+  }
+
+  .c-toast--info {
+    @apply bg-blue-600;
+  }
 }
