@@ -10,6 +10,8 @@ const emit = defineEmits(['select', 'create', 'open-comments'])
 
 const formOpen = ref(false)
 const submittedOpen = ref(false)
+const joinModalOpen = ref(false)
+const joinedEvent = ref(null)
 
 const locOptions = [
   { value: 1, label: '台北 101 大樓' },
@@ -152,7 +154,15 @@ function submit() {
   formOpen.value = false
   submittedOpen.value = true
 }
+function openJoinModal(evt) {
+  joinedEvent.value = evt
+  joinModalOpen.value = true
+}
 
+function closeJoinModal() {
+  joinModalOpen.value = false
+  joinedEvent.value = null
+}
 function createAnother() {
   // 保留待審核頁面關掉，重新開表單 + 清空
   submittedOpen.value = false
@@ -399,10 +409,13 @@ function createAnother() {
 
         <div class="flex gap-2.5 px-3.75 pb-3.75 max-[800px]:px-3 max-[800px]:pb-3.75">
           <button
+            type="button"
             class="h-8.5 flex-1 rounded-[17px] bg-[#ff9f43] text-[12px] font-bold text-white max-[800px]:h-8"
+            @click.stop="openJoinModal(evt)"
           >
             <i class="fa-solid fa-paw mr-1"></i> 參加
           </button>
+
           <button
             class="h-8.5 flex-1 rounded-[17px] bg-[#f0f2f5] text-[12px] font-bold text-[#555] max-[800px]:h-8"
           >
@@ -418,5 +431,30 @@ function createAnother() {
         </div>
       </li>
     </ul>
+    <!-- join success modal -->
+    <div
+      v-if="joinModalOpen"
+      class="fixed inset-0 z-[1100] flex items-center justify-center bg-black/40 p-5"
+      @click="closeJoinModal"
+    >
+      <div
+        class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
+        @click.stop
+      >
+        <div class="mb-2 text-[18px] font-bold text-[#333]">已成功報名 🎉</div>
+        <p class="text-[14px] text-[#666]">
+          你已報名「<span class="font-bold text-[#ff9f43]">{{ joinedEvent?.title }}</span
+          >」活動！
+        </p>
+
+        <button
+          type="button"
+          class="mt-4 w-full rounded-xl bg-[#ff9f43] p-3 text-[14px] font-bold text-white"
+          @click="closeJoinModal"
+        >
+          確定
+        </button>
+      </div>
+    </div>
   </section>
 </template>
