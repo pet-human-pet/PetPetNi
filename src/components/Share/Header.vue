@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFavoritesStore } from '@/stores/favorites'
 
@@ -7,10 +7,6 @@ const router = useRouter()
 const fav = useFavoritesStore()
 
 const props = defineProps({
-  // 讓 Header 可以用收藏 ids 去撈出收藏活動清單
-  events: { type: Array, default: () => [] },
-
-  // 你之後可以從使用者資料傳入
   avatarUrl: { type: String, default: '' }
 })
 
@@ -21,13 +17,7 @@ const defaultAvatar =
 
 const favOpen = ref(false)
 
-const favoriteEvents = computed(() => {
-  const set = new Set(fav.ids)
-  return props.events.filter((e) => set.has(String(e.id)))
-})
-
 function goProfile() {
-  // TODO: 把 profile 換成你實際的個人頁 route name
   router.push({ name: 'Profile' })
 }
 
@@ -67,7 +57,7 @@ function goChat() {
 
       <div class="flex items-center gap-3">
         <!-- desktop icons -->
-        <!-- 收藏：badge + dropdown -->
+        <!-- 收藏：dropdown（無 badge 數字） -->
         <div class="relative max-[800px]:hidden">
           <button
             class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#ff9f43]"
@@ -76,14 +66,7 @@ function goChat() {
             aria-label="收藏的活動"
             @click="toggleFavPanel"
           >
-            <i class="fa-regular fa-heart"></i>
-
-            <span
-              v-if="fav.count"
-              class="absolute -top-1 -right-1 min-w-[18px] rounded-full bg-[#ff4d4f] px-1 text-center text-[12px] font-bold text-white"
-            >
-              {{ fav.count }}
-            </span>
+            <i :class="fav.count ? 'fa-solid fa-heart text-[#ff4d4f]' : 'fa-regular fa-heart'"></i>
           </button>
 
           <!-- dropdown panel -->
@@ -116,14 +99,18 @@ function goChat() {
 
             <ul v-else class="max-h-80 overflow-y-auto p-2">
               <li
-                v-for="e in favoriteEvents"
+                v-for="e in fav.items"
                 :key="e.id"
                 class="rounded-lg p-2 text-[13px] hover:bg-[#f6f7f8]"
               >
                 <div class="flex items-start justify-between gap-2">
                   <div class="min-w-0">
-                    <div class="truncate font-bold text-[#333]">{{ e.title }}</div>
-                    <div class="truncate text-[12px] text-[#777]">{{ e.desc }}</div>
+                    <div class="truncate font-bold text-[#333]">
+                      {{ e.title || `活動 #${e.id}` }}
+                    </div>
+                    <div class="truncate text-[12px] text-[#777]">
+                      {{ e.desc || '（沒有描述）' }}
+                    </div>
                   </div>
 
                   <button
@@ -161,7 +148,7 @@ function goChat() {
           <i class="fa-regular fa-bell"></i>
         </button>
 
-        <!-- Avatar：改成前往個人頁 -->
+        <!-- Avatar：前往個人頁 -->
         <button
           type="button"
           class="h-10 w-10 overflow-hidden rounded-full border-2 border-[#eee] p-0"
