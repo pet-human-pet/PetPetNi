@@ -1,5 +1,8 @@
 <script setup>
 import { reactive, ref } from 'vue'
+import { useFavoritesStore } from '@/stores/favorites'
+
+const fav = useFavoritesStore()
 
 const props = defineProps({
   events: { type: Array, required: true },
@@ -23,11 +26,11 @@ const locOptions = [
 
 const form = reactive({
   title: '',
-  capacity: '', // 人數上限（字串接 v-model，送出轉 number）
+  capacity: '',
   locId: 1,
-  startAt: '', // datetime-local
-  endAt: '', // datetime-local
-  contact: '', // 手機或 Email
+  startAt: '',
+  endAt: '',
+  contact: '',
   desc: ''
 })
 
@@ -43,7 +46,7 @@ const errors = reactive({
 
 const lastSubmitted = ref(null)
 
-// 原本的 scrollTo 保留
+// scrollTo 保留
 const cardEls = new Map()
 const setCardRef = (id) => (el) => {
   if (el) cardEls.set(id, el)
@@ -143,17 +146,13 @@ function submit() {
     status: 'pending'
   }
 
-  // 先記錄一份給「待審核」畫面顯示
-  lastSubmitted.value = {
-    ...payload,
-    locLabel
-  }
-
+  lastSubmitted.value = { ...payload, locLabel }
   emit('create', payload)
 
   formOpen.value = false
   submittedOpen.value = true
 }
+
 function openJoinModal(evt) {
   joinedEvent.value = evt
   joinModalOpen.value = true
@@ -163,8 +162,8 @@ function closeJoinModal() {
   joinModalOpen.value = false
   joinedEvent.value = null
 }
+
 function createAnother() {
-  // 保留待審核頁面關掉，重新開表單 + 清空
   submittedOpen.value = false
   resetForm()
   formOpen.value = true
@@ -416,11 +415,18 @@ function createAnother() {
             <i class="fa-solid fa-paw mr-1"></i> 參加
           </button>
 
+          <!-- ✅ 收藏（愛心） -->
           <button
-            class="h-8.5 flex-1 rounded-[17px] bg-[#f0f2f5] text-[12px] font-bold text-[#555] max-[800px]:h-8"
+            type="button"
+            class="h-8.5 flex-1 rounded-[17px] bg-[#f0f2f5] text-[12px] font-bold max-[800px]:h-8"
+            :class="fav.has(evt.id) ? 'text-[#ff4d4f]' : 'text-[#555]'"
+            :aria-pressed="fav.has(evt.id)"
+            aria-label="收藏活動"
+            @click.stop="fav.toggle(evt)"
           >
-            <i class="fa-regular fa-heart"></i>
+            <i :class="fav.has(evt.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
           </button>
+
           <button
             type="button"
             class="h-8 flex-1 rounded-[17px] bg-[#f0f2f5] text-[12px] font-bold text-[#555] max-[800px]:h-8"
@@ -431,10 +437,11 @@ function createAnother() {
         </div>
       </li>
     </ul>
+
     <!-- join success modal -->
     <div
       v-if="joinModalOpen"
-      class="fixed inset-0 z-[1100] flex items-center justify-center bg-black/40 p-5"
+      class="fixed inset-0 z-1100 flex items-center justify-center bg-black/40 p-5"
       @click="closeJoinModal"
     >
       <div
