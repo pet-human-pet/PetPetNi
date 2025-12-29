@@ -5,6 +5,7 @@ import AppHeader from './components/Share/AppHeader.vue'
 import MainHeader from './components/Share/Header.vue'
 import AppFooter from './components/Share/AppFooter.vue'
 import MenuOverlay from './components/Share/MenuOverlay.vue'
+import SimpleToast from './components/Share/SimpleToast.vue'
 
 const route = useRoute()
 
@@ -31,5 +32,6 @@ const showFooter = computed(() => !route.meta.hideFooter)
     </main>
 
     <AppFooter v-if="showFooter" />
+    <SimpleToast />
   </div>
 </template>
