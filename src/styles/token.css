@@ -1,8 +1,104 @@
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TW-EL.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TC-EL.woff2') format('woff2');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TW-L.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TC-L.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TW-R.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TC-R.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TW-M.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TC-M.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TW-B.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TC-B.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TW-H.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'GenSenRounded';
+  src: url('../assets/fonts/GenSenRounded2TC-H.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   /* Fonts */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue',
-    Arial;
+    'GenSenRounded', 'Noto Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial;
 
   /* Background */
   --color-bg-base: #fcfaf2; /* 米：頁面底色 */
@@ -11,8 +107,8 @@
   /* Brand */
   --color-brand-primary: #2e6256; /* 綠：主品牌（主按鈕/選中/自己訊息） */
   --color-brand-accent: #edc920; /* 黃：強調（badge/小CTA） */
-  --color-mayekawa: #2a594f; /* 首頁綠色 */ 
-  
+  --color-mayekawa: #2a594f; /* 首頁綠色 */
+
   /* Foreground (text/border source) */
   --color-fg-primary: #382710; /* 深棕：主要文字 */
   --color-fg-secondary: #5c4b3d; /* 棕：次要文字 */
@@ -37,7 +133,7 @@
 
   /* Shadow */
   --shadow-card: 0 2px 5px rgba(0, 0, 0, 0.08);
-  --shadow-dialog: 0 5px 10px rgba(0, 0, 0, 0.10);
+  --shadow-dialog: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* 全站預設，讓大家不用每個地方都重複寫 */
@@ -47,7 +143,7 @@
   }
 
   body {
-    @apply text-fg-primary bg-white text-base;
+    @apply text-fg-primary text-base;
   }
 
   a {
