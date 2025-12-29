@@ -17,7 +17,7 @@ function submit() {
   text.value = ''
 }
 
-// 你要「四張卡」：左上新增 + 其餘最多顯示 3 張評論卡
+// 四張卡：左上新增 + 其餘最多顯示 3 張評論卡
 const displayComments = computed(() => props.comments.slice(0, 3))
 </script>
 
