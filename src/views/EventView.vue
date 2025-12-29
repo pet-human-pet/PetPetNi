@@ -1,14 +1,12 @@
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, reactive } from 'vue'
 import EventSideBar from '@/components/Events/EventSideBar.vue'
 import EventMap from '@/components/Events/EventMap.vue'
+import EventComments from '@/components/Events/EventComments.vue'
 import GroupBuySidebar from '@/components/GroupBuy/GroupBuySidebar.vue'
 import GroupBuyForm from '@/components/GroupBuy/GroupBuyForm.vue'
 import GroupBuyDetail from '@/components/GroupBuy/GroupBuyDetail.vue'
 import mapImg from '@/assets/EventMapFinal.jpg'
-
-
-
 
 /** ========== 原本資料 ========== */
 const locations = {
@@ -46,13 +44,26 @@ const groupBuys = ref([
 
 /** ========== 狀態（對應原本 currentTab + views） ========== */
 const tab = ref('event') // 'event' | 'groupbuy'
-const rightView = ref('map') // 'map' | 'gbForm' | 'gbDetail'
+const rightView = ref('map') // 'map' | 'comments' | 'gbForm' | 'gbDetail'
 
 const selectedEventId = ref(null)
 const selectedGbId = ref(null)
 
+const commentsByEvent = reactive({
+  1: [
+    { id: 1, text: '昨天去 101 草地超讚，狗狗玩到不想走！', createdAt: '2025-12-26 18:20' },
+    { id: 2, text: '建議帶水跟拾便袋～人也很多', createdAt: '2025-12-26 19:05' },
+    { id: 3, text: '想問下次活動還會約嗎？', createdAt: '2025-12-26 20:10' }
+  ],
+  2: [{ id: 4, text: '飛盤賽太可愛了，超多狗狗！', createdAt: '2025-12-25 16:40' }]
+})
+
+const selectedEvent = computed(
+  () => events.value.find((e) => String(e.id) === String(selectedEventId.value)) || null
+)
+
 const gbFormOpen = computed(() => rightView.value === 'gbForm')
-const selectedGb = computed(() => groupBuys.value.find(g => g.id === selectedGbId.value) || null)
+const selectedGb = computed(() => groupBuys.value.find((g) => g.id === selectedGbId.value) || null)
 
 /** refs：用來讓 pin click 可以 scroll 到卡片 */
 const eventSidebarRef = ref(null)
@@ -77,11 +88,14 @@ function switchTab(next) {
 function selectEvent(evt, { scrollCard = false } = {}) {
   tab.value = 'event'
   rightView.value = 'map'
+
+  // ✅ 如果目前正在看評論，就維持評論畫面；不然才回到地圖
+  if (rightView.value !== 'comments') rightView.value = 'map'
+
   selectedEventId.value = evt.id
 
   if (scrollCard) {
     nextTick(() => eventSidebarRef.value?.scrollTo?.(evt.id))
-
   }
 }
 
@@ -89,6 +103,30 @@ function createEvent(payload) {
   const newEvt = { id: Date.now(), ...payload }
   events.value.push(newEvt)
   selectEvent(newEvt, { scrollCard: true })
+}
+
+function openEventComments(evt) {
+  tab.value = 'event'
+  selectedEventId.value = evt.id
+  rightView.value = 'comments'
+}
+
+function backToMap() {
+  rightView.value = 'map'
+}
+
+function addComment(text) {
+  const id = selectedEventId.value
+  if (id == null) return
+
+  const key = String(id)
+  if (!commentsByEvent[key]) commentsByEvent[key] = []
+
+  commentsByEvent[key].unshift({
+    id: Date.now(),
+    text,
+    createdAt: new Date().toLocaleString()
+  })
 }
 
 function showGroupBuyForm() {
@@ -123,11 +161,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f9f9f9] text-[#333] overflow-x-hidden">
+  <div class="min-h-screen overflow-x-hidden bg-[#f9f9f9] text-[#333]">
     <!-- Hero（桌面版保留；你原本是 margin-top 100，現在 App 已 pt 70，所以這裡 mt 30 → 70+30=100） -->
-    <section
-      class="mx-auto my-0 mt-7.5 mb-7.5 h-62.5 w-full max-w-300 px-5 max-[800px]:hidden"
-    >
+    <section class="mx-auto my-0 mt-7.5 mb-7.5 h-62.5 w-full max-w-300 px-5 max-[800px]:hidden">
       <div
         class="flex h-full w-full items-center justify-center rounded-2xl bg-[url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center"
       >
@@ -141,22 +177,25 @@ onMounted(() => {
     </section>
 
     <!-- main layout -->
-    <main class="relative mx-auto flex w-full max-w-300 gap-6 px-5 pb-10 max-[800px]:block max-[800px]:p-0">
+    <main
+      class="relative mx-auto flex w-full max-w-300 gap-6 px-5 pb-10 max-[800px]:block max-[800px]:p-0"
+    >
       <!-- Sidebar（手機版浮動底部；gb 表單開啟時手機要整組藏起來） -->
       <aside
-        class="z-10 flex w-85 shrink-0 flex-col gap-5 transition-transform duration-300 ease-in-out
-               max-[800px]:fixed max-[800px]:bottom-7.5 max-[800px]:left-0 max-[800px]:w-full max-[800px]:bg-transparent max-[800px]:px-3 max-[800px]:pointer-events-none"
+        class="z-10 flex w-85 shrink-0 flex-col gap-5 transition-transform duration-300 ease-in-out max-[800px]:pointer-events-none max-[800px]:fixed max-[800px]:bottom-7.5 max-[800px]:left-0 max-[800px]:w-full max-[800px]:bg-transparent max-[800px]:px-3"
         :class="{ 'max-[800px]:hidden': gbFormOpen }"
       >
         <!-- Tabs（手機版要有毛玻璃+大距離，照你原本） -->
         <nav
-          class="flex gap-1 rounded-xl bg-[#eee] p-1 max-[800px]:pointer-events-auto
-                 max-[800px]:mb-130 max-[800px]:bg-white/90 max-[800px]:backdrop-blur-xs
-                 max-[800px]:shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
+          class="flex gap-1 rounded-xl bg-[#eee] p-1 max-[800px]:pointer-events-auto max-[800px]:mb-130 max-[800px]:bg-white/90 max-[800px]:shadow-[0_2px_8px_rgba(0,0,0,0.1)] max-[800px]:backdrop-blur-xs"
         >
           <button
             class="flex-1 rounded-[10px] py-2.5 text-[14px] font-bold transition"
-            :class="tab === 'event' ? 'bg-white text-[#ff9f43] shadow-[0_2px_6px_rgba(0,0,0,0.1)]' : 'bg-transparent text-[#666]'"
+            :class="
+              tab === 'event'
+                ? 'bg-white text-[#ff9f43] shadow-[0_2px_6px_rgba(0,0,0,0.1)]'
+                : 'bg-transparent text-[#666]'
+            "
             type="button"
             @click="switchTab('event')"
           >
@@ -164,7 +203,11 @@ onMounted(() => {
           </button>
           <button
             class="flex-1 rounded-[10px] py-2.5 text-[14px] font-bold transition"
-            :class="tab === 'groupbuy' ? 'bg-white text-[#ff9f43] shadow-[0_2px_6px_rgba(0,0,0,0.1)]' : 'bg-transparent text-[#666]'"
+            :class="
+              tab === 'groupbuy'
+                ? 'bg-white text-[#ff9f43] shadow-[0_2px_6px_rgba(0,0,0,0.1)]'
+                : 'bg-transparent text-[#666]'
+            "
             type="button"
             @click="switchTab('groupbuy')"
           >
@@ -179,6 +222,7 @@ onMounted(() => {
           :selected-id="selectedEventId"
           @select="selectEvent"
           @create="createEvent"
+          @open-comments="openEventComments"
         />
 
         <GroupBuySidebar
@@ -192,10 +236,7 @@ onMounted(() => {
 
       <!-- Right content（桌面 sticky；手機 fixed 背景化） -->
       <section
-        class="z-1 flex h-175 flex-1 flex-col overflow-hidden rounded-2xl border border-[#ccc] bg-white
-               sticky top-25
-               max-[800px]:fixed max-[800px]:left-0 max-[800px]:top-15 max-[800px]:z-0 max-[800px]:h-[calc(100vh-60px)] max-[800px]:w-full
-               max-[800px]:rounded-none max-[800px]:border-0"
+        class="sticky top-25 z-1 flex h-175 flex-1 flex-col overflow-hidden rounded-2xl border border-[#ccc] bg-white max-[800px]:fixed max-[800px]:top-15 max-[800px]:left-0 max-[800px]:z-0 max-[800px]:h-[calc(100vh-60px)] max-[800px]:w-full max-[800px]:rounded-none max-[800px]:border-0"
         :class="{ 'max-[800px]:z-9999': gbFormOpen }"
       >
         <!-- View 1: Map -->
@@ -207,8 +248,16 @@ onMounted(() => {
           :map-src="mapImg"
           @pin-click="(evt) => selectEvent(evt, { scrollCard: true })"
         />
+        <!--View 2: Comments-->
+        <EventComments
+          v-show="rightView === 'comments'"
+          :event="selectedEvent"
+          :comments="selectedEventId != null ? commentsByEvent[String(selectedEventId)] || [] : []"
+          @back="backToMap"
+          @add="addComment"
+        />
 
-        <!-- View 2: GroupBuy Form -->
+        <!-- View 3: GroupBuy Form -->
         <GroupBuyForm
           v-show="rightView === 'gbForm'"
           @submit="submitGroupBuy"
@@ -216,10 +265,7 @@ onMounted(() => {
         />
 
         <!-- View 3: GroupBuy Detail -->
-        <GroupBuyDetail
-          v-show="rightView === 'gbDetail'"
-          :item="selectedGb"
-        />
+        <GroupBuyDetail v-show="rightView === 'gbDetail'" :item="selectedGb" />
       </section>
     </main>
   </div>
@@ -227,6 +273,11 @@ onMounted(() => {
 
 <style>
 /* 只補你原本 CSS 的 no-scrollbar（Tailwind 沒內建） */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 </style>
