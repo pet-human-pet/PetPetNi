@@ -66,139 +66,137 @@ const editAudience = ref('public')
 </script>
 
 <template>
-  <body>
-    <div
-      class="c-card p-5 transition-colors duration-500 md:p-6"
-      :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
-    >
-      <div class="flex items-start justify-between">
-        <div class="flex items-center gap-3">
-          <div class="cursor-pointer flex items-center gap-3" @click="toProfile">
-            <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
-            <a class="text-m cursor-pointer font-semibold text-blue-800">{{ post.author }}</a>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-zinc-500">·</span>
-
-            <!-- 編輯中：顯示 Picker -->
-            <AudiencePicker v-if="isEditing" v-model="editAudience" />
-
-            <!-- 非編輯：只顯示目前 audience -->
-            <span v-else class="text-xs text-zinc-500">
-              {{
-                post.audience === 'public'
-                  ? '🌐 所有人'
-                  : post.audience === 'friends'
-                    ? '👥 好友'
-                    : '🔒 只限自己'
-              }}
-            </span>
-          </div>
+  <div
+    class="c-card p-5 transition-colors duration-500 md:p-6"
+    :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
+  >
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-3">
+        <div class="flex cursor-pointer items-center gap-3" @click="toProfile">
+          <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
+          <a class="text-m cursor-pointer font-semibold text-blue-800">{{ post.author }}</a>
         </div>
-
         <div class="flex items-center gap-2">
-          <!--貼文編輯-->
-          <button
-            v-if="post.isMine"
-            type="button"
-            class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
-            aria-label="Edit"
-            @click="startEdit"
-          >
-            <i class="fa-regular fa-pen-to-square"></i>
-          </button>
+          <span class="text-xs text-zinc-500">·</span>
 
-          <!--更多按鈕-->
-          <button
-            class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
-            aria-label="More"
-          >
-            <i class="fa-solid fa-ellipsis"></i>
-          </button>
+          <!-- 編輯中：顯示 Picker -->
+          <AudiencePicker v-if="isEditing" v-model="editAudience" />
+
+          <!-- 非編輯：只顯示目前 audience -->
+          <span v-else class="text-xs text-zinc-500">
+            {{
+              post.audience === 'public'
+                ? '🌐 所有人'
+                : post.audience === 'friends'
+                  ? '👥 好友'
+                  : '🔒 只限自己'
+            }}
+          </span>
         </div>
       </div>
 
-      <div v-if="isEditing" class="mt-3">
-        <textarea
-          ref="editTextareaRef"
-          v-model="editContent"
-          class="w-full resize-none bg-transparent text-base leading-6 outline-none"
-          rows="3"
-        ></textarea>
-
-        <div class="mt-2 flex justify-end gap-2">
-          <button
-            type="button"
-            class="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 hover:bg-zinc-100"
-            @click="cancelEdit"
-          >
-            取消
-          </button>
-          <button
-            type="button"
-            class="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-zinc-700"
-            @click="saveEdit"
-          >
-            更新
-          </button>
-        </div>
-      </div>
-      <p v-else class="md:text-m mt-3 leading-6 text-zinc-800 sm:text-base">
-        {{ post.content }}
-      </p>
-
-      <!-- hashtags -->
-      <div v-if="post.tags?.length" class="mt-3 flex flex-wrap gap-1">
-        <a
-          v-for="(t, i) in post.tags"
-          :key="i"
-          class="cursor-pointer px-1 text-lg text-blue-700 sm:text-base"
+      <div class="flex items-center gap-2">
+        <!--貼文編輯-->
+        <button
+          v-if="post.isMine"
+          type="button"
+          class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
+          aria-label="Edit"
+          @click="startEdit"
         >
-          {{ t }}
-        </a>
-      </div>
+          <i class="fa-regular fa-pen-to-square"></i>
+        </button>
 
-      <!-- 單張圖片 -->
-      <div
-        v-if="post.images?.length === 1"
-        class="mt-3 aspect-3/4 w-3/5 overflow-hidden rounded-xl bg-zinc-200 sm:aspect-3/4"
+        <!--更多按鈕-->
+        <button
+          class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
+          aria-label="More"
+        >
+          <i class="fa-solid fa-ellipsis"></i>
+        </button>
+      </div>
+    </div>
+
+    <div v-if="isEditing" class="mt-3">
+      <textarea
+        ref="editTextareaRef"
+        v-model="editContent"
+        class="w-full resize-none bg-transparent text-base leading-6 outline-none"
+        rows="3"
+      ></textarea>
+
+      <div class="mt-2 flex justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 hover:bg-zinc-100"
+          @click="cancelEdit"
+        >
+          取消
+        </button>
+        <button
+          type="button"
+          class="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-zinc-700"
+          @click="saveEdit"
+        >
+          更新
+        </button>
+      </div>
+    </div>
+    <p v-else class="md:text-m mt-3 leading-6 text-zinc-800 sm:text-base">
+      {{ post.content }}
+    </p>
+
+    <!-- hashtags -->
+    <div v-if="post.tags?.length" class="mt-3 flex flex-wrap gap-1">
+      <a
+        v-for="(t, i) in post.tags"
+        :key="i"
+        class="cursor-pointer px-1 text-lg text-blue-700 sm:text-base"
       >
-        <img
-          :src="post.images[0]"
-          alt=""
-          class="h-full w-full cursor-pointer object-cover"
-          @click="$emit('preview-image', post.images[0])"
-        />
-      </div>
+        {{ t }}
+      </a>
+    </div>
 
-      <!-- 兩張圖片 -->
-      <div v-else-if="post.images?.length === 2" class="mt-3 grid grid-cols-2 gap-3">
-        <div
-          v-for="(img, i) in post.images"
-          :key="i"
-          class="aspect-3/4 w-full overflow-hidden rounded-xl bg-zinc-200"
-        >
-          <img
-            :src="img"
-            alt=""
-            class="h-full w-full cursor-pointer object-cover"
-            @click="$emit('preview-image', img)"
-          />
-        </div>
-      </div>
-
-      <!-- actions: 只 emit-->
-      <ActionBar
-        :post-id="post.id"
-        :like-count="post.likeCount"
-        :comment-count="post.commentCount"
-        :is-liked="post.isLiked"
-        :is-bookmarked="post.isBookmarked"
-        @like="$emit('like', $event)"
-        @open-comments="$emit('open-comments', $event)"
-        @share="$emit('share', $event)"
-        @bookmark="$emit('bookmark', $event)"
+    <!-- 單張圖片 -->
+    <div
+      v-if="post.images?.length === 1"
+      class="mt-3 aspect-3/4 w-3/5 overflow-hidden rounded-xl bg-zinc-200 sm:aspect-3/4"
+    >
+      <img
+        :src="post.images[0]"
+        alt=""
+        class="h-full w-full cursor-pointer object-cover"
+        @click="$emit('preview-image', post.images[0])"
       />
     </div>
-  </body>
+
+    <!-- 兩張圖片 -->
+    <div v-else-if="post.images?.length === 2" class="mt-3 grid grid-cols-2 gap-3">
+      <div
+        v-for="(img, i) in post.images"
+        :key="i"
+        class="aspect-3/4 w-full overflow-hidden rounded-xl bg-zinc-200"
+      >
+        <img
+          :src="img"
+          alt=""
+          class="h-full w-full cursor-pointer object-cover"
+          @click="$emit('preview-image', img)"
+        />
+      </div>
+    </div>
+
+    <!-- actions: 只 emit-->
+    <ActionBar
+      :post-id="post.id"
+      :like-count="post.likeCount"
+      :comment-count="post.commentCount"
+      :is-liked="post.isLiked"
+      :is-bookmarked="post.isBookmarked"
+      @like="$emit('like', $event)"
+      @open-comments="$emit('open-comments', $event)"
+      @share="$emit('share', $event)"
+      @bookmark="$emit('bookmark', $event)"
+    />
+  </div>
 </template>
