@@ -1,12 +1,36 @@
 <script setup>
-import { ref, computed, nextTick, onMounted, reactive } from 'vue'
+import { ref, computed, nextTick, onMounted, reactive, onBeforeUnmount } from 'vue'
 import EventSideBar from '@/components/Events/EventSideBar.vue'
 import EventMap from '@/components/Events/EventMap.vue'
+import EventForm from '@/components/Events/EventForm.vue'
 import EventComments from '@/components/Events/EventComments.vue'
 import GroupBuySidebar from '@/components/GroupBuy/GroupBuySidebar.vue'
 import GroupBuyForm from '@/components/GroupBuy/GroupBuyForm.vue'
 import GroupBuyDetail from '@/components/GroupBuy/GroupBuyDetail.vue'
 import mapImg from '@/assets/EventMapFinal.jpg'
+
+let _prevOverflow = ''
+let _prevPaddingRight = ''
+
+function lockBodyScroll() {
+  const body = document.body
+  _prevOverflow = body.style.overflow
+  _prevPaddingRight = body.style.paddingRight
+
+  // 避免鎖住後造成版面左右跳動（因為 scrollbar 消失）
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+  body.style.overflow = 'hidden'
+  if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
+}
+
+function unlockBodyScroll() {
+  const body = document.body
+  body.style.overflow = _prevOverflow
+  body.style.paddingRight = _prevPaddingRight
+}
+
+onMounted(lockBodyScroll)
+onBeforeUnmount(unlockBodyScroll)
 
 /** ========== 原本資料 ========== */
 const locations = {
@@ -18,9 +42,27 @@ const locations = {
 }
 
 const events = ref([
-  { id: 1, locId: 1, title: '101 狗狗散步團', desc: '在 101 大樓下方的草地集合，享受週末陽光。' },
-  { id: 2, locId: 2, title: '國父紀念館飛盤賽', desc: '歡迎各路飛盤好狗前來挑戰！' },
-  { id: 4, locId: 4, title: '象山健行小隊', desc: '體力好的狗狗集合！一起爬象山看夜景。' }
+  {
+    id: 1,
+    locId: 1,
+    title: '101 狗狗散步團',
+    desc: '在 101 大樓下方的草地集合，享受週末陽光。',
+    status: 'approved'
+  },
+  {
+    id: 2,
+    locId: 2,
+    title: '國父紀念館飛盤賽',
+    desc: '歡迎各路飛盤好狗前來挑戰！',
+    status: 'approved'
+  },
+  {
+    id: 3,
+    locId: 3,
+    title: '松山菸廠攝影競賽',
+    desc: '歡迎拍攝好手，一起來參加攝影比賽!',
+    status: 'approved'
+  }
 ])
 
 const groupBuys = ref([
@@ -30,7 +72,8 @@ const groupBuys = ref([
     price: 450,
     target: 30,
     img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80',
-    desc: '這款雨衣透氣又防水,適合台灣潮濕的天氣。湊滿30件廠商給批發價!'
+    desc: '這款雨衣透氣又防水,適合台灣潮濕的天氣。湊滿30件廠商給批發價!',
+    status: 'approved'
   },
   {
     id: 202,
@@ -38,13 +81,14 @@ const groupBuys = ref([
     price: 180,
     target: 50,
     img: 'https://images.unsplash.com/photo-1582798358481-d199fb7347bb?auto=format&fit=crop&w=800&q=80',
-    desc: '無添加防腐劑,自家烘焙,每包100g。需要冷藏保存。'
+    desc: '無添加防腐劑,自家烘焙,每包100g。需要冷藏保存。',
+    status: 'approved'
   }
 ])
 
 /** ========== 狀態（對應原本 currentTab + views） ========== */
 const tab = ref('event') // 'event' | 'groupbuy'
-const rightView = ref('map') // 'map' | 'comments' | 'gbForm' | 'gbDetail'
+const rightView = ref('map') // 'map' | 'comments' | 'eventForm' | 'gbForm' | 'gbDetail'
 
 const selectedEventId = ref(null)
 const selectedGbId = ref(null)
@@ -64,21 +108,34 @@ const selectedEvent = computed(
 
 const gbFormOpen = computed(() => rightView.value === 'gbForm')
 const selectedGb = computed(() => groupBuys.value.find((g) => g.id === selectedGbId.value) || null)
+const pendingGroupBuys = computed(() =>
+  groupBuys.value
+    .filter((g) => g.status === 'pending')
+    .slice()
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+)
+
+const approvedGroupBuys = computed(() => groupBuys.value.filter((g) => g.status === 'approved'))
+
+const isMobileOverlayOpen = computed(() =>
+  ['gbForm', 'eventForm', 'comments'].includes(rightView.value)
+)
 
 /** refs：用來讓 pin click 可以 scroll 到卡片 */
 const eventSidebarRef = ref(null)
+const approvedEvents = computed(() => events.value.filter((e) => e.status === 'approved'))
 
 function switchTab(next) {
   tab.value = next
   if (next === 'event') {
     rightView.value = 'map'
-    if (!selectedEventId.value && events.value.length) selectEvent(events.value[0])
+    if (!selectedEventId.value && approvedEvents.value.length) selectEvent(approvedEvents.value[0])
     return
   }
 
   // groupbuy
-  if (groupBuys.value.length) {
-    showGroupBuyDetail(groupBuys.value[0])
+  if (approvedGroupBuys.value.length) {
+    showGroupBuyDetail(approvedGroupBuys.value[0])
   } else {
     rightView.value = 'gbDetail'
     selectedGbId.value = null
@@ -87,10 +144,9 @@ function switchTab(next) {
 
 function selectEvent(evt, { scrollCard = false } = {}) {
   tab.value = 'event'
-  rightView.value = 'map'
 
-  // ✅ 如果目前正在看評論，就維持評論畫面；不然才回到地圖
-  if (rightView.value !== 'comments') rightView.value = 'map'
+  const keepComments = rightView.value === 'comments'
+  if (!keepComments) rightView.value = 'map'
 
   selectedEventId.value = evt.id
 
@@ -100,9 +156,27 @@ function selectEvent(evt, { scrollCard = false } = {}) {
 }
 
 function createEvent(payload) {
-  const newEvt = { id: Date.now(), ...payload }
+  const newEvt = {
+    id: Date.now(),
+    status: 'pending',
+    ...payload
+  }
+
   events.value.push(newEvt)
-  selectEvent(newEvt, { scrollCard: true })
+
+  // 原本會進「待審核」：這裡保留原本切換邏輯
+  // rightView.value = 'submitted' 或你現有的待審核畫面
+  // 先不要 selectEvent(newEvt)，因為它不該出現在 sidebar
+  rightView.value = 'map'
+}
+
+function showEventForm() {
+  tab.value = 'event'
+  rightView.value = 'eventForm'
+}
+
+function cancelEventForm() {
+  rightView.value = 'map'
 }
 
 function openEventComments(evt) {
@@ -144,9 +218,22 @@ function cancelGroupBuyForm() {
 }
 
 function submitGroupBuy(payload) {
-  const newGb = { id: Date.now(), ...payload }
-  groupBuys.value.push(newGb)
-  showGroupBuyDetail(newGb)
+  groupBuys.value.unshift({
+    ...payload,
+    status: payload.status ?? 'pending',
+    createdAt: payload.createdAt ?? Date.now()
+  })
+
+  // ✅ 送審後回到團購列表/詳情（不顯示 pending 在 sidebar）
+  tab.value = 'groupbuy'
+
+  const firstApproved = approvedGroupBuys.value[0]
+  if (firstApproved) {
+    showGroupBuyDetail(firstApproved)
+  } else {
+    rightView.value = 'gbDetail'
+    selectedGbId.value = null
+  }
 }
 
 function showGroupBuyDetail(gb) {
@@ -156,34 +243,20 @@ function showGroupBuyDetail(gb) {
 }
 
 onMounted(() => {
-  if (events.value.length) selectEvent(events.value[0])
+  if (approvedEvents.value.length) selectEvent(approvedEvents.value[0])
 })
 </script>
 
 <template>
-  <div class="min-h-screen overflow-x-hidden bg-[#f9f9f9] text-[#333]">
-    <!-- Hero（桌面版保留；你原本是 margin-top 100，現在 App 已 pt 70，所以這裡 mt 30 → 70+30=100） -->
-    <section class="mx-auto my-0 mt-7.5 mb-7.5 h-62.5 w-full max-w-300 px-5 max-[800px]:hidden">
-      <div
-        class="flex h-full w-full items-center justify-center rounded-2xl bg-[url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center"
-      >
-        <div
-          class="text-[2.5rem] font-bold text-white [text-shadow:0_2px_15px_rgba(0,0,0,0.6)]"
-          style="font-family: 'Fredoka', sans-serif"
-        >
-          Explore Pet Life
-        </div>
-      </div>
-    </section>
-
+  <div class="h-screen overflow-hidden bg-[#f9f9f9] text-[#333]">
     <!-- main layout -->
     <main
-      class="relative mx-auto flex w-full max-w-300 gap-6 px-5 pb-10 max-[800px]:block max-[800px]:p-0"
+      class="relative mx-auto flex h-[calc(100vh-64px)] w-full max-w-300 gap-6 overflow-hidden px-5 pt-6 pb-10 max-[800px]:block max-[800px]:p-0"
     >
       <!-- Sidebar（手機版浮動底部；gb 表單開啟時手機要整組藏起來） -->
       <aside
-        class="z-10 flex w-85 shrink-0 flex-col gap-5 transition-transform duration-300 ease-in-out max-[800px]:pointer-events-none max-[800px]:fixed max-[800px]:bottom-7.5 max-[800px]:left-0 max-[800px]:w-full max-[800px]:bg-transparent max-[800px]:px-3"
-        :class="{ 'max-[800px]:hidden': gbFormOpen }"
+        class="z-10 flex w-85 shrink-0 flex-col gap-5 overflow-auto transition-transform duration-300 ease-in-out max-[800px]:pointer-events-none max-[800px]:fixed max-[800px]:bottom-7.5 max-[800px]:left-0 max-[800px]:w-full max-[800px]:bg-transparent max-[800px]:px-3"
+        :class="{ 'max-[800px]:hidden': isMobileOverlayOpen }"
       >
         <!-- Tabs（手機版要有毛玻璃+大距離，照你原本） -->
         <nav
@@ -218,16 +291,16 @@ onMounted(() => {
         <EventSideBar
           v-show="tab === 'event'"
           ref="eventSidebarRef"
-          :events="events"
+          :events="approvedEvents"
           :selected-id="selectedEventId"
           @select="selectEvent"
-          @create="createEvent"
+          @open-form="showEventForm"
           @open-comments="openEventComments"
         />
 
         <GroupBuySidebar
           v-show="tab === 'groupbuy'"
-          :items="groupBuys"
+          :items="approvedGroupBuys"
           :selected-id="selectedGbId"
           @select="showGroupBuyDetail"
           @open-form="showGroupBuyForm"
@@ -236,8 +309,8 @@ onMounted(() => {
 
       <!-- Right content（桌面 sticky；手機 fixed 背景化） -->
       <section
-        class="sticky top-25 z-1 flex h-175 flex-1 flex-col overflow-hidden rounded-2xl border border-[#ccc] bg-white max-[800px]:fixed max-[800px]:top-15 max-[800px]:left-0 max-[800px]:z-0 max-[800px]:h-[calc(100vh-60px)] max-[800px]:w-full max-[800px]:rounded-none max-[800px]:border-0"
-        :class="{ 'max-[800px]:z-9999': gbFormOpen }"
+        class="sticky top-25 z-1 flex h-full flex-1 flex-col overflow-hidden rounded-2xl border border-[#ccc] bg-white max-[800px]:fixed max-[800px]:top-20 max-[800px]:left-0 max-[800px]:z-0 max-[800px]:h-[calc(100vh-60px)] max-[800px]:w-full max-[800px]:rounded-none max-[800px]:border-0"
+        :class="{ 'max-[800px]:z-9999': isMobileOverlayOpen }"
       >
         <!-- View 1: Map -->
         <EventMap
@@ -256,10 +329,17 @@ onMounted(() => {
           @back="backToMap"
           @add="addComment"
         />
+        <!--View 3: Comments-->
+        <EventForm
+          v-show="rightView === 'eventForm'"
+          @submit="createEvent"
+          @cancel="cancelEventForm"
+        />
 
-        <!-- View 3: GroupBuy Form -->
+        <!-- View 4: GroupBuy Form -->
         <GroupBuyForm
           v-show="rightView === 'gbForm'"
+          :pending-items="pendingGroupBuys"
           @submit="submitGroupBuy"
           @cancel="cancelGroupBuyForm"
         />
