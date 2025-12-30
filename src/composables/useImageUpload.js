@@ -13,7 +13,7 @@ export const useImageUpload = () => {
   const compressImage = async (file) => {
     try {
       const options = {
-        maxSizeMB: 0.5,
+        maxSizeMB: 1.0,
         maxWidthOrHeight: 1920, // 解析度最長邊不超過1920px
         useWebWorker: true, // 使用背景執行緒，避免網頁卡頓
         fileType: 'image/jpeg', // 格式統一轉成JPG
@@ -27,8 +27,7 @@ export const useImageUpload = () => {
         sizeKB: Math.round(compressed.size / 1024),
         originalSizeKB: Math.round(file.size / 1024)
       }
-    } catch (error) {
-      console.error('[compressImage] 失敗:', error)
+    } catch {
       throw new Error('圖片壓縮失敗')
     }
   }
@@ -65,8 +64,7 @@ export const useImageUpload = () => {
         width: res.data.width,
         height: res.data.height
       }
-    } catch (error) {
-      console.error('[uploadToCloudinary] 失敗:', error)
+    } catch {
       throw new Error('圖片上傳失敗，請檢查網路或稍後再試')
     }
   }
