@@ -23,10 +23,7 @@ const showFooter = computed(() => !route.meta.hideFooter)
     <!-- Main App Header (Event, Social, Profile) -->
     <MainHeader v-if="route.meta.headerType === 'app'" />
 
-    <main 
-      class="w-full flex-1"
-      :class="{ 'pt-17.5': route.meta.headerType === 'app' }"
-    >
+    <main class="w-full flex-1" :class="{ 'pt-17.5': route.meta.headerType === 'app' }">
       <RouterView />
     </main>
 
