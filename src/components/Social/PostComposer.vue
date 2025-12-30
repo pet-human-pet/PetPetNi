@@ -121,7 +121,7 @@ const audience = ref('public')
 </script>
 
 <template>
-  <body>
+  <div>
     <!-- 隱藏的檔案輸入框 -->
     <input
       ref="fileInputRef"
@@ -307,5 +307,5 @@ const audience = ref('public')
         </section>
       </div>
     </div>
-  </body>
+  </div>
 </template>

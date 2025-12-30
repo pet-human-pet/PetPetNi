@@ -99,7 +99,7 @@ const handleUpdate = (payload) => {
   post.content = payload.content
   post.audience = payload.audience || post.audience
 
-  showToast(post.payload ? '' : '貼文已更新')
+  showToast('貼文已更新')
 }
 
 /** 發文：把新貼文塞到最前面 */
@@ -110,20 +110,15 @@ const handleSubmit = (payload) => {
   const hasImages = images.length > 0
   const textLength = text.length
 
-  if (!hasImages && textLength <= 5) {
-    showToast('發文內容請超過5字')
-    return false
-  }
-
   const newPostId = Date.now()
 
   rawPosts.value.unshift({
-    id: Date.now(),
+    id: newPostId,
     audience: payload.audience ?? 'public',
     author: 'test',
     content: text,
     isMine: true,
-    tags: [''],
+    tags: payload.tags ?? [],
     images,
     isNew: true,
     likeCount: 0,
@@ -174,7 +169,6 @@ const sharePost = (postId) => console.log('share', postId)
             v-for="p in rawPosts"
             :key="p.id"
             :post="p"
-            @edit="openEdit"
             @update="handleUpdate"
             @preview-image="onPreviewImage"
             @like="toggleLike"
@@ -192,7 +186,6 @@ const sharePost = (postId) => console.log('share', postId)
               v-for="p in leftPosts"
               :key="p.id"
               :post="p"
-              @edit="openEdit"
               @update="handleUpdate"
               @preview-image="onPreviewImage"
               @like="toggleLike"
@@ -207,7 +200,6 @@ const sharePost = (postId) => console.log('share', postId)
               v-for="p in rightPosts"
               :key="p.id"
               :post="p"
-              @edit="openEdit"
               @update="handleUpdate"
               @preview-image="onPreviewImage"
               @like="toggleLike"
