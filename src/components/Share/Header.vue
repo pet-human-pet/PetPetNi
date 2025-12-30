@@ -30,7 +30,7 @@ function closeFavPanel() {
 }
 
 function onSelectFavorite(evt) {
-  emit('select-favorite', evt)
+  router.push({ name: 'Event', query: { eventId: evt.id } })
   closeFavPanel()
 }
 
