@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch, onBeforeUnmount } from 'vue'
+import { useSwipe } from '@/composables/useSwipe'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -21,6 +22,12 @@ const prev = () => {
   if (!props.images?.length) return
   emit('update:index', (props.index - 1 + props.images.length) % props.images.length)
 }
+
+const { onTouchStart, onTouchEnd } = useSwipe({
+  enabled: () => props.open && hasMany.value,
+  onSwipeLeft: next,
+  onSwipeRight: prev
+})
 
 const onKeydown = (e) => {
   if (!props.open) return
@@ -47,18 +54,24 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="open" class="fixed inset-0 z-99 bg-black/70" @click="$emit('close')">
     <div class="grid h-full w-full place-items-center p-6">
-      <div class="relative inline-block" @click.stop>
+      <div
+        class="relative inline-block"
+        @click.stop
+        @touchstart.passive="onTouchStart"
+        @touchend.passive="onTouchEnd"
+      >
         <img
           :src="src"
           alt=""
           class="max-h-[70vh] min-h-70 max-w-[70vw] min-w-70 rounded-2xl object-cover sm:min-h-100 sm:min-w-100 md:rounded-2xl"
+          draggable="false"
         />
 
         <!-- 左右切換 -->
         <button
           v-if="hasMany"
           type="button"
-          class="absolute top-1/2 left-2 grid h-8 w-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/10 text-white shadow hover:bg-white/20 sm:-left-13 sm:h-10 sm:w-10"
+          class="absolute top-1/2 left-2 hidden -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/10 text-white shadow hover:bg-white/20 sm:-left-13 sm:grid sm:h-10 sm:w-10"
           aria-label="Previous"
           @click.stop="prev"
         >
@@ -68,7 +81,7 @@ onBeforeUnmount(() => {
         <button
           v-if="hasMany"
           type="button"
-          class="hadow absolute top-1/2 right-2 grid h-8 w-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:-right-13 sm:h-10 sm:w-10"
+          class="absolute top-1/2 right-2 hidden h-8 w-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-white/10 text-white shadow hover:bg-white/20 sm:-right-13 sm:grid sm:h-10 sm:w-10"
           aria-label="Next"
           @click.stop="next"
         >
