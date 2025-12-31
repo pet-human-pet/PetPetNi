@@ -29,13 +29,11 @@ const getIconUrl = (name) => {
     <div
       v-if="uiStore.isMenuOpen"
       class="bg-mayekawa fixed inset-0 isolate z-40 transform-gpu cursor-pointer overflow-hidden"
-      @click.self="uiStore.closeMenu()"
-    >
+      @click.self="uiStore.closeMenu()">
       <BackgroundGrid class="pointer-events-none fixed inset-0 opacity-5" />
 
       <div
-        class="pointer-events-none relative flex min-h-screen flex-col px-6 pt-24 pb-10 md:hidden"
-      >
+        class="pointer-events-none relative flex min-h-screen flex-col px-6 pt-24 pb-10 md:hidden">
         <div class="pointer-events-auto mb-8 flex flex-col gap-6">
           <div class="flex items-center justify-between">
             <router-link to="/" @click="uiStore.closeMenu()">
@@ -44,13 +42,11 @@ const getIconUrl = (name) => {
 
             <div class="mr-12 flex gap-2">
               <button
-                class="text-mayekawa flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
-              >
+                class="text-mayekawa flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full">
                 募集要項
               </button>
               <button
-                class="text-mayekawa flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
-              >
+                class="text-mayekawa flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full">
                 ENTRY
               </button>
             </div>
@@ -59,13 +55,11 @@ const getIconUrl = (name) => {
 
         <div class="pointer-events-none absolute top-32 right-4 bottom-20 z-0 w-8">
           <div
-            class="writing-vertical-rl flex h-full items-center justify-center text-3xl leading-none font-bold tracking-widest text-white opacity-20"
-          >
+            class="writing-vertical-rl flex h-full items-center justify-center text-3xl leading-none font-bold tracking-widest text-white opacity-20">
             世界一、冷たい会社。
           </div>
           <div
-            class="writing-vertical-rl absolute top-0 right-full mr-2 h-auto text-xs tracking-widest text-white opacity-80"
-          >
+            class="writing-vertical-rl absolute top-0 right-full mr-2 h-auto text-xs tracking-widest text-white opacity-80">
             前川製作所 新卒採用サイト
           </div>
         </div>
@@ -80,14 +74,12 @@ const getIconUrl = (name) => {
             :to="item.path"
             class="w-full"
             variant="list"
-            @click="uiStore.closeMenu()"
-          >
+            @click="uiStore.closeMenu()">
             <template #icon>
               <img
                 :src="getIconUrl(item.icon)"
                 class="h-full w-full object-contain"
-                :alt="item.en"
-              />
+                :alt="item.en" />
             </template>
           </NavIcon>
         </div>
@@ -96,20 +88,17 @@ const getIconUrl = (name) => {
           <div class="mb-4 flex gap-4">
             <a
               href="#"
-              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-            >
+              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100">
               <img src="@/assets/icons/icon-social-instagram.svg" class="h-full w-full" />
             </a>
             <a
               href="#"
-              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-            >
+              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100">
               <img src="@/assets/icons/icon-social-tiktok.svg" class="h-full w-full" />
             </a>
             <a
               href="#"
-              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-            >
+              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100">
               <img src="@/assets/icons/icon-social-youtube.svg" class="h-full w-full" />
             </a>
           </div>
@@ -126,8 +115,7 @@ const getIconUrl = (name) => {
       </div>
 
       <div
-        class="pointer-events-none relative hidden min-h-screen flex-row items-center justify-center px-12 pt-24 pb-10 md:flex"
-      >
+        class="pointer-events-none relative hidden min-h-screen flex-row items-center justify-center px-12 pt-24 pb-10 md:flex">
         <div class="pointer-events-auto flex w-5/12 flex-col items-start justify-center space-y-12">
           <div class="flex flex-col text-white">
             <div class="flex items-start gap-6">
@@ -143,14 +131,12 @@ const getIconUrl = (name) => {
 
           <div class="flex flex-col gap-4">
             <button
-              class="group flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold text-[#D70035] transition-colors hover:bg-gray-100"
-            >
+              class="group flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold text-[#D70035] transition-colors hover:bg-gray-100">
               <span>募集要項</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </button>
             <button
-              class="group flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold text-[#D70035] transition-colors hover:bg-gray-100"
-            >
+              class="group flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold text-[#D70035] transition-colors hover:bg-gray-100">
               <span class="tracking-widest">ENTRY</span>
               <span class="text-xs font-normal text-gray-400">27卒エントリー/インターンシップ</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
@@ -168,15 +154,12 @@ const getIconUrl = (name) => {
             :to="item.path"
             class="w-full"
             variant="grid"
-          >
-            @click="uiStore.closeMenu()"
-
+            @click="uiStore.closeMenu()">
             <template #icon>
               <img
                 :src="getIconUrl(item.icon)"
                 class="h-full w-full object-contain"
-                :alt="item.en"
-              />
+                :alt="item.en" />
             </template>
           </NavIcon>
         </div>
@@ -184,20 +167,17 @@ const getIconUrl = (name) => {
         <div class="pointer-events-auto absolute right-6 bottom-6 flex gap-4">
           <a
             href="#"
-            class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-          >
+            class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100">
             <img src="@/assets/icons/icon-social-instagram.svg" class="h-full w-full" />
           </a>
           <a
             href="#"
-            class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-          >
+            class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100">
             <img src="@/assets/icons/icon-social-tiktok.svg" class="h-full w-full" />
           </a>
           <a
             href="#"
-            class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-          >
+            class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100">
             <img src="@/assets/icons/icon-social-youtube.svg" class="h-full w-full" />
           </a>
 
