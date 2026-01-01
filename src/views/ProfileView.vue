@@ -1,154 +1,603 @@
 <script setup>
-import { ref } from "vue";
+import { ref, reactive } from 'vue'
+import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 
-const statusMessage = ref("(心情狀態) 我度過了難熬的一天");
-const followerCount = ref("(顯示追蹤數) 1234");
+// --- 1. 顏色與狀態 ---
+const BRAND_ORANGE = '#f48e31'
+const activeTab = ref('posts')
+const activeSubTab = ref('my')
+const isEditing = ref(false)
+const showDetail = ref(false)
+const selectedItem = ref(null)
+const newTagInput = ref('')
+const fileInput = ref(null)
 
-// 這裡貼寵物大頭貼圖片網址
-const petAvatar = ref(
-  "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg"
-);
+// --- 2. 寵物個人資料 ---
+const profile = reactive({
+  avatar:
+    'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
+  name: '豆泥 (Doni)',
+  username: '@doni_cat',
+  hashtags: ['#布偶貓', '#藍眼', '#午睡愛好者', '#罐罐小偷'],
+  petInfo: {
+    breed: '布偶貓',
+    birthday: '2023-01-15',
+    gender: '母',
+    interest: '抓蝴蝶、踩奶、睡在鍵盤上'
+  }
+})
 
-// 底部圖片資料 (定義三組，手機版會自動隱藏最後一組)
-const imgList = ref([
+// --- 3. 擴充假資料 (已更新圖片與確保點擊對象) ---
+const myPosts = [
   {
-    src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOCxmFu8e5UtarR5p-TApZWjqRmNX65pnHYg&s",
-    url: "連結1",
+    id: 1,
+    type: 'post',
+    title: '午後的陽光剛好',
+    date: '2023-12-01',
+    img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80',
+    content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！'
+  },
+  // 🔑 更新：新買的貓草球圖片 (完整頭部)
+  {
+    id: 2,
+    type: 'post',
+    title: '新買的貓草球',
+    date: '2023-12-05',
+    img: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=800&q=80',
+    content: '一打開包裝就瘋了，抓著不放，這顆球真的很有魔力。'
   },
   {
-    src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTE88tdQXXidf2uGgjJYj2-EzhGMPHy1Efd3A&s",
-    url: "連結2",
+    id: 3,
+    type: 'post',
+    title: '今天的晚餐是罐罐',
+    date: '2023-12-10',
+    img: 'https://images.unsplash.com/photo-1516750105099-4b8a83e217ee?auto=format&fit=crop&w=800&q=80',
+    content: '期待很久的雞肉口味，不到三分鐘就掃光。'
+  }
+]
+const savedPosts = [
+  {
+    id: 101,
+    type: 'post',
+    title: '貓咪飲水機評測',
+    date: '2023-11-15',
+    img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+    content: '這款超靜音，豆泥很愛喝。'
   },
   {
-    src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyER23g_RhNc8N66fo45XSH2WxgcE7cylSqA&s  ",
-    url: "連結3",
+    id: 102,
+    type: 'post',
+    title: '逗貓棒推薦清單',
+    date: '2023-11-20',
+    img: 'https://images.unsplash.com/photo-1570824104453-508955ab713e?auto=format&fit=crop&w=800&q=80',
+    content: '整理了十款耐操又好玩的逗貓棒。'
   },
-]);
+  {
+    id: 103,
+    type: 'post',
+    title: '室內貓健康飲食',
+    date: '2023-11-25',
+    img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=800&q=80',
+    content: '關於低碳水化合物的選購指南。'
+  }
+]
+const friendsList = [
+  {
+    id: 501,
+    type: 'friend',
+    name: '金金 (Golden)',
+    breed: '黃金獵犬',
+    status: '線上',
+    content: '溫柔體貼的鄰居，每次見面都會搖尾巴。',
+    img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 502,
+    type: 'friend',
+    name: '酷醬 (Bulldog)',
+    breed: '法鬥',
+    status: '離線',
+    content: '熱情的法鬥男孩，雖然看起來臉臭但很愛撒嬌。',
+    img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 503,
+    type: 'friend',
+    name: '小柴 (Shiba)',
+    breed: '柴犬',
+    status: '線上',
+    content: '傲嬌的散步好隊友，很有個性。',
+    img: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=400&q=80'
+  }
+]
+const createdEvents = [
+  {
+    id: 201,
+    type: 'event',
+    name: '布偶貓交流聚會',
+    location: '中山區咖啡廳',
+    status: '招募中',
+    content: '歡迎各位鏟屎官帶主子來參加！現場有免費點心提供。'
+  },
+  {
+    id: 202,
+    type: 'event',
+    name: '週末草皮野餐',
+    location: '大安森林公園',
+    status: '已額滿',
+    content: '一起來曬太陽跑跑跑，認識新朋友的好機會。'
+  },
+  {
+    id: 203,
+    type: 'event',
+    name: '寵物鮮食工作坊',
+    location: '線上課程',
+    status: '報名中',
+    content: '教你製作無油鹽的美味寵物蛋糕，專門為貓狗設計。'
+  }
+]
+const followedEvents = [
+  {
+    id: 301,
+    type: 'event',
+    name: '年度寵物展覽',
+    location: '世貿一館',
+    status: '已收藏',
+    content: '一年一度搶優惠的時刻到了，各種飼料罐罐大集合。'
+  },
+  {
+    id: 302,
+    type: 'event',
+    name: '線上貓咪攝影賽',
+    location: 'Instagram 線上',
+    status: '進行中',
+    content: 'PO 出你家主子的崩壞照，最高獎金一萬元！'
+  },
+  {
+    id: 303,
+    type: 'event',
+    name: '愛心認養市集',
+    location: '松菸園區',
+    status: '已收藏',
+    content: '認養代替購買，一起支持公益市集，現場有文創小物。'
+  }
+]
+
+// --- 4. 邏輯方法 ---
+const openDetail = (item) => {
+  selectedItem.value = item
+  showDetail.value = true
+}
+const handleAvatarClick = () => fileInput.value.click()
+const handleFileChange = (e) => {
+  const file = e.target.files[0]
+  if (file) profile.avatar = URL.createObjectURL(file)
+}
+const handleTabChange = (tab) => {
+  activeTab.value = tab
+  activeSubTab.value = tab === 'posts' ? 'my' : 'create'
+}
+const removeTag = (index) => profile.hashtags.splice(index, 1)
+const addTag = () => {
+  if (newTagInput.value.trim()) {
+    profile.hashtags.push(
+      newTagInput.value.trim().startsWith('#')
+        ? newTagInput.value.trim()
+        : `#${newTagInput.value.trim()}`
+    )
+    newTagInput.value = ''
+  }
+}
 </script>
 
 <template>
-  <div
-    class="min-h-screen bg-[#FDF2F2] p-4 md:p-10 flex justify-center items-start font-sans"
-  >
-    <div
-      class="w-full max-w-[360px] md:max-w-[768px] lg:max-w-[1024px] bg-[#FCE8E8] rounded-[50px] shadow-sm p-4 md:p-12"
-    >
-      <div class="w-full flex justify-center mb-6">
-        <div
-          class="w-[85%] md:w-3/4 bg-white rounded-lg py-2 md:py-3 shadow-sm relative text-center"
-        >
-          <span class="text-gray-700 font-bold text-base md:text-xl">{{
-            statusMessage
-          }}</span>
-          <div
-            class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-white"
-          ></div>
-        </div>
-      </div>
+  <div class="bg-bg-base relative min-h-screen overflow-x-hidden pb-20 font-sans">
+    <BackgroundGrid />
 
-      <div class="flex flex-col md:flex-row items-stretch gap-4 md:gap-8 mb-8">
-        <div
-          class="flex flex-col items-center justify-between w-full md:w-[300px] lg:w-[350px]"
-        >
+    <div class="container mx-auto flex max-w-[1300px] justify-center px-10 py-8">
+      <div class="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_2fr]">
+        <aside class="flex min-h-[850px] flex-col items-center space-y-8">
+          <div class="flex flex-col items-center text-center">
+            <h1 class="c-title mb-6 text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+              {{ profile.name }}
+            </h1>
+            <div class="group relative mb-6 cursor-pointer" @click="handleAvatarClick">
+              <div class="shadow-card h-44 w-44 overflow-hidden rounded-full border-4 border-white">
+                <img
+                  :src="profile.avatar"
+                  alt="Avatar"
+                  class="h-full w-full object-cover transition-opacity group-hover:opacity-80"
+                />
+              </div>
+              <input
+                ref="fileInput"
+                type="file"
+                class="hidden"
+                accept="image/*"
+                @change="handleFileChange"
+              />
+              <span
+                class="border-border-default absolute right-2 bottom-2 rounded-full border bg-white px-3 py-1 text-xs font-bold shadow-sm"
+                >已驗證飼主</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-fg-muted text-lg">{{ profile.username }}</span>
+              <button class="group cursor-pointer" @click="isEditing = true">
+                <svg
+                  class="fill-fg-muted h-6 w-6 transition-all group-hover:rotate-90 hover:fill-[#f48e31]"
+                  viewBox="0 0 512 512"
+                >
+                  <path
+                    d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6l-44.3 119.5c-3.2 8.7-11.8 14.3-21.2 13.9l-58.4-2.8c-14.5 11.5-30.8 20.6-48.5 27.2l-10.3 57.7c-1.6 9.1-9.3 15.8-18.6 16.1l-127.3 3.6c-9.4 .3-17.7-5.5-20.1-14.5l-15.5-56.5c-16.9-7.9-32.3-18.6-45.7-31.5l-54.3 22.1c-8.7 3.6-18.8 .1-23.7-8.2L5.4 349.5c-4.9-8.3-3.6-18.9 3.2-25.7l40.1-40.6c-1.1-8.3-1.7-16.7-1.7-25.2s.6-16.9 1.7-25.2L8.6 192.1c-6.8-6.8-8.2-17.4-3.2-25.7L49.7 57.9c4.9-8.3 15-11.8 23.7-8.2l54.3 22.1c13.4-12.9 28.8-23.6 45.7-31.5l15.5-56.5c2.4-9 10.7-14.8 20.1-14.5l127.3 3.6c9.3 .3 17 7 18.6 16.1l10.3 57.7c17.7 6.6 34 15.7 48.5 27.2l58.4-2.8c9.4-.5 17.9 5.2 21.2 13.9l44.3 119.5zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="mx-auto flex w-full max-w-[260px] justify-between py-2 text-center">
+            <div>
+              <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">105</p>
+              <p class="text-fg-muted text-sm font-medium">粉絲</p>
+            </div>
+            <div>
+              <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">15</p>
+              <p class="text-fg-muted text-sm font-medium">追蹤中</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap justify-center gap-3 px-8">
+            <span
+              v-for="tag in profile.hashtags"
+              :key="tag"
+              class="border-border-default text-fg-secondary flex h-[38px] w-[110px] items-center justify-center rounded-full border bg-white text-[11px] shadow-sm"
+              >{{ tag }}</span
+            >
+          </div>
           <div
-            class="w-48 h-48 md:w-full md:h-auto md:aspect-square bg-white rounded-[40px] overflow-hidden shadow-sm"
+            class="c-card border-border-default/20 flex w-full flex-1 flex-col justify-center border p-10 shadow-sm"
           >
-            <img :src="petAvatar" class="w-full h-full object-cover" />
+            <div class="text-fg-muted mx-auto w-fit space-y-4 text-left text-lg">
+              <p>
+                <span
+                  class="text-fg-secondary mb-1 block text-xs font-bold tracking-widest uppercase"
+                  >寵物詳細資料</span
+                >
+              </p>
+              <p>
+                <span class="text-fg-secondary font-bold">品種：</span>{{ profile.petInfo.breed }}
+              </p>
+              <p>
+                <span class="text-fg-secondary font-bold">生日：</span
+                >{{ profile.petInfo.birthday }}
+              </p>
+              <p>
+                <span class="text-fg-secondary font-bold">性別：</span>{{ profile.petInfo.gender }}
+              </p>
+              <p>
+                <span class="text-fg-secondary font-bold">興趣：</span
+                >{{ profile.petInfo.interest }}
+              </p>
+            </div>
           </div>
-          <div class="flex gap-4 text-white text-2xl py-2">
-            <span>★</span><span>⬅</span><span>●</span><span>✿</span
-            ><span>斜</span>
-          </div>
-          <div
-            class="bg-white px-6 py-1 rounded-md text-xs font-black text-gray-500 shadow-sm"
-          >
-            追蹤數 {{ followerCount }}
-          </div>
-        </div>
+        </aside>
 
-        <div class="flex-1 flex flex-col gap-3 mt-4 md:mt-0">
-          <div
-            class="bg-white p-2 md:p-5 rounded-xl text-center text-base font-bold text-gray-700 shadow-sm"
-          >
-            <!-- 顯示註冊時選擇的標籤 -->
-            (註冊時選擇的標籤)滑稽、搞笑、無語、歡樂、療癒、可愛
+        <main
+          class="c-card border-border-default/50 flex min-h-[850px] w-full flex-col overflow-hidden border shadow-sm"
+        >
+          <div class="border-border-default flex shrink-0 justify-around border-b px-6 pt-8">
+            <button
+              v-for="tab in [
+                { id: 'posts', n: '貼文' },
+                { id: 'events', n: '活動' },
+                { id: 'friends', n: '好友' }
+              ]"
+              :key="tab.id"
+              class="relative w-full pb-5 text-center text-lg font-bold"
+              :style="{ color: activeTab === tab.id ? BRAND_ORANGE : '' }"
+              @click="handleTabChange(tab.id)"
+            >
+              {{ tab.n }}
+              <div
+                v-if="activeTab === tab.id"
+                class="absolute bottom-0 h-1.5 w-full rounded-t-full"
+                :style="{ backgroundColor: BRAND_ORANGE }"
+              ></div>
+            </button>
           </div>
-          <div
-            class="h-32 md:flex-1 bg-white rounded-[30px] flex items-center justify-center text-gray-500 font-black text-xl shadow-sm border-2 border-dashed border-pink-50"
-          >
-            <!-- 收藏/追蹤活動 -->
-            品種：柴犬<br>
-            生日：2018/08/08<br>
-            性別：男生<br>
-            愛好：吃飯、睡覺、玩耍<br>
+
+          <div class="flex-1 p-10">
+            <div v-if="activeTab === 'posts'" class="space-y-8">
+              <div class="flex justify-center gap-6">
+                <button
+                  class="c-btn px-10 py-2.5 shadow-sm"
+                  :style="
+                    activeSubTab === 'my'
+                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
+                      : { backgroundColor: '#f3f4f6' }
+                  "
+                  @click="activeSubTab = 'my'"
+                >
+                  我的貼文
+                </button>
+                <button
+                  class="c-btn px-10 py-2.5 shadow-sm"
+                  :style="
+                    activeSubTab === 'saved'
+                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
+                      : { backgroundColor: '#f3f4f6' }
+                  "
+                  @click="activeSubTab = 'saved'"
+                >
+                  儲存的貼文
+                </button>
+              </div>
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div
+                  v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
+                  :key="post.id"
+                  class="cursor-pointer overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md"
+                  @click="openDetail(post)"
+                >
+                  <div class="aspect-square overflow-hidden">
+                    <img :src="post.img" class="h-full w-full object-cover" />
+                  </div>
+                  <div class="text-fg-primary truncate p-4 text-center text-sm font-bold">
+                    {{ post.title }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="activeTab === 'events'" class="space-y-8">
+              <div class="flex justify-center gap-6">
+                <button
+                  class="c-btn px-10 py-2.5"
+                  :style="
+                    activeSubTab === 'create'
+                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
+                      : { backgroundColor: '#f3f4f6' }
+                  "
+                  @click="activeSubTab = 'create'"
+                >
+                  發起活動
+                </button>
+                <button
+                  class="c-btn px-10 py-2.5"
+                  :style="
+                    activeSubTab === 'follow'
+                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
+                      : { backgroundColor: '#f3f4f6' }
+                  "
+                  @click="activeSubTab = 'follow'"
+                >
+                  收藏活動
+                </button>
+              </div>
+              <div class="grid gap-4">
+                <div
+                  v-for="event in activeSubTab === 'create' ? createdEvents : followedEvents"
+                  :key="event.id"
+                  class="border-border-default hover:border-brand-accent/50 flex cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all"
+                  @click="openDetail(event)"
+                >
+                  <div class="text-left">
+                    <h4 class="text-fg-primary font-bold">{{ event.name }}</h4>
+                    <p class="text-fg-muted mt-1 text-xs">📍 {{ event.location }}</p>
+                  </div>
+                  <span
+                    class="bg-brand-accent/10 rounded-full px-3 py-1 text-[10px] font-bold"
+                    :style="{ color: BRAND_ORANGE }"
+                    >{{ event.status }}</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div v-if="activeTab === 'friends'" class="grid grid-cols-1 gap-4">
+              <div
+                v-for="friend in friendsList"
+                :key="friend.id"
+                class="border-border-default flex cursor-pointer items-center justify-between rounded-[2rem] border bg-white p-6 shadow-sm transition-all hover:bg-gray-50"
+                @click="openDetail(friend)"
+              >
+                <div class="flex items-center gap-5">
+                  <img :src="friend.img" class="h-16 w-16 rounded-full border border-gray-100" />
+                  <div class="text-left">
+                    <p class="text-fg-primary text-lg font-bold">{{ friend.name }}</p>
+                    <p class="text-fg-muted text-xs">{{ friend.breed }} · {{ friend.status }}</p>
+                  </div>
+                </div>
+                <button class="px-4 text-sm font-bold" :style="{ color: BRAND_ORANGE }">
+                  查看
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div
-          class="w-full h-14 md:h-24 bg-white rounded-[20px] md:rounded-[40px] shadow-sm flex items-center justify-center relative"
-        >
-          <div
-            class="absolute -top-3 left-[15%] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-white"
-          ></div>
-          <div
-            class="absolute -top-3 right-[15%] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-white"
-          ></div>
-          <span class="text-lg md:text-2xl font-black text-gray-800">
-            <!-- text -->
-            文章預覽1(有字數限制)
-          </span>
-        </div>
-        <div
-          class="w-full h-14 md:h-24 bg-white rounded-[20px] md:rounded-[40px] shadow-sm flex items-center justify-center relative"
-        >
-          <div
-            class="absolute -top-3 left-[15%] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-white"
-          ></div>
-          <div
-            class="absolute -top-3 right-[15%] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-white"
-          ></div>
-          <span class="text-lg md:text-2xl font-black text-gray-800">
-            <!-- text -->
-            文章預覽2(有字數限制)
-          </span>
-        </div>
-        <div
-          class="hidden md:flex w-full h-24 bg-white rounded-[40px] shadow-sm items-center justify-center relative"
-        >
-          <div
-            class="absolute -top-3 left-[15%] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-white"
-          ></div>
-          <div
-            class="absolute -top-3 right-[15%] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-white"
-          ></div>
-          <span class="text-2xl font-black text-gray-800">
-            <!-- text -->
-            文章預覽3(有字數限制)
-          </span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 w-full">
-        <a
-          v-for="(img, index) in imgList"
-          :key="'img-' + index"
-          :href="img.url"
-          target="_blank"
-          :class="[
-            'aspect-square bg-white rounded-[25px] md:rounded-[45px] shadow-sm overflow-hidden hover:scale-105 transition-all border-4 border-white hover:border-[#FFC2D1] flex items-center justify-center',
-            index === 2 ? 'hidden md:flex' : 'flex',
-          ]"
-        >
-          <img :src="img.src" class="w-full h-full object-cover" />
-          <span
-            v-if="!img.src"
-            class="text-xl md:text-3xl font-black text-gray-300"
-            >img</span
-          >
-        </a>
+        </main>
       </div>
     </div>
+
+    <div
+      v-if="isEditing"
+      class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    >
+      <div class="c-card mt-10 max-h-[90vh] w-full max-w-xl overflow-y-auto p-8 shadow-2xl">
+        <h2 class="mb-6 text-center text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+          編輯寵物資料
+        </h2>
+        <div class="space-y-5 text-left text-sm">
+          <div>
+            <label class="text-fg-secondary mb-1 block font-bold">寵物名稱</label
+            ><input
+              v-model="profile.name"
+              type="text"
+              class="border-border-default w-full rounded-xl border p-3 focus:ring-1"
+              :style="{ '--tw-ring-color': BRAND_ORANGE }"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-fg-secondary mb-1 block font-bold">品種</label
+              ><input
+                v-model="profile.petInfo.breed"
+                type="text"
+                class="border-border-default w-full rounded-xl border p-3"
+              />
+            </div>
+            <div>
+              <label class="text-fg-secondary mb-1 block font-bold">性別</label
+              ><select
+                v-model="profile.petInfo.gender"
+                class="border-border-default w-full rounded-xl border p-3"
+              >
+                <option>公</option>
+                <option>母</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-fg-secondary mb-1 block font-bold">生日</label
+            ><input
+              v-model="profile.petInfo.birthday"
+              type="date"
+              class="border-border-default w-full rounded-xl border p-3"
+            />
+          </div>
+          <div>
+            <label class="text-fg-secondary mb-1 block font-bold">興趣</label
+            ><textarea
+              v-model="profile.petInfo.interest"
+              rows="2"
+              class="border-border-default w-full resize-none rounded-xl border p-3"
+            ></textarea>
+          </div>
+          <div>
+            <label class="text-fg-secondary mb-1 block font-bold">Hashtags (點擊移除)</label>
+            <div
+              class="border-border-default mb-2 flex min-h-[50px] flex-wrap gap-2 rounded-xl border border-dashed p-3"
+            >
+              <span
+                v-for="(tag, index) in profile.hashtags"
+                :key="index"
+                class="cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-xs transition-colors hover:bg-red-50 hover:text-red-500"
+                @click="removeTag(index)"
+              >
+                {{ tag }} ✕
+              </span>
+            </div>
+            <div class="flex gap-2">
+              <input
+                v-model="newTagInput"
+                type="text"
+                placeholder="輸入標籤..."
+                class="border-border-default flex-1 rounded-xl border p-3"
+                @keyup.enter="addTag"
+              /><button
+                class="rounded-xl px-5 font-bold text-white"
+                :style="{ backgroundColor: BRAND_ORANGE }"
+                @click="addTag"
+              >
+                新增
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 flex gap-4">
+          <button class="flex-1 rounded-full bg-gray-100 py-3 font-bold" @click="isEditing = false">
+            取消</button
+          ><button
+            class="flex-1 rounded-full py-3 font-bold text-white shadow-lg"
+            :style="{ backgroundColor: BRAND_ORANGE }"
+            @click="isEditing = false"
+          >
+            確認修改
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <Transition name="fade">
+      <div
+        v-if="showDetail"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+      >
+        <div class="c-card animate-scale-up mt-10 w-full max-w-2xl p-8 shadow-2xl">
+          <div v-if="selectedItem" class="space-y-6 text-left">
+            <template v-if="selectedItem.type === 'post'">
+              <img :src="selectedItem.img" class="h-80 w-full rounded-2xl object-cover shadow-sm" />
+              <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+                {{ selectedItem.title }}
+              </h2>
+              <p class="text-fg-secondary border-t pt-4 leading-relaxed">
+                {{ selectedItem.content }}
+              </p>
+            </template>
+            <template v-else-if="selectedItem.type === 'event'">
+              <div class="space-y-4">
+                <span
+                  class="bg-brand-accent/20 rounded-full px-4 py-1 text-xs font-bold"
+                  :style="{ color: BRAND_ORANGE }"
+                  >{{ selectedItem.status }}</span
+                >
+                <h2 class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+                  {{ selectedItem.name }}
+                </h2>
+                <p class="text-fg-primary text-lg font-bold">
+                  📍 地點：{{ selectedItem.location }}
+                </p>
+                <div class="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-6">
+                  <p class="text-fg-secondary text-lg leading-relaxed">
+                    {{ selectedItem.content }}
+                  </p>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="selectedItem.type === 'friend'">
+              <div class="flex items-center gap-6">
+                <img
+                  :src="selectedItem.img"
+                  class="h-24 w-24 rounded-full border-2 border-white shadow-sm"
+                />
+                <h2 class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+                  {{ selectedItem.name }}
+                </h2>
+              </div>
+              <p class="text-fg-secondary border-t pt-4 text-lg">{{ selectedItem.content }}</p>
+            </template>
+          </div>
+          <button
+            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg"
+            :style="{ backgroundColor: BRAND_ORANGE }"
+            @click="showDetail = false"
+          >
+            關閉
+          </button>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+@keyframes scale-up {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-scale-up {
+  animation: scale-up 0.3s ease-out;
+}
+</style>
