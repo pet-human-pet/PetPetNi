@@ -52,11 +52,11 @@ onUnmounted(() => {
   <Transition name="fade">
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-[999] flex items-center justify-center p-4 backdrop-blur-md"
+      class="fixed inset-0 `z-999` flex items-center justify-center p-4 backdrop-blur-md"
     >
       <!-- Backdrop with Login Gradient -->
       <div
-        class="absolute inset-0 bg-gradient-to-br from-red-400/80 to-pink-400/80 transition-opacity"
+        class="absolute inset-0 `bg-gradient-to-br` from-red-400/80 to-pink-400/80 transition-opacity"
         @click="closeOnBackdrop ? handleClose() : null"
       ></div>
 

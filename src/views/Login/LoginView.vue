@@ -19,7 +19,7 @@ const handleLogin = () => {
 
 <template>
   <div
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-400 to-pink-400 p-4"
+    class="`bg-gradient-to-br` flex min-h-screen items-center justify-center from-red-400 to-pink-400 p-4"
   >
     <div class="w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-sm md:p-10">
       <div class="mb-6 flex justify-center">
