@@ -33,13 +33,39 @@ onMounted(lockBodyScroll)
 onBeforeUnmount(unlockBodyScroll)
 
 /** ========== 原本資料 ========== */
-const locations = {
-  1: { name: '101 區域', x: 250, y: 450 },
-  2: { name: '國父紀念館', x: 750, y: 380 },
-  3: { name: '松菸區域', x: 1100, y: 280 },
+const baseLocations = {
+  1: { name: '101 區域', x: 280, y: 410 },
+  2: { name: '國父紀念館', x: 750, y: 370 },
+  3: { name: '松菸區域', x: 1050, y: 280 },
   4: { name: '象山區域', x: 1490, y: 815 },
   5: { name: '市府區域', x: 900, y: 820 }
 }
+
+const MAP_PROFILE = {
+  desktop: { scale: 1, dx: 0, dy: 0 },
+  tablet: { scale: 1, dx: -100, dy: 90 },
+  mobile: { scale: 1, dx: 0, dy: 0 }
+}
+
+const vw = ref(window.innerWidth)
+const onResize = () => (vw.value = window.innerWidth)
+onMounted(() => window.addEventListener('resize', onResize))
+onBeforeUnmount(() => window.removeEventListener('resize', onResize))
+
+const locations = computed(() => {
+  const profile = vw.value <= 800 ? 'mobile' : vw.value <= 1024 ? 'tablet' : 'desktop'
+  const { scale, dx, dy } = MAP_PROFILE[profile]
+
+  const out = {}
+  for (const [id, loc] of Object.entries(baseLocations)) {
+    out[id] = {
+      ...loc,
+      x: Math.round(loc.x * scale + dx),
+      y: Math.round(loc.y * scale + dy)
+    }
+  }
+  return out
+})
 
 const events = ref([
   {
@@ -140,6 +166,13 @@ function switchTab(next) {
     rightView.value = 'gbDetail'
     selectedGbId.value = null
   }
+}
+
+function getProfile() {
+  const w = window.innerWidth
+  if (w <= 800) return 'mobile'
+  if (w <= 1024) return 'tablet'
+  return 'desktop'
 }
 
 function selectEvent(evt, { scrollCard = false } = {}) {
@@ -309,7 +342,7 @@ onMounted(() => {
 
       <!-- Right content（桌面 sticky；手機 fixed 背景化） -->
       <section
-        class="sticky top-25 z-1 flex h-full flex-1 flex-col overflow-hidden rounded-2xl border border-[#ccc] bg-white max-[800px]:fixed max-[800px]:top-20 max-[800px]:left-0 max-[800px]:z-0 max-[800px]:h-[calc(100vh-60px)] max-[800px]:w-full max-[800px]:rounded-none max-[800px]:border-0"
+        class="z-1 flex h-full flex-1 flex-col overflow-hidden rounded-2xl border border-[#ccc] bg-white max-[800px]:fixed max-[800px]:top-20 max-[800px]:left-0 max-[800px]:z-0 max-[800px]:h-[calc(100vh-60px)] max-[800px]:w-full max-[800px]:rounded-none max-[800px]:border-0 lg:sticky lg:top-25"
         :class="{ 'max-[800px]:z-9999': isMobileOverlayOpen }"
       >
         <!-- View 1: Map -->
