@@ -8,28 +8,80 @@ const store = useChatStore()
 const messageInput = ref('')
 const msgContainer = ref(null)
 const timeLeft = ref('')
+const privateSubTab = ref('friend') // 'friend' | 'match'
 
 // --- 左側導航資料 ---
 const navItems = [
   { key: 'community', icon: 'fa-users', label: '社群' },
-  { key: 'match', icon: 'fa-heart', label: '個人私訊', badge: 1 },
+  { key: 'match', icon: 'fa-comments', label: '聊天', badge: 1 },
   { key: 'event', icon: 'fa-calendar-check', label: '活動揪團' },
   { key: 'stranger', icon: 'fa-user-secret', label: '敲敲門' },
   { key: 'ai', icon: 'fa-robot', label: 'AI 溝通師' }
 ]
+
+// --- 頁面跳轉資料 ---
+const pageNavItems = [
+  { name: '首頁', icon: 'fa-house', route: 'home' },
+  { name: '活動頁', icon: 'fa-calendar-days', route: 'Event' },
+  { name: '配對頁', icon: 'fa-id-card', route: 'match' },
+  { name: '動態牆', icon: 'fa-hashtag', route: 'Social' },
+  { name: '個人檔案', icon: 'fa-user', route: 'Profile' }
+]
+
+const goToPage = (routeName) => {
+  if (routeName === 'match') {
+    alert('配對媒合頁面開發中！')
+    return
+  }
+  router.push({ name: routeName })
+}
+
+// --- 列表過濾邏輯 ---
+const filteredChatList = computed(() => {
+  const list = store.currentChatList
+  if (store.currentCategory === 'match') {
+    return list.filter(chat => {
+      if (privateSubTab.value === 'friend') {
+        return chat.status === 'friend'
+      } else {
+        return chat.status === 'matching'
+      }
+    })
+  }
+  return list
+})
 
 // --- 右鍵選單邏輯 (ChatListPanel刪除退出置頂等) ---
 const contextMenu = ref({ visible: false, x: 0, y: 0, chatId: null, chatType: null, pinned: false })
 
 const openContextMenu = (e, chat) => {
   e.preventDefault()
-  contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, chatId: chat.id, chatType: chat.type, pinned: chat.pinned }
+  // 這裡強制判斷：如果是在 community 分類下，chatType 就是 community
+  const chatType = store.currentCategory === 'community' ? 'community' : chat.type
+  contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, chatId: chat.id, chatType, pinned: chat.pinned }
 }
 const closeContextMenu = () => { contextMenu.value.visible = false }
 const handleMenuAction = (action) => {
-  const { chatId } = contextMenu.value
-  if (action === 'pin') store.togglePin(chatId)
-  if (action === 'delete') { if(confirm('確定要刪除/退出嗎？')) store.deleteChat(chatId) }
+  const { chatId, chatType } = contextMenu.value
+  
+  if (action === 'pin') {
+    store.togglePin(chatId)
+  }
+  
+  if (action === 'leave') {
+    if(confirm('確定要退出此群組嗎？')) {
+      // TODO: 實作 store.leaveChat(chatId)
+      alert('已退出群組')
+      store.deleteChat(chatId)
+    }
+  }
+
+  if (action === 'delete') {
+    const msg = chatType === 'community' ? '確定要刪除此對話紀錄嗎？' : '確定要刪除對話紀錄嗎？'
+    if(confirm(msg)) {
+      store.deleteChat(chatId)
+    }
+  }
   closeContextMenu()
 }
 onMounted(() => window.addEventListener('click', closeContextMenu))
@@ -91,10 +143,10 @@ watch(() => store.activeChatId, () => {
 </script>
 
 <template>
-  <div class="relative w-screen h-screen overflow-hidden bg-bg-surface flex flex-col-reverse md:flex-row font-sans">
+  <div class="relative w-screen h-dvh overflow-hidden bg-bg-surface flex flex-col md:flex-row font-sans">
     <!-- Close Button -->
     <button
-      class="absolute top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-bg-surface/80 text-fg-secondary shadow-md transition-all hover:bg-bg-base hover:text-brand-accent max-md:top-2 max-md:right-2"
+      class="absolute top-4 right-4 z-70 flex h-10 w-10 items-center justify-center rounded-full bg-bg-surface/80 text-fg-secondary shadow-md transition-all hover:bg-bg-base hover:text-brand-accent"
       title="關閉"
       type="button"
       @click="router.back()"
@@ -105,36 +157,89 @@ watch(() => store.activeChatId, () => {
     <!-- Left Nav -->
     <div
 class="
-      shrink-0 w-full h-15 bg-bg-surface border-t border-border-default flex flex-row justify-around items-center z-50
-      md:w-20 md:h-full md:bg-bg-base md:border-t-0 md:border-r md:flex-col md:justify-start md:pt-7.5 md:z-auto
+      shrink-0 w-full h-16 bg-bg-surface border-t border-border-default flex flex-row items-center fixed bottom-0 left-0 z-40 overflow-x-auto no-scrollbar justify-start px-2 gap-2
+      md:static md:w-20 md:h-full md:bg-bg-base md:border-t-0 md:border-r md:flex-col md:justify-start md:pt-4 md:z-auto md:overflow-visible md:px-0 md:gap-2
     ">
+      
+      <!-- Section: Channels -->
+      <div
+class="
+        shrink-0 flex items-center justify-center w-5 md:w-full h-full md:h-auto mt-0 md:mt-2 mb-0 md:mb-1
+      ">
+        <span class="px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary text-[9px] font-black rounded-full md:rounded-full tracking-wider [writing-mode:vertical-lr] md:[writing-mode:horizontal-tb]">
+          頻道
+        </span>
+      </div>
+
       <div 
         v-for="item in navItems" :key="item.key"
         class="
           relative flex flex-col justify-center items-center cursor-pointer text-fg-muted transition-all duration-200
-          w-full h-full md:w-15 md:h-15 md:rounded-xl md:mb-3.75 md:flex-none
+          w-13 h-full md:w-14 md:h-14 md:rounded-xl shrink-0
           hover:bg-black/5 hover:text-brand-primary
         "
         :class="{ 'bg-brand-primary! text-white! shadow-lg shadow-brand-primary/30': store.currentCategory === item.key }"
         @click="store.switchCategory(item.key)"
       >
-        <i class="fa-solid text-[20px] mb-1" :class="item.icon"></i>
+        <i class="fa-solid text-[18px] mb-1" :class="item.icon"></i>
         <div class="text-[10px] font-bold leading-none">{{ item.label }}</div>
-        <div v-if="item.badge" class="absolute top-1.25 right-1.25 w-4 h-4 bg-brand-accent text-white text-[9px] rounded-full flex justify-center items-center border-2 border-bg-base">
+        <div v-if="item.badge" class="absolute top-1 right-1 w-3.5 h-3.5 bg-brand-accent text-white text-[9px] rounded-full flex justify-center items-center border-2 border-bg-base">
           {{ item.badge }}
         </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="shrink-0 border-border-strong h-10 border-l mx-3.5 md:w-12 md:h-0 md:border-l-0 md:border-t md:mx-auto md:my-3"></div>
+
+      <!-- Section: Explore -->
+      <div class="shrink-0 flex items-center justify-center w-5 md:w-full h-full md:h-auto mt-0 md:mt-1 mb-0 md:mb-1">
+        <span class="px-1.5 py-0.5 bg-fg-muted/10 text-fg-muted text-[9px] font-black rounded-full md:rounded-full tracking-wider [writing-mode:vertical-lr] md:[writing-mode:horizontal-tb]">
+          探索
+        </span>
+      </div>
+
+      <div 
+        v-for="item in pageNavItems" 
+        :key="item.name"
+        class="
+          relative flex flex-col justify-center items-center cursor-pointer text-fg-secondary transition-all duration-200
+          w-13 h-full md:w-14 md:h-14 md:rounded-xl shrink-0
+          hover:bg-black/5 hover:text-brand-primary
+        "
+        @click="goToPage(item.route)"
+      >
+        <i class="fa-solid text-[18px] mb-1" :class="item.icon"></i>
+        <div class="text-[10px] font-bold leading-none">{{ item.name }}</div>
       </div>
     </div>
 
     <!-- Middle Chat List -->
-    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-15 md:w-[320px] md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
+    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-16 md:w-[320px] md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
       <div class="p-4 shrink-0">
         <input type="text" placeholder="搜尋對話..." class="w-full bg-bg-base rounded-full px-4 py-2 text-sm text-fg-primary outline-none placeholder:text-fg-muted">
+      </div>
+
+      <!-- Private Sub-Tabs -->
+      <div v-if="store.currentCategory === 'match'" class="px-4 pb-2 flex gap-2 shrink-0">
+        <button 
+          class="flex-1 py-1.5 text-xs font-bold rounded-full border transition-all duration-200"
+          :class="privateSubTab === 'friend' ? 'bg-brand-primary text-white border-transparent shadow-sm' : 'bg-transparent text-fg-muted border-border-default hover:bg-bg-base'"
+          @click="privateSubTab = 'friend'"
+        >
+          好友
+        </button>
+        <button 
+          class="flex-1 py-1.5 text-xs font-bold rounded-full border transition-all duration-200"
+          :class="privateSubTab === 'match' ? 'bg-brand-primary text-white border-transparent shadow-sm' : 'bg-transparent text-fg-muted border-border-default hover:bg-bg-base'"
+          @click="privateSubTab = 'match'"
+        >
+          配對中
+        </button>
       </div>
       
       <div class="flex-1 overflow-y-auto px-2 no-scrollbar">
         <div 
-          v-for="chat in store.currentChatList" :key="chat.id"
+          v-for="chat in filteredChatList" :key="chat.id"
           class="flex items-center p-3 rounded-xl cursor-pointer hover:bg-bg-base mb-1 relative group transition-colors"
           :class="{'bg-bg-base': store.activeChatId === chat.id, 'bg-bg-base/50': chat.pinned}"
           @click="store.openChat(chat.id)"
@@ -167,8 +272,15 @@ class="
         <div class="px-4 py-2 hover:bg-bg-base cursor-pointer flex items-center gap-2" @click="handleMenuAction('pin')">
           <i class="fa-solid fa-thumbtack text-fg-muted"></i> {{ contextMenu.pinned ? '取消置頂' : '置頂' }}
         </div>
+        
+        <!-- 僅限社群的退出選項 -->
+        <div v-if="contextMenu.chatType === 'community'" class="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer flex items-center gap-2 border-t border-border-default mt-1" @click="handleMenuAction('leave')">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> 退出社群
+        </div>
+
+        <!-- 所有對話都有的刪除選項 -->
         <div class="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer flex items-center gap-2 border-t border-border-default mt-1" @click="handleMenuAction('delete')">
-          <i class="fa-solid fa-trash-can"></i> 刪除/退出
+          <i class="fa-solid fa-trash-can"></i> 刪除對話
         </div>
       </div>
     </div>
@@ -176,8 +288,8 @@ class="
     <!-- Right Chat Area -->
     <div
 class="
-      flex-1 h-full min-w-0 bg-bg-base relative flex flex-col
-      fixed inset-0 z-20 md:static md:translate-x-0 transition-transform duration-300 transform translate-x-full
+      flex-1 h-full min-w-0 bg-bg-base md:relative flex flex-col
+      fixed inset-0 z-60 md:translate-x-0 transition-transform duration-300 transform translate-x-full
     " :class="{ 'translate-x-0!': store.activeChatId }">
       
       <div v-if="!store.activeChat" class="hidden md:flex flex-col items-center justify-center h-full text-fg-muted">
@@ -198,9 +310,7 @@ class="
                <div class="text-xs text-fg-secondary">{{ store.activeChat.status === 'matching' ? '配對互動中' : '線上' }}</div>
              </div>
           </div>
-          <div class="flex gap-4 text-fg-muted pr-10 md:pr-12">
-              <i class="fa-solid fa-triangle-exclamation hover:text-red-500 cursor-pointer" @click="reportMessage"></i>
-          </div>
+          <div class="flex gap-4 text-fg-muted"></div>
         </div>
 
         <div v-if="store.activeChat.notice" class="bg-yellow-50 text-yellow-800 px-4 py-2 text-sm flex items-center border-b border-yellow-100 shrink-0">
