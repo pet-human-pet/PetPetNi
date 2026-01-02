@@ -9,7 +9,7 @@ const props = defineProps({
  * 可選：之後要把申請資料送到父層或 API
  * - apply(payload): { itemId, name, phone, email, note }
  */
-const emit = defineEmits(['apply'])
+const emit = defineEmits(['apply', 'overlay'])
 
 /** ========== UI state ========== */
 const formOpen = ref(false)
@@ -53,6 +53,10 @@ function submitJoin() {
   hasApplied.value = true
   formOpen.value = false
 }
+//把狀態丟回父層
+watch(formOpen, (val) => {
+  emit('overlay', val)
+})
 
 /** item 切換時：回到詳情、清空表單、重置已申請 */
 watch(
