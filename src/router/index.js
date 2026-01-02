@@ -24,7 +24,10 @@ const router = createRouter({
       path: '/chat-test',
       name: 'chat-test',
       component: () => import('@/views/ChatRoomView.vue'),
-      meta: { headerType: 'none' }
+      meta: { 
+        headerType: 'none',
+        hideFooter: true
+      }
     },
 
     {
