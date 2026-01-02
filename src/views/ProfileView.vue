@@ -27,7 +27,7 @@ const profile = reactive({
   }
 })
 
-// --- 3. 擴充假資料 (已更新圖片與確保點擊對象) ---
+// --- 3. 恢復與簡化假資料 (🔑 移除好友英文名稱防止 RWD 跑版) ---
 const myPosts = [
   {
     id: 1,
@@ -37,14 +37,13 @@ const myPosts = [
     img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80',
     content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！'
   },
-  // 🔑 更新：新買的貓草球圖片 (完整頭部)
   {
     id: 2,
     type: 'post',
     title: '新買的貓草球',
     date: '2023-12-05',
     img: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=800&q=80',
-    content: '一打開包裝就瘋了，抓著不放，這顆球真的很有魔力。'
+    content: '一打開包裝就瘋了，抓著不放。'
   },
   {
     id: 3,
@@ -52,7 +51,7 @@ const myPosts = [
     title: '今天的晚餐是罐罐',
     date: '2023-12-10',
     img: 'https://images.unsplash.com/photo-1516750105099-4b8a83e217ee?auto=format&fit=crop&w=800&q=80',
-    content: '期待很久的雞肉口味，不到三分鐘就掃光。'
+    content: '期待很久的雞肉口味。'
   }
 ]
 const savedPosts = [
@@ -70,7 +69,7 @@ const savedPosts = [
     title: '逗貓棒推薦清單',
     date: '2023-11-20',
     img: 'https://images.unsplash.com/photo-1570824104453-508955ab713e?auto=format&fit=crop&w=800&q=80',
-    content: '整理了十款耐操又好玩的逗貓棒。'
+    content: '整理了十款好玩的逗貓棒。'
   },
   {
     id: 103,
@@ -81,35 +80,6 @@ const savedPosts = [
     content: '關於低碳水化合物的選購指南。'
   }
 ]
-const friendsList = [
-  {
-    id: 501,
-    type: 'friend',
-    name: '金金 (Golden)',
-    breed: '黃金獵犬',
-    status: '線上',
-    content: '溫柔體貼的鄰居，每次見面都會搖尾巴。',
-    img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
-  },
-  {
-    id: 502,
-    type: 'friend',
-    name: '酷醬 (Bulldog)',
-    breed: '法鬥',
-    status: '離線',
-    content: '熱情的法鬥男孩，雖然看起來臉臭但很愛撒嬌。',
-    img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=400&q=80'
-  },
-  {
-    id: 503,
-    type: 'friend',
-    name: '小柴 (Shiba)',
-    breed: '柴犬',
-    status: '線上',
-    content: '傲嬌的散步好隊友，很有個性。',
-    img: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=400&q=80'
-  }
-]
 const createdEvents = [
   {
     id: 201,
@@ -117,7 +87,7 @@ const createdEvents = [
     name: '布偶貓交流聚會',
     location: '中山區咖啡廳',
     status: '招募中',
-    content: '歡迎各位鏟屎官帶主子來參加！現場有免費點心提供。'
+    content: '歡迎帶主子來參加！'
   },
   {
     id: 202,
@@ -125,7 +95,7 @@ const createdEvents = [
     name: '週末草皮野餐',
     location: '大安森林公園',
     status: '已額滿',
-    content: '一起來曬太陽跑跑跑，認識新朋友的好機會。'
+    content: '一起來曬太陽跑跑跑。'
   },
   {
     id: 203,
@@ -133,7 +103,7 @@ const createdEvents = [
     name: '寵物鮮食工作坊',
     location: '線上課程',
     status: '報名中',
-    content: '教你製作無油鹽的美味寵物蛋糕，專門為貓狗設計。'
+    content: '製作美味寵物蛋糕。'
   }
 ]
 const followedEvents = [
@@ -143,7 +113,7 @@ const followedEvents = [
     name: '年度寵物展覽',
     location: '世貿一館',
     status: '已收藏',
-    content: '一年一度搶優惠的時刻到了，各種飼料罐罐大集合。'
+    content: '大降價時刻到了。'
   },
   {
     id: 302,
@@ -151,7 +121,7 @@ const followedEvents = [
     name: '線上貓咪攝影賽',
     location: 'Instagram 線上',
     status: '進行中',
-    content: 'PO 出你家主子的崩壞照，最高獎金一萬元！'
+    content: 'PO 出崩壞照。'
   },
   {
     id: 303,
@@ -159,7 +129,38 @@ const followedEvents = [
     name: '愛心認養市集',
     location: '松菸園區',
     status: '已收藏',
-    content: '認養代替購買，一起支持公益市集，現場有文創小物。'
+    content: '認養代替購買。'
+  }
+]
+
+// 🔑 修改點：僅移除英文名稱，防止寬度不足跑版
+const friendsList = [
+  {
+    id: 501,
+    type: 'friend',
+    name: '阿福',
+    breed: '黃金獵犬',
+    status: '線上',
+    content: '溫柔體貼的鄰居。',
+    img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 502,
+    type: 'friend',
+    name: '酷醬',
+    breed: '法鬥',
+    status: '離線',
+    content: '熱情的法鬥男孩。',
+    img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=400&q=80'
+  },
+  {
+    id: 503,
+    type: 'friend',
+    name: '小柴',
+    breed: '柴犬',
+    status: '線上',
+    content: '傲嬌的散步好隊友。',
+    img: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=400&q=80'
   }
 ]
 
@@ -253,30 +254,51 @@ const addTag = () => {
               >{{ tag }}</span
             >
           </div>
+
           <div
-            class="c-card border-border-default/20 flex w-full flex-1 flex-col justify-center border p-10 shadow-sm"
+            class="c-card border-border-default/20 flex w-full flex-1 flex-col justify-center border p-8 shadow-sm"
           >
-            <div class="text-fg-muted mx-auto w-fit space-y-4 text-left text-lg">
-              <p>
-                <span
-                  class="text-fg-secondary mb-1 block text-xs font-bold tracking-widest uppercase"
-                  >寵物詳細資料</span
-                >
-              </p>
-              <p>
-                <span class="text-fg-secondary font-bold">品種：</span>{{ profile.petInfo.breed }}
-              </p>
-              <p>
-                <span class="text-fg-secondary font-bold">生日：</span
-                >{{ profile.petInfo.birthday }}
-              </p>
-              <p>
-                <span class="text-fg-secondary font-bold">性別：</span>{{ profile.petInfo.gender }}
-              </p>
-              <p>
-                <span class="text-fg-secondary font-bold">興趣：</span
-                >{{ profile.petInfo.interest }}
-              </p>
+            <div class="w-full space-y-6">
+              <div
+                class="mb-8 flex items-center gap-3 border-l-4 pl-4"
+                :style="{ borderColor: BRAND_ORANGE }"
+              >
+                <h2 class="text-fg-secondary text-xl font-bold tracking-wide">寵物詳細資料</h2>
+              </div>
+              <div class="space-y-5 px-4 text-left">
+                <p class="flex flex-col border-b border-gray-50 pb-2">
+                  <span class="text-fg-muted mb-1 text-xs font-bold tracking-wider uppercase"
+                    >品種</span
+                  >
+                  <span class="text-fg-secondary text-lg font-bold">{{
+                    profile.petInfo.breed
+                  }}</span>
+                </p>
+                <p class="flex flex-col border-b border-gray-50 pb-2">
+                  <span class="text-fg-muted mb-1 text-xs font-bold tracking-wider uppercase"
+                    >生日</span
+                  >
+                  <span class="text-fg-secondary text-lg font-bold">{{
+                    profile.petInfo.birthday
+                  }}</span>
+                </p>
+                <p class="flex flex-col border-b border-gray-50 pb-2">
+                  <span class="text-fg-muted mb-1 text-xs font-bold tracking-wider uppercase"
+                    >性別</span
+                  >
+                  <span class="text-fg-secondary text-lg font-bold">{{
+                    profile.petInfo.gender
+                  }}</span>
+                </p>
+                <div class="pt-2">
+                  <span class="text-fg-muted mb-2 block text-xs font-bold tracking-wider uppercase"
+                    >興趣愛好</span
+                  >
+                  <p class="text-fg-secondary text-lg leading-snug font-bold">
+                    {{ profile.petInfo.interest }}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </aside>
@@ -293,6 +315,7 @@ const addTag = () => {
               ]"
               :key="tab.id"
               class="relative w-full pb-5 text-center text-lg font-bold"
+              :class="activeTab === tab.id ? '' : 'text-fg-muted hover:text-fg-primary'"
               :style="{ color: activeTab === tab.id ? BRAND_ORANGE : '' }"
               @click="handleTabChange(tab.id)"
             >
@@ -335,7 +358,7 @@ const addTag = () => {
                 <div
                   v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
                   :key="post.id"
-                  class="cursor-pointer overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md"
+                  class="cursor-pointer overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md active:scale-95"
                   @click="openDetail(post)"
                 >
                   <div class="aspect-square overflow-hidden">
@@ -345,6 +368,26 @@ const addTag = () => {
                     {{ post.title }}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div v-if="activeTab === 'friends'" class="grid gap-6">
+              <div
+                v-for="friend in friendsList"
+                :key="friend.id"
+                class="border-border-default flex cursor-pointer items-center justify-between rounded-[2rem] border bg-white p-8 transition-all hover:shadow-lg active:scale-95"
+                @click="openDetail(friend)"
+              >
+                <div class="flex items-center gap-6">
+                  <img :src="friend.img" class="h-16 w-16 rounded-full border-2 border-gray-50" />
+                  <div class="text-left">
+                    <p class="text-fg-primary text-2xl font-bold">{{ friend.name }}</p>
+                    <p class="text-fg-muted text-sm">狀態：{{ friend.status }}</p>
+                  </div>
+                </div>
+                <button class="px-6 text-xl font-bold" :style="{ color: BRAND_ORANGE }">
+                  查看
+                </button>
               </div>
             </div>
 
@@ -373,43 +416,21 @@ const addTag = () => {
                   收藏活動
                 </button>
               </div>
-              <div class="grid gap-4">
+              <div class="grid gap-5">
                 <div
                   v-for="event in activeSubTab === 'create' ? createdEvents : followedEvents"
                   :key="event.id"
-                  class="border-border-default hover:border-brand-accent/50 flex cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all"
+                  class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-6 transition-all hover:shadow-md active:scale-[0.98]"
                   @click="openDetail(event)"
                 >
                   <div class="text-left">
-                    <h4 class="text-fg-primary font-bold">{{ event.name }}</h4>
-                    <p class="text-fg-muted mt-1 text-xs">📍 {{ event.location }}</p>
+                    <h4 class="text-fg-primary text-lg font-bold">{{ event.name }}</h4>
+                    <p class="text-fg-muted text-sm">{{ event.location }}</p>
                   </div>
-                  <span
-                    class="bg-brand-accent/10 rounded-full px-3 py-1 text-[10px] font-bold"
-                    :style="{ color: BRAND_ORANGE }"
-                    >{{ event.status }}</span
-                  >
+                  <span class="bg-brand-accent/20 rounded-full px-4 py-1 text-xs font-bold">{{
+                    event.status
+                  }}</span>
                 </div>
-              </div>
-            </div>
-
-            <div v-if="activeTab === 'friends'" class="grid grid-cols-1 gap-4">
-              <div
-                v-for="friend in friendsList"
-                :key="friend.id"
-                class="border-border-default flex cursor-pointer items-center justify-between rounded-[2rem] border bg-white p-6 shadow-sm transition-all hover:bg-gray-50"
-                @click="openDetail(friend)"
-              >
-                <div class="flex items-center gap-5">
-                  <img :src="friend.img" class="h-16 w-16 rounded-full border border-gray-100" />
-                  <div class="text-left">
-                    <p class="text-fg-primary text-lg font-bold">{{ friend.name }}</p>
-                    <p class="text-fg-muted text-xs">{{ friend.breed }} · {{ friend.status }}</p>
-                  </div>
-                </div>
-                <button class="px-4 text-sm font-bold" :style="{ color: BRAND_ORANGE }">
-                  查看
-                </button>
               </div>
             </div>
           </div>
@@ -431,8 +452,7 @@ const addTag = () => {
             ><input
               v-model="profile.name"
               type="text"
-              class="border-border-default w-full rounded-xl border p-3 focus:ring-1"
-              :style="{ '--tw-ring-color': BRAND_ORANGE }"
+              class="border-border-default w-full rounded-xl border p-3"
             />
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -472,14 +492,14 @@ const addTag = () => {
             ></textarea>
           </div>
           <div>
-            <label class="text-fg-secondary mb-1 block font-bold">Hashtags (點擊移除)</label>
+            <label class="text-fg-secondary mb-1 block font-bold">Hashtags</label>
             <div
-              class="border-border-default mb-2 flex min-h-[50px] flex-wrap gap-2 rounded-xl border border-dashed p-3"
+              class="border-border-default mb-2 flex flex-wrap gap-2 rounded-xl border border-dashed p-3"
             >
               <span
                 v-for="(tag, index) in profile.hashtags"
                 :key="index"
-                class="cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-xs transition-colors hover:bg-red-50 hover:text-red-500"
+                class="cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-xs hover:bg-red-50 hover:text-red-500"
                 @click="removeTag(index)"
               >
                 {{ tag }} ✕
@@ -489,11 +509,11 @@ const addTag = () => {
               <input
                 v-model="newTagInput"
                 type="text"
-                placeholder="輸入標籤..."
+                placeholder="新增標籤..."
                 class="border-border-default flex-1 rounded-xl border p-3"
                 @keyup.enter="addTag"
               /><button
-                class="rounded-xl px-5 font-bold text-white"
+                class="rounded-xl px-5 font-bold text-white shadow-sm"
                 :style="{ backgroundColor: BRAND_ORANGE }"
                 @click="addTag"
               >
@@ -532,38 +552,18 @@ const addTag = () => {
                 {{ selectedItem.content }}
               </p>
             </template>
-            <template v-else-if="selectedItem.type === 'event'">
-              <div class="space-y-4">
-                <span
-                  class="bg-brand-accent/20 rounded-full px-4 py-1 text-xs font-bold"
-                  :style="{ color: BRAND_ORANGE }"
-                  >{{ selectedItem.status }}</span
-                >
-                <h2 class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
-                  {{ selectedItem.name }}
-                </h2>
-                <p class="text-fg-primary text-lg font-bold">
-                  📍 地點：{{ selectedItem.location }}
-                </p>
-                <div class="mt-4 rounded-2xl border border-gray-100 bg-gray-50 p-6">
-                  <p class="text-fg-secondary text-lg leading-relaxed">
-                    {{ selectedItem.content }}
-                  </p>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="selectedItem.type === 'friend'">
-              <div class="flex items-center gap-6">
-                <img
-                  :src="selectedItem.img"
-                  class="h-24 w-24 rounded-full border-2 border-white shadow-sm"
-                />
-                <h2 class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
-                  {{ selectedItem.name }}
-                </h2>
-              </div>
-              <p class="text-fg-secondary border-t pt-4 text-lg">{{ selectedItem.content }}</p>
-            </template>
+            <template v-else-if="selectedItem.type === 'event'"
+              ><h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+                {{ selectedItem.name }}
+              </h2>
+              <p class="text-fg-secondary border-t pt-4">{{ selectedItem.content }}</p></template
+            >
+            <template v-else-if="selectedItem.type === 'friend'"
+              ><h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+                {{ selectedItem.name }}
+              </h2>
+              <p class="text-fg-secondary border-t pt-4">{{ selectedItem.content }}</p></template
+            >
           </div>
           <button
             class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg"
