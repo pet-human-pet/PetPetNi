@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import PostComposer from '@/components/Social/PostComposer.vue'
+import { useScreen } from '@/composables/useScreen'
+import { useActiveItem } from '@/composables/useActiveItem'
 
 const rawPosts = ref([
   {
@@ -107,8 +109,8 @@ const handleSubmit = (payload) => {
   const text = (payload.content ?? '').trim()
   const images = payload.images ?? []
 
-  const hasImages = images.length > 0
-  const textLength = text.length
+  // const hasImages = images.length > 0
+  // const textLength = text.length
 
   const newPostId = Date.now()
 
@@ -144,6 +146,10 @@ const showToast = (message) => {
   toast.value.open = true
   toast.value.message = message
 
+  // 當使用者進行互動(如按讚/收藏/發文)，若剛好留言區開著，不需要關閉
+  // 需求：點擊 Action Bar 的其他 icon → 不關
+  // 這個規則已經透過 DOM contains 處理 (Action Bar 在 PostCard 內)
+
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => {
     toast.value.open = false
@@ -151,9 +157,29 @@ const showToast = (message) => {
   }, 1600)
 }
 /** 其他功能：先留接口 */
-const openEdit = (postId) => console.log('edit', postId)
-const openComments = (postId) => console.log('open comments', postId)
-const sharePost = (postId) => console.log('share', postId)
+// const openEdit = (postId) => console.log('edit', postId)
+const sharePost = () => {
+  /* share */
+}
+
+/** 留言管理 (State) */
+const { isDesktop } = useScreen()
+
+// 在桌機版才啟用「點擊外部關閉」，手機版由 Modal 自行處理
+const commentManager = useActiveItem({
+  enableClickOutside: isDesktop
+})
+
+// 綁定給 PostCard 的 @open-comments
+const openComments = (postId) => {
+  // 如果已經打開，點同一個 -> 關閉 (Toggle)
+  // 如果點不同個 -> 切換
+  if (commentManager.activeId.value === postId) {
+    commentManager.deactivate()
+  } else {
+    commentManager.activate(postId)
+  }
+}
 </script>
 
 <template>
@@ -168,11 +194,14 @@ const sharePost = (postId) => console.log('share', postId)
           <PostCard
             v-for="p in rawPosts"
             :key="p.id"
+            :ref="(el) => commentManager.registerRef(p.id, el)"
             :post="p"
+            :show-comments="commentManager.activeId.value === p.id"
             @update="handleUpdate"
             @preview-image="onPreviewImage"
             @like="toggleLike"
             @open-comments="openComments"
+            @close-comments="commentManager.deactivate()"
             @share="sharePost"
             @bookmark="toggleBookmark"
           />
@@ -185,11 +214,14 @@ const sharePost = (postId) => console.log('share', postId)
             <PostCard
               v-for="p in leftPosts"
               :key="p.id"
+              :ref="(el) => commentManager.registerRef(p.id, el)"
               :post="p"
+              :show-comments="commentManager.activeId.value === p.id"
               @update="handleUpdate"
               @preview-image="onPreviewImage"
               @like="toggleLike"
               @open-comments="openComments"
+              @close-comments="commentManager.deactivate()"
               @share="sharePost"
               @bookmark="toggleBookmark"
             />
@@ -199,11 +231,14 @@ const sharePost = (postId) => console.log('share', postId)
             <PostCard
               v-for="p in rightPosts"
               :key="p.id"
+              :ref="(el) => commentManager.registerRef(p.id, el)"
               :post="p"
+              :show-comments="commentManager.activeId.value === p.id"
               @update="handleUpdate"
               @preview-image="onPreviewImage"
               @like="toggleLike"
               @open-comments="openComments"
+              @close-comments="commentManager.deactivate()"
               @share="sharePost"
               @bookmark="toggleBookmark"
             />
