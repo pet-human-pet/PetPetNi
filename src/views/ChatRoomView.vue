@@ -2,20 +2,28 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat.js'
+import { useConfirm } from '@/composables/useConfirm'
+import { useReport } from '@/composables/useReport'
 
 const router = useRouter()
 const store = useChatStore()
+const { showConfirm } = useConfirm()
+const { showReport } = useReport()
+
+const success = (msg) => alert(msg)
+const error = (msg) => alert(msg)
+
 const messageInput = ref('')
 const msgContainer = ref(null)
 const timeLeft = ref('')
-const privateSubTab = ref('friend') // 'friend' | 'match'
+const privateSubTab = ref('friend')
 
 // --- 左側導航資料 ---
 const navItems = [
-  { key: 'community', icon: 'fa-users', label: '社群' },
   { key: 'match', icon: 'fa-comments', label: '聊天', badge: 1 },
-  { key: 'event', icon: 'fa-calendar-check', label: '活動揪團' },
   { key: 'stranger', icon: 'fa-user-secret', label: '敲敲門' },
+  { key: 'event', icon: 'fa-calendar-check', label: '活動揪團' },
+  { key: 'community', icon: 'fa-users', label: '社群' },
   { key: 'ai', icon: 'fa-robot', label: 'AI 溝通師' }
 ]
 
@@ -38,6 +46,11 @@ const goToPage = (routeName) => {
 
 // --- 列表過濾邏輯 ---
 const filteredChatList = computed(() => {
+  if (store.currentCategory === 'friendList') {
+    // 從 match 中撈出所有 status 是 friend 的人
+    return store.db.match.filter(chat => chat.status === 'friend')
+  }
+  
   const list = store.currentChatList
   if (store.currentCategory === 'match') {
     return list.filter(chat => {
@@ -51,17 +64,17 @@ const filteredChatList = computed(() => {
   return list
 })
 
-// --- 右鍵選單邏輯 (ChatListPanel刪除退出置頂等) ---
+// --- 右鍵選單邏輯 ---
 const contextMenu = ref({ visible: false, x: 0, y: 0, chatId: null, chatType: null, pinned: false })
 
 const openContextMenu = (e, chat) => {
   e.preventDefault()
-  // 這裡強制判斷：如果是在 community 分類下，chatType 就是 community
+  if (store.currentCategory === 'friendList') return // 好友列表暫不提供右鍵選單
   const chatType = store.currentCategory === 'community' ? 'community' : chat.type
   contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, chatId: chat.id, chatType, pinned: chat.pinned }
 }
 const closeContextMenu = () => { contextMenu.value.visible = false }
-const handleMenuAction = (action) => {
+const handleMenuAction = async (action) => {
   const { chatId, chatType } = contextMenu.value
   
   if (action === 'pin') {
@@ -69,23 +82,112 @@ const handleMenuAction = (action) => {
   }
   
   if (action === 'leave') {
-    if(confirm('確定要退出此群組嗎？')) {
+    const isConfirmed = await showConfirm({
+      title: '退出確認',
+      message: '確定要退出此社群嗎？',
+      type: 'danger',
+      confirmText: '退出'
+    })
+
+    if (isConfirmed) {
       // TODO: 實作 store.leaveChat(chatId)
-      alert('已退出群組')
+      success('已退出社群')
       store.deleteChat(chatId)
     }
   }
 
   if (action === 'delete') {
-    const msg = chatType === 'community' ? '確定要刪除此對話紀錄嗎？' : '確定要刪除對話紀錄嗎？'
-    if(confirm(msg)) {
+    const isCommunity = chatType === 'community'
+    const isConfirmed = await showConfirm({
+      title: '刪除對話',
+      message: isCommunity 
+        ? '確定要刪除此對話紀錄嗎？' 
+        : '確定要刪除此對話紀錄嗎？',
+      type: 'danger',
+      confirmText: '刪除'
+    })
+
+    if (isConfirmed) {
       store.deleteChat(chatId)
+      success('對話已刪除')
     }
   }
   closeContextMenu()
 }
 onMounted(() => window.addEventListener('click', closeContextMenu))
 onUnmounted(() => window.removeEventListener('click', closeContextMenu))
+
+// --- 訊息互動選單邏輯 (Reply/Delete/Report) ---
+const activeMsgId = ref(null)
+const replyingMsg = ref(null)
+
+const openMsgMenu = (id) => {
+  if (activeMsgId.value === id) {
+    activeMsgId.value = null
+  } else {
+    activeMsgId.value = id
+  }
+}
+
+const closeMsgMenu = () => {
+  activeMsgId.value = null
+}
+
+const handleMsgAction = async (action, msg) => {
+  closeMsgMenu()
+  
+  if (action === 'reply') {
+    replyingMsg.value = { id: msg.id, content: msg.text }
+  }
+  
+  if (action === 'delete') {
+    const isConfirmed = await showConfirm({
+      title: '刪除訊息',
+      message: '確定要收回這則訊息嗎？',
+      type: 'danger',
+      confirmText: '收回'
+    })
+    if (isConfirmed) {
+      store.deleteMessage(msg.id)
+      success('訊息已收回')
+    }
+  }
+  
+  if (action === 'report') {
+    const { confirmed, reason } = await showReport()
+    if (confirmed) {
+      console.log('檢舉原因:', reason)
+      success('已收到檢舉，感謝您的回報')
+      
+      // 串接封鎖流程 (使用 ConfirmDialog)
+      const blockConfirmed = await showConfirm({
+        title: '已檢舉',
+        message: '要封鎖此用戶嗎？封鎖後將不再收到對方的訊息。',
+        type: 'danger',
+        confirmText: '封鎖',
+        cancelText: '取消'
+      })
+
+      if (blockConfirmed) {
+        success('已封鎖此用戶')
+        // 封鎖後自動退出該對話
+        store.activeChatId = null
+      }
+    }
+  }
+}
+
+// 監聽全域點擊以關閉選單
+const closeAllMenus = (e) => {
+  // 如果點擊的是選單觸發點本身，不要關閉 (由 toggle 控制)
+  if (e.target.closest('.msg-bubble')) return
+  
+  closeContextMenu()
+  closeMsgMenu()
+}
+
+onMounted(() => window.addEventListener('click', closeAllMenus))
+onUnmounted(() => window.removeEventListener('click', closeAllMenus))
 
 // --- 聊天室邏輯 (ChatRoomPanel句數限制) ---
 const usageCount = computed(() => store.activeChat ? store.activeChat.msgs.filter(m => m.sender === 'me').length : 0)
@@ -103,8 +205,12 @@ const isInputDisabled = computed(() => {
 })
 // 發送訊息
 const handleSend = () => {
-  const result = store.sendMessage(messageInput.value)
-  if (result.success) messageInput.value = ''
+  // 傳入 replyingMsg 作為第三個參數
+  const result = store.sendMessage(messageInput.value, false, replyingMsg.value)
+  if (result.success) {
+    messageInput.value = ''
+    replyingMsg.value = null // 清空回覆狀態
+  }
   else if (result.error) alert(result.error)
 }
 
@@ -113,8 +219,17 @@ const handleImageUpload = () => {
   if (!result.success && result.error) alert(result.error)
 }
 
-const reportMessage = () => {
-  if(confirm('確定要檢舉此訊息嗎？')) alert('已收到檢舉，系統將審核。')
+const reportMessage = async () => {
+  const isConfirmed = await showConfirm({
+    title: '檢舉訊息',
+    message: '確定要檢舉此訊息嗎？系統將進行審核。',
+    type: 'danger',
+    confirmText: '檢舉'
+  })
+
+  if (isConfirmed) {
+    success('已收到檢舉，感謝您的回報。')
+  }
 }
 
 // 捲動到底部
@@ -161,6 +276,34 @@ class="
       md:static md:w-20 md:h-full md:bg-bg-base md:border-t-0 md:border-r md:flex-col md:justify-start md:pt-4 md:z-auto md:overflow-visible md:px-0 md:gap-2
     ">
       
+      <!-- Section: Friend List -->
+      <div class="hidden md:flex w-full justify-center mt-2 mb-1">
+        <span class="px-1.5 py-0.5 bg-brand-accent/10 text-brand-accent text-[9px] font-black rounded-full tracking-wider">
+          好友
+        </span>
+      </div>
+
+      <div 
+        class="
+          relative flex flex-col justify-center items-center cursor-pointer text-fg-muted transition-all duration-200
+          w-13 h-full md:w-14 md:h-14 md:rounded-xl shrink-0
+          hover:bg-black/5 hover:text-brand-primary
+        "
+        :class="{ 'bg-brand-primary! text-white! shadow-lg shadow-brand-primary/30': store.currentCategory === 'friendList' }"
+        @click="store.switchCategory('friendList')"
+      >
+        <i class="fa-solid text-[18px] mb-1 fa-address-book"></i>
+        <div class="text-[10px] font-bold leading-none">好友列表</div>
+      </div>
+
+      <!-- Divider -->
+      <div
+class="
+        shrink-0 border-border-strong
+        h-10 border-l mx-2
+        md:w-12 md:h-0 md:border-l-0 md:border-t md:mx-auto md:my-3
+      "></div>
+
       <!-- Section: Channels -->
       <div
 class="
@@ -258,10 +401,15 @@ class="
                 <span v-if="chat.status === 'friend'" class="bg-green-100 text-green-600 text-[10px] px-1 rounded">好友</span>
                 <span v-if="chat.type === 'knock'" class="bg-purple-100 text-purple-600 text-[10px] px-1 rounded">敲敲門</span>
               </div>
-              <span class="text-[10px] text-fg-muted whitespace-nowrap">{{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].time : '' }}</span>
+              <span v-if="store.currentCategory !== 'friendList'" class="text-[10px] text-fg-muted whitespace-nowrap">{{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].time : '' }}</span>
             </div>
             <div class="text-xs text-fg-secondary truncate h-4">
-              {{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].text : '點擊開始聊天' }}
+              <template v-if="store.currentCategory === 'friendList'">
+                點擊頭像開始對話
+              </template>
+              <template v-else>
+                {{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].text : '點擊開始聊天' }}
+              </template>
             </div>
           </div>
         </div>
@@ -345,13 +493,41 @@ class="
           <div v-for="msg in store.activeChat.msgs" :key="msg.id" class="flex" :class="msg.sender === 'me' ? 'justify-end' : 'justify-start'">
             <div v-if="msg.sender !== 'me'" class="w-9 h-9 rounded-full bg-gray-300 mr-2 bg-cover" :style="{backgroundImage: `url(${store.activeChat.avatar})`}"></div>
             <div class="group relative max-w-[70%]">
+              <!-- 訊息氣泡 (加上 msg-bubble class 供點擊判斷) -->
               <div 
-                class="px-4 py-3 rounded-2xl text-sm leading-relaxed break-all shadow-sm" 
+                class="msg-bubble px-4 py-3 rounded-2xl text-sm leading-relaxed break-all shadow-sm cursor-pointer flex flex-col gap-1 relative" 
                 :class="msg.sender === 'me' ? 'bg-brand-primary text-white rounded-br-sm' : 'bg-bg-surface text-fg-primary rounded-bl-sm border border-border-default'"
+                @contextmenu.prevent="openMsgMenu(msg.id)"
+                @click="openMsgMenu(msg.id)"
               >
-                {{ msg.text }}
+                <!-- 引用區塊 -->
+                <div v-if="msg.replyTo" class="mb-1 rounded px-2 py-1 text-xs opacity-80" :class="msg.sender === 'me' ? 'bg-white/20 border-l-2 border-white' : 'bg-black/5 border-l-2 border-fg-muted'">
+                  <div class="font-bold mb-0.5">回覆：</div>
+                  <div class="truncate">{{ msg.replyTo.content }}</div>
+                </div>
+                
+                <span>{{ msg.text }}</span>
               </div>
-              <div v-if="msg.sender !== 'me'" class="hidden group-hover:block absolute -right-6 top-2 text-fg-muted hover:text-red-400 cursor-pointer" @click="reportMessage"><i class="fa-solid fa-flag"></i></div>
+
+              <!-- 內嵌式選單 (CSS 定位) -->
+              <div 
+                v-if="activeMsgId === msg.id" 
+                class="absolute top-full z-50 mt-1 w-32 overflow-hidden rounded-lg bg-bg-surface shadow-xl border border-border-default text-sm text-fg-primary"
+                :class="msg.sender === 'me' ? 'right-0' : 'left-0'"
+              >
+                <div class="px-4 py-2 hover:bg-bg-base cursor-pointer flex items-center gap-2" @click.stop="handleMsgAction('reply', msg)">
+                  <i class="fa-solid fa-reply text-fg-muted"></i> 回覆
+                </div>
+                
+                <div v-if="msg.sender === 'me'" class="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer flex items-center gap-2 border-t border-border-default" @click.stop="handleMsgAction('delete', msg)">
+                  <i class="fa-solid fa-trash-can"></i> 收回
+                </div>
+                
+                <div v-if="msg.sender !== 'me'" class="px-4 py-2 hover:bg-red-50 text-red-500 cursor-pointer flex items-center gap-2 border-t border-border-default" @click.stop="handleMsgAction('report', msg)">
+                  <i class="fa-solid fa-triangle-exclamation"></i> 檢舉
+                </div>
+              </div>
+
               <div class="text-[10px] text-fg-muted mt-1" :class="msg.sender==='me'?'text-right':''">{{ msg.time }} <span v-if="msg.sender==='me'">已讀 {{msg.read}}</span></div>
             </div>
           </div>
@@ -359,10 +535,21 @@ class="
 
         <!-- Input Area -->
         <div v-if="!isInputDisabled" class="p-4 bg-bg-surface border-t border-border-default flex items-end gap-3 shrink-0 pb-7.5 md:pb-4">
-          <div class="flex-1 bg-bg-base rounded-2xl flex items-center px-4 py-2 relative border border-transparent focus-within:border-brand-primary transition-colors">
-            <textarea v-model="messageInput" placeholder="輸入訊息..." rows="1" class="flex-1 bg-transparent border-none outline-none resize-none text-sm text-fg-primary placeholder:text-fg-muted max-h-20" @keydown.enter.prevent="handleSend"></textarea>
-            <div v-if="store.activeChat.type === 'knock'" class="text-[10px] mr-2" :class="isOverCharLimit ? 'text-red-500 font-bold' : 'text-fg-muted'">{{ charCount }}/30</div>
-            <i class="fa-solid fa-image text-fg-muted ml-2 cursor-pointer hover:text-brand-primary" @click="handleImageUpload"></i>
+          <div class="flex-1 bg-bg-base rounded-2xl flex flex-col relative border border-transparent focus-within:border-brand-primary transition-colors overflow-hidden">
+            
+            <!-- Reply Preview -->
+            <div v-if="replyingMsg" class="flex items-center justify-between px-4 py-2 bg-black/5 border-b border-border-default">
+              <div class="text-xs text-fg-secondary truncate border-l-2 border-brand-primary pl-2">
+                回覆：{{ replyingMsg.content }}
+              </div>
+              <i class="fa-solid fa-xmark text-fg-muted cursor-pointer hover:text-fg-primary text-xs" @click="replyingMsg = null"></i>
+            </div>
+
+            <div class="flex items-center px-4 py-2 w-full">
+              <textarea v-model="messageInput" placeholder="輸入訊息..." rows="1" class="flex-1 bg-transparent border-none outline-none resize-none text-sm text-fg-primary placeholder:text-fg-muted max-h-20" @keydown.enter.prevent="handleSend"></textarea>
+              <div v-if="store.activeChat.type === 'knock'" class="text-[10px] mr-2" :class="isOverCharLimit ? 'text-red-500 font-bold' : 'text-fg-muted'">{{ charCount }}/30</div>
+              <i class="fa-solid fa-image text-fg-muted ml-2 cursor-pointer hover:text-brand-primary" @click="handleImageUpload"></i>
+            </div>
           </div>
           <button class="w-10 h-10 rounded-full bg-btn-primary flex items-center justify-center text-fg-primary hover:scale-95 transition-transform shadow-md" @click="handleSend"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
