@@ -143,8 +143,9 @@ const pendingGroupBuys = computed(() =>
 
 const approvedGroupBuys = computed(() => groupBuys.value.filter((g) => g.status === 'approved'))
 
-const isMobileOverlayOpen = computed(() =>
-  ['gbForm', 'eventForm', 'comments'].includes(rightView.value)
+const gbJoinOpen = ref(false)
+const isMobileOverlayOpen = computed(
+  () => ['gbForm', 'eventForm', 'comments'].includes(rightView.value) || gbJoinOpen.value
 )
 
 /** refs：用來讓 pin click 可以 scroll 到卡片 */
@@ -378,7 +379,11 @@ onMounted(() => {
         />
 
         <!-- View 3: GroupBuy Detail -->
-        <GroupBuyDetail v-show="rightView === 'gbDetail'" :item="selectedGb" />
+        <GroupBuyDetail
+          v-show="rightView === 'gbDetail'"
+          :item="selectedGb"
+          @overlay="gbJoinOpen = $event"
+        />
       </section>
     </main>
   </div>
