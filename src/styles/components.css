@@ -52,12 +52,32 @@
     @apply bg-bg-surface shadow-card rounded-card p-4;
   }
 
+  /* 開啟留言動畫 */
+  .animate-pop-in {
+    animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  /* 自定義Scrollbar */
+  .scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: lightgray white;
+  }
+
   /* Chat */
 
   /* Profile */
 
   /* Event */
-  
+
   /* =========================
    * 無滾動條樣式（用於需要隱藏滾動條的區域）
    * ========================= */

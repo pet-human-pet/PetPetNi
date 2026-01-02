@@ -1,11 +1,13 @@
 <script setup>
 import ActionBar from './PostCard/ActionBar.vue'
-import { ref, watch, nextTick, computed } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import AudiencePicker from './AudiencePicker.vue'
+import CommentSection from './CommentSection.vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
-  post: { type: Object, required: true }
+  post: { type: Object, required: true },
+  showComments: { type: Boolean, default: false }
 })
 
 const emit = defineEmits([
@@ -15,7 +17,8 @@ const emit = defineEmits([
   'like',
   'open-comments',
   'share',
-  'bookmark'
+  'bookmark',
+  'close-comments'
 ])
 
 const router = useRouter()
@@ -67,7 +70,7 @@ const editAudience = ref('public')
 
 <template>
   <div
-    class="c-card p-5 transition-colors duration-500 md:p-6"
+    class="c-card relative p-5 transition-colors duration-500 md:p-6"
     :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
   >
     <div class="flex items-start justify-between">
@@ -198,5 +201,8 @@ const editAudience = ref('public')
       @share="$emit('share', $event)"
       @bookmark="$emit('bookmark', $event)"
     />
+
+    <!-- 留言區塊 -->
+    <CommentSection v-if="showComments" :post-id="post.id" @close="$emit('close-comments')" />
   </div>
 </template>
