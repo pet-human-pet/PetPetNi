@@ -2,66 +2,29 @@
 import { ref, computed } from 'vue'
 import { useSwipe } from '@vueuse/core'
 import { useScreen } from '@/composables/useScreen'
+import { formatCommentTime } from '@/utils/formatTime'
+import { storeToRefs } from 'pinia'
+import { useCommentStore } from '@/stores/comment'
 
-defineProps({
-  post: {
-    type: Object,
-    required: true
-  }
-})
+const commentStore = useCommentStore()
+const { comments } = storeToRefs(commentStore)
 
 const emit = defineEmits(['close'])
 
 const { isMobile } = useScreen()
 
-const comments = ref([
-  { id: 1, user: 'user123', content: '真可愛！', time: '2025/12/30', isHighlight: false },
-  {
-    id: 2,
-    user: 'dog_lover',
-    content: '這是在哪裡拍的呀？',
-    time: '2025/12/30',
-    isHighlight: false
-  },
-  {
-    id: 3,
-    user: 'cat_king',
-    content: '雖然我是貓派，但這隻可以。',
-    time: '2025/12/31',
-    isHighlight: false
-  }
-])
+// 編輯功能
+const editingCommentId = ref(null)
+const editContent = ref('')
 
+// 新增留言
 const newComment = ref('')
 
 const submitComment = () => {
   if (!newComment.value.trim() || newComment.value.length > 50) return
-
-  const newAdded = {
-    id: Date.now(),
-    user: 'me',
-    content: newComment.value,
-    time: new Date().toLocaleDateString(),
-    isHighlight: true
-  }
-  comments.value.unshift(newAdded)
+  commentStore.addComment(newComment.value)
   newComment.value = ''
-
-  setTimeout(() => {
-    const comment = comments.value.find((c) => c.id === newAdded.id)
-    if (comment) {
-      comment.isHighlight = false
-    }
-  }, 2000)
 }
-
-const deleteComment = (id) => {
-  comments.value = comments.value.filter((c) => c.id !== id)
-}
-
-// 編輯功能
-const editingCommentId = ref(null)
-const editContent = ref('')
 
 const startEdit = (comment) => {
   editingCommentId.value = comment.id
@@ -75,13 +38,12 @@ const cancelEdit = () => {
 
 const saveEdit = () => {
   if (!editContent.value.trim() || editContent.value.length > 50) return
-
-  const comment = comments.value.find((c) => c.id === editingCommentId.value)
-  if (comment) {
-    comment.content = editContent.value
-    comment.isEdited = true
-  }
+  commentStore.updateComment(editingCommentId.value, editContent.value)
   cancelEdit()
+}
+
+const handleDelete = (id) => {
+  commentStore.deleteComment(id)
 }
 
 const mobileSheetRef = ref(null)
@@ -168,7 +130,7 @@ const onSwipeEnd = () => {
                   <div class="flex items-center justify-center gap-3">
                     <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
                     <span class="text-xs text-zinc-300">
-                      {{ c.time }}
+                      {{ formatCommentTime(c.time) }}
                       <span v-if="c.isEdited" class="ml-1 text-zinc-400">(已編輯)</span>
                     </span>
                   </div>
@@ -290,7 +252,7 @@ const onSwipeEnd = () => {
               <div class="flex items-center justify-center gap-5">
                 <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
                 <span class="text-xs text-zinc-400">
-                  {{ c.time }}
+                  {{ formatCommentTime(c.time) }}
                   <span v-if="c.isEdited" class="ml-1 text-zinc-300">(已編輯)</span>
                 </span>
               </div>
@@ -305,7 +267,7 @@ const onSwipeEnd = () => {
                   </button>
                   <button
                     class="cursor-pointer text-zinc-300 transition-colors hover:text-red-500"
-                    @click.stop="deleteComment(c.id)"
+                    @click.stop="handleDelete(c.id)"
                   >
                     <i class="fa-solid fa-trash text-xs"></i>
                   </button>
