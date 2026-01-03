@@ -16,5 +16,31 @@ export const useUIStore = defineStore('ui', () => {
     isMenuOpen.value = true
   }
 
-  return { isMenuOpen, toggleMenu, closeMenu, openMenu }
+  const isVerificationModalOpen = ref(false)
+  const onboardingStep = ref('role_select')
+
+  function openVerificationModal(step = 'role_select') {
+    onboardingStep.value = step
+    isVerificationModalOpen.value = true
+  }
+
+  function closeVerificationModal() {
+    isVerificationModalOpen.value = false
+  }
+
+  function setOnboardingStep(step) {
+    onboardingStep.value = step
+  }
+
+  return {
+    isMenuOpen,
+    toggleMenu,
+    closeMenu,
+    openMenu,
+    isVerificationModalOpen,
+    onboardingStep,
+    openVerificationModal,
+    closeVerificationModal,
+    setOnboardingStep
+  }
 })
