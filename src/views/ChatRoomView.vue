@@ -58,10 +58,9 @@ const sortChats = (list) => {
       if (pinTimeA !== pinTimeB) return pinTimeB - pinTimeA
     }
 
-    // 規則 3: 依據最後訊息時間排序 (新的在前)
-    const timeA = a.lastMessageTime || 0
-    const timeB = b.lastMessageTime || 0
-    return timeB - timeA
+    // 規則 3: 依據「最後一則訊息的時間 (ID)」排序 (新的在前)
+    const getLastTime = (chat) => chat.msgs && chat.msgs.length ? chat.msgs[chat.msgs.length-1].id : 0
+    return getLastTime(b) - getLastTime(a)
   })
 }
 
@@ -74,23 +73,22 @@ const filteredChatList = computed(() => {
   }
   
   if (store.currentCategory === 'match') {
-    // 敲敲門 Tab -> 讀取 stranger 資料
+    // 敲敲門 Tab -> 讀取 stranger 資料並過濾刪除
     if (privateSubTab.value === 'knock') {
-      list = store.db.stranger
+      list = store.db.stranger.filter(chat => !chat.isDeleted)
     } else {
-      // 好友/配對 -> 讀取 match 資料並過濾
+      // 好友/配對 -> 讀取 match 資料並過濾狀態與刪除
       list = store.db.match.filter(chat => {
-        if (privateSubTab.value === 'friend') {
-          return chat.status === 'friend'
-        } else {
-          return chat.status === 'matching'
-        }
+        const isMatchStatus = privateSubTab.value === 'friend' 
+          ? chat.status === 'friend' 
+          : chat.status === 'matching'
+        return isMatchStatus && !chat.isDeleted
       })
     }
     return sortChats(list)
   }
   
-  // 其他頻道 (如社群、活動) 使用 store 已經處理好的排序結果
+  // 其他頻道 (如社群、活動) 使用 store 已經處理好的排序與過濾結果
   return store.currentChatList
 })
 
@@ -396,7 +394,7 @@ class="
     </div>
 
     <!-- Middle Chat List -->
-    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-16 md:w-[380px] md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
+    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-16 md:w-95 md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
       <div class="p-4 shrink-0">
         <input type="text" placeholder="搜尋對話..." class="w-full bg-bg-base rounded-full px-4 py-2 text-sm text-fg-primary outline-none placeholder:text-fg-muted">
       </div>
