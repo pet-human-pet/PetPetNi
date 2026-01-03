@@ -1,8 +1,8 @@
 <script setup>
-import { ref, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
 import ActionBar from './PostCard/ActionBar.vue'
+import { ref, watch, nextTick } from 'vue'
 import AudiencePicker from './AudiencePicker.vue'
+import { useRouter } from 'vue-router'
 import CommentSection from './CommentSection.vue'
 
 const props = defineProps({
@@ -66,11 +66,33 @@ const saveEdit = () => {
 }
 
 const editAudience = ref('public')
+
+// 圖片大小設定
+const fitMap = ref({})
+const aspectMap = ref({})
+
+const getImgKey = (postId, index) => `${postId}-${index}`
+const hasLandscape = ref(false)
+
+const onImgLoad = (e, key) => {
+  const img = e.target
+  if (!img) return
+  if (img.naturalWidth > img.naturalHeight) {
+    hasLandscape.value = true
+  }
+  const isLandscape = img.naturalWidth > img.naturalHeight
+  if (isLandscape) {
+    aspectMap.value[key] = 'aspect-square'
+  } else {
+    aspectMap.value[key] = 'aspect-3/4'
+  }
+  fitMap.value[key] = 'cover'
+}
 </script>
 
 <template>
   <div
-    class="c-card relative p-5 transition-colors duration-500 md:p-6"
+    class="c-card w-full min-w-0 p-5 transition-colors duration-500 md:p-6"
     :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
   >
     <div class="flex items-start justify-between">
@@ -154,7 +176,7 @@ const editAudience = ref('public')
       <a
         v-for="(t, i) in post.tags"
         :key="i"
-        class="cursor-pointer px-1 text-lg text-blue-700 sm:text-base"
+        class="cursor-pointer px-1 text-sm text-blue-700 sm:text-base"
       >
         {{ t }}
       </a>
@@ -167,12 +189,14 @@ const editAudience = ref('public')
         <div
           v-for="(img, i) in post.images"
           :key="img + i"
-          class="aspect-square w-4/5 shrink-0 snap-center overflow-hidden rounded-xl border border-gray-100 bg-zinc-200 transition-all duration-300"
+          class="trnsition-all w-4/5 shrink-0 snap-start overflow-hidden rounded-xl border border-gray-100 bg-zinc-200 duration-300 md:w-4/5"
+          :class="hasLandscape ? 'aspect-square' : 'aspect-3/4'"
         >
           <img
             :src="img"
             alt=""
             class="h-full w-full cursor-pointer object-cover"
+            @load="onImgLoad"
             @click="$emit('preview-image', { images: post.images, index: i })"
           />
         </div>
