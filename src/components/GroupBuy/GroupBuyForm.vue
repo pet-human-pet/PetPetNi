@@ -380,6 +380,7 @@ function backToForm() {
         <!-- Actions -->
         <button
           class="rounded-lg bg-[#ff9f43] p-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="!canSubmit"
           type="button"
           @click="submit"
         >
