@@ -140,7 +140,7 @@ const pendingGroupBuys = computed(() =>
   groupBuys.value
     .filter((g) => g.status === 'pending')
     .slice()
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 )
 
 const approvedGroupBuys = computed(() => groupBuys.value.filter((g) => g.status === 'approved'))
