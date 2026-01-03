@@ -35,8 +35,8 @@ onBeforeUnmount(unlockBodyScroll)
 /** ========== 原本資料 ========== */
 const baseLocations = {
   1: { name: '101 區域', x: 280, y: 410 },
-  2: { name: '國父紀念館', x: 750, y: 370 },
-  3: { name: '松菸區域', x: 1050, y: 280 },
+  2: { name: '國父紀念館', x: 750, y: 300 },
+  3: { name: '松菸區域', x: 1050, y: 250 },
   4: { name: '象山區域', x: 1490, y: 815 },
   5: { name: '市府區域', x: 900, y: 820 }
 }
