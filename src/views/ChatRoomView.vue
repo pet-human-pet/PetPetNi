@@ -21,7 +21,6 @@ const privateSubTab = ref('friend')
 // --- 左側導航資料 ---
 const navItems = [
   { key: 'match', icon: 'fa-comments', label: '聊天', badge: 1 },
-  { key: 'stranger', icon: 'fa-user-secret', label: '敲敲門' },
   { key: 'event', icon: 'fa-calendar-check', label: '活動揪團' },
   { key: 'community', icon: 'fa-users', label: '社群' },
   { key: 'ai', icon: 'fa-robot', label: 'AI 溝通師' }
@@ -44,24 +43,55 @@ const goToPage = (routeName) => {
   router.push({ name: routeName })
 }
 
-// --- 列表過濾邏輯 ---
+// --- 列表過濾與排序邏輯 ---
+const sortChats = (list) => {
+  return [...list].sort((a, b) => {
+    // 規則 1: 置頂優先
+    if (a.pinned !== b.pinned) {
+      return b.pinned ? 1 : -1
+    }
+    
+    // 規則 2: 若都置頂，依據「置頂時間」排序 (新置頂在前)
+    if (a.pinned && b.pinned) {
+      const pinTimeA = a.pinnedAt || 0
+      const pinTimeB = b.pinnedAt || 0
+      if (pinTimeA !== pinTimeB) return pinTimeB - pinTimeA
+    }
+
+    // 規則 3: 依據最後訊息時間排序 (新的在前)
+    const timeA = a.lastMessageTime || 0
+    const timeB = b.lastMessageTime || 0
+    return timeB - timeA
+  })
+}
+
 const filteredChatList = computed(() => {
+  let list = []
+  
   if (store.currentCategory === 'friendList') {
-    // 從 match 中撈出所有 status 是 friend 的人
-    return store.db.match.filter(chat => chat.status === 'friend')
+    list = store.db.match.filter(chat => chat.status === 'friend')
+    return sortChats(list)
   }
   
-  const list = store.currentChatList
   if (store.currentCategory === 'match') {
-    return list.filter(chat => {
-      if (privateSubTab.value === 'friend') {
-        return chat.status === 'friend'
-      } else {
-        return chat.status === 'matching'
-      }
-    })
+    // 敲敲門 Tab -> 讀取 stranger 資料
+    if (privateSubTab.value === 'knock') {
+      list = store.db.stranger
+    } else {
+      // 好友/配對 -> 讀取 match 資料並過濾
+      list = store.db.match.filter(chat => {
+        if (privateSubTab.value === 'friend') {
+          return chat.status === 'friend'
+        } else {
+          return chat.status === 'matching'
+        }
+      })
+    }
+    return sortChats(list)
   }
-  return list
+  
+  // 其他頻道 (如社群、活動) 使用 store 已經處理好的排序結果
+  return store.currentChatList
 })
 
 // --- 右鍵選單邏輯 ---
@@ -169,6 +199,7 @@ const handleMsgAction = async (action, msg) => {
       })
 
       if (blockConfirmed) {
+        store.blockChat(store.activeChat.id) // 標記為封鎖
         success('已封鎖此用戶')
         // 封鎖後自動退出該對話
         store.activeChatId = null
@@ -273,12 +304,12 @@ watch(() => store.activeChatId, () => {
     <div
 class="
       shrink-0 w-full h-16 bg-bg-surface border-t border-border-default flex flex-row items-center fixed bottom-0 left-0 z-40 overflow-x-auto no-scrollbar justify-start px-2 gap-2
-      md:static md:w-20 md:h-full md:bg-bg-base md:border-t-0 md:border-r md:flex-col md:justify-start md:pt-4 md:z-auto md:overflow-visible md:px-0 md:gap-2
+      md:static md:w-56 md:h-full md:bg-bg-base md:border-t-0 md:border-r md:flex-col md:justify-start md:pt-6 md:z-auto md:overflow-visible md:px-3 md:gap-1
     ">
       
       <!-- Section: Friend List -->
-      <div class="hidden md:flex w-full justify-center mt-2 mb-1">
-        <span class="px-1.5 py-0.5 bg-brand-accent/10 text-brand-accent text-[9px] font-black rounded-full tracking-wider">
+      <div class="hidden md:flex w-full justify-start px-3 mt-2 mb-2">
+        <span class="px-2 py-0.5 bg-brand-accent/10 text-brand-accent text-xs font-black rounded-md tracking-wider">
           好友
         </span>
       </div>
@@ -286,14 +317,14 @@ class="
       <div 
         class="
           relative flex flex-col justify-center items-center cursor-pointer text-fg-muted transition-all duration-200
-          w-13 h-full md:w-14 md:h-14 md:rounded-xl shrink-0
+          w-13 h-full md:w-full md:h-12 md:flex-row md:justify-start md:gap-3 md:px-3 md:rounded-lg shrink-0
           hover:bg-black/5 hover:text-brand-primary
         "
         :class="{ 'bg-brand-primary! text-white! shadow-lg shadow-brand-primary/30': store.currentCategory === 'friendList' }"
         @click="store.switchCategory('friendList')"
       >
-        <i class="fa-solid text-[18px] mb-1 fa-address-book"></i>
-        <div class="text-[10px] font-bold leading-none">好友列表</div>
+        <i class="fa-solid text-[18px] md:text-[16px] mb-1 md:mb-0 fa-address-book"></i>
+        <div class="text-[10px] md:text-sm font-bold leading-none">好友列表</div>
       </div>
 
       <!-- Divider -->
@@ -301,15 +332,15 @@ class="
 class="
         shrink-0 border-border-strong
         h-10 border-l mx-2
-        md:w-12 md:h-0 md:border-l-0 md:border-t md:mx-auto md:my-3
+        md:w-full md:h-0 md:border-l-0 md:border-t md:mx-auto md:my-4 opacity-50
       "></div>
 
       <!-- Section: Channels -->
       <div
 class="
-        shrink-0 flex items-center justify-center w-5 md:w-full h-full md:h-auto mt-0 md:mt-2 mb-0 md:mb-1
+        shrink-0 flex items-center justify-start w-5 md:w-full h-full md:h-auto mt-0 md:mt-2 mb-0 md:mb-2 md:px-3
       ">
-        <span class="px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary text-[9px] font-black rounded-full md:rounded-full tracking-wider [writing-mode:vertical-lr] md:[writing-mode:horizontal-tb]">
+        <span class="px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary text-[9px] md:text-xs font-black rounded-full md:rounded-md tracking-wider [writing-mode:vertical-lr] md:[writing-mode:horizontal-tb]">
           頻道
         </span>
       </div>
@@ -318,25 +349,33 @@ class="
         v-for="item in navItems" :key="item.key"
         class="
           relative flex flex-col justify-center items-center cursor-pointer text-fg-muted transition-all duration-200
-          w-13 h-full md:w-14 md:h-14 md:rounded-xl shrink-0
+          w-13 h-full md:w-full md:h-12 md:flex-row md:justify-start md:gap-3 md:px-3 md:rounded-lg shrink-0
           hover:bg-black/5 hover:text-brand-primary
         "
         :class="{ 'bg-brand-primary! text-white! shadow-lg shadow-brand-primary/30': store.currentCategory === item.key }"
         @click="store.switchCategory(item.key)"
       >
-        <i class="fa-solid text-[18px] mb-1" :class="item.icon"></i>
-        <div class="text-[10px] font-bold leading-none">{{ item.label }}</div>
-        <div v-if="item.badge" class="absolute top-1 right-1 w-3.5 h-3.5 bg-brand-accent text-white text-[9px] rounded-full flex justify-center items-center border-2 border-bg-base">
+        <i class="fa-solid text-[18px] md:text-[16px] mb-1 md:mb-0" :class="item.icon"></i>
+        <div class="text-[10px] md:text-sm font-bold leading-none">{{ item.label }}</div>
+        <div v-if="item.badge" class="absolute top-1 right-1 md:top-auto md:right-3 w-3.5 h-3.5 bg-brand-accent text-white text-[9px] rounded-full flex justify-center items-center border-2 border-bg-base md:border-transparent">
           {{ item.badge }}
         </div>
       </div>
 
       <!-- Divider -->
-      <div class="shrink-0 border-border-strong h-10 border-l mx-3.5 md:w-12 md:h-0 md:border-l-0 md:border-t md:mx-auto md:my-3"></div>
+      <div
+class="
+        shrink-0 border-border-strong
+        h-10 border-l mx-2
+        md:w-full md:h-0 md:border-l-0 md:border-t md:mx-auto md:my-4 opacity-50
+      "></div>
 
       <!-- Section: Explore -->
-      <div class="shrink-0 flex items-center justify-center w-5 md:w-full h-full md:h-auto mt-0 md:mt-1 mb-0 md:mb-1">
-        <span class="px-1.5 py-0.5 bg-fg-muted/10 text-fg-muted text-[9px] font-black rounded-full md:rounded-full tracking-wider [writing-mode:vertical-lr] md:[writing-mode:horizontal-tb]">
+      <div
+class="
+        shrink-0 flex items-center justify-start w-5 md:w-full h-full md:h-auto mt-0 md:mt-1 mb-0 md:mb-2 md:px-3
+      ">
+        <span class="px-1.5 py-0.5 bg-fg-muted/10 text-fg-muted text-[9px] md:text-xs font-black rounded-full md:rounded-md tracking-wider [writing-mode:vertical-lr] md:[writing-mode:horizontal-tb]">
           探索
         </span>
       </div>
@@ -346,18 +385,18 @@ class="
         :key="item.name"
         class="
           relative flex flex-col justify-center items-center cursor-pointer text-fg-secondary transition-all duration-200
-          w-13 h-full md:w-14 md:h-14 md:rounded-xl shrink-0
+          w-13 h-full md:w-full md:h-12 md:flex-row md:justify-start md:gap-3 md:px-3 md:rounded-lg shrink-0
           hover:bg-black/5 hover:text-brand-primary
         "
         @click="goToPage(item.route)"
       >
-        <i class="fa-solid text-[18px] mb-1" :class="item.icon"></i>
-        <div class="text-[10px] font-bold leading-none">{{ item.name }}</div>
+        <i class="fa-solid text-[18px] md:text-[16px] mb-1 md:mb-0" :class="item.icon"></i>
+        <div class="text-[10px] md:text-sm font-bold leading-none">{{ item.name }}</div>
       </div>
     </div>
 
     <!-- Middle Chat List -->
-    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-16 md:w-[320px] md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
+    <div class="shrink-0 flex-1 bg-bg-surface flex flex-col pb-16 md:w-[380px] md:h-full md:flex-none md:border-r md:border-border-default md:pb-0 relative">
       <div class="p-4 shrink-0">
         <input type="text" placeholder="搜尋對話..." class="w-full bg-bg-base rounded-full px-4 py-2 text-sm text-fg-primary outline-none placeholder:text-fg-muted">
       </div>
@@ -372,11 +411,18 @@ class="
           好友
         </button>
         <button 
-          class="flex-1 py-1.5 text-xs font-bold rounded-full border transition-all duration-200"
+          class="flex-1 py-1.5 text-xs font-bold rounded-full border transition-all duration-200 whitespace-nowrap"
           :class="privateSubTab === 'match' ? 'bg-brand-primary text-white border-transparent shadow-sm' : 'bg-transparent text-fg-muted border-border-default hover:bg-bg-base'"
           @click="privateSubTab = 'match'"
         >
           配對中
+        </button>
+        <button 
+          class="flex-1 py-1.5 text-xs font-bold rounded-full border transition-all duration-200 whitespace-nowrap"
+          :class="privateSubTab === 'knock' ? 'bg-brand-primary text-white border-transparent shadow-sm' : 'bg-transparent text-fg-muted border-border-default hover:bg-bg-base'"
+          @click="privateSubTab = 'knock'"
+        >
+          敲敲門
         </button>
       </div>
       
@@ -389,14 +435,15 @@ class="
           @contextmenu="openContextMenu($event, chat)"
         >
           <div class="relative">
-            <div class="w-12 h-12 rounded-full bg-cover bg-center bg-gray-200" :style="{backgroundImage: `url(${chat.avatar})`}"></div>
-            <div v-if="store.currentCategory === 'match' && chat.status !== 'pending'" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            <div class="w-12 h-12 rounded-full bg-cover bg-center bg-gray-200" :style="{backgroundImage: `url(${chat.avatar})`, filter: chat.isBlocked ? 'grayscale(100%)' : 'none'}"></div>
+            <div v-if="store.currentCategory === 'match' && chat.status !== 'pending' && !chat.isBlocked" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <div class="ml-3 flex-1 min-w-0">
             <div class="flex justify-between items-center mb-1">
               <div class="font-bold text-fg-primary text-sm flex items-center gap-1">
                 <i v-if="chat.pinned" class="fa-solid fa-thumbtack text-brand-primary text-xs rotate-45"></i>
-                <span class="truncate">{{ chat.name }}</span>
+                <i v-if="chat.isBlocked" class="fa-solid fa-ban text-red-500 text-xs"></i>
+                <span class="truncate" :class="{'text-fg-muted': chat.isBlocked}">{{ chat.name }}</span>
                 <span v-if="chat.status === 'matching'" class="bg-orange-100 text-orange-500 text-[10px] px-1 rounded">配對</span>
                 <span v-if="chat.status === 'friend'" class="bg-green-100 text-green-600 text-[10px] px-1 rounded">好友</span>
                 <span v-if="chat.type === 'knock'" class="bg-purple-100 text-purple-600 text-[10px] px-1 rounded">敲敲門</span>
@@ -404,7 +451,10 @@ class="
               <span v-if="store.currentCategory !== 'friendList'" class="text-[10px] text-fg-muted whitespace-nowrap">{{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].time : '' }}</span>
             </div>
             <div class="text-xs text-fg-secondary truncate h-4">
-              <template v-if="store.currentCategory === 'friendList'">
+              <template v-if="chat.isBlocked">
+                <span class="text-red-500">已封鎖此用戶</span>
+              </template>
+              <template v-else-if="store.currentCategory === 'friendList'">
                 點擊頭像開始對話
               </template>
               <template v-else>
@@ -474,8 +524,14 @@ class="
             </div>
         </div>
         
+        <!-- Blocked User Banner -->
+        <div v-if="store.activeChat.isBlocked" class="absolute bottom-0 left-0 w-full bg-red-50 p-4 border-t border-red-100 z-20 flex flex-col items-center gap-2">
+            <div class="text-red-500 font-bold text-sm">您已封鎖此用戶</div>
+            <div class="text-xs text-fg-secondary">如需傳送訊息，請先解除封鎖。</div>
+        </div>
+
         <!-- Friend Request Banner -->
-        <div v-if="isInputDisabled && store.activeChat.status !== 'pending' && store.activeChat.status !== 'friend'" class="absolute bottom-0 left-0 w-full bg-bg-base p-4 border-t border-border-default z-20 flex flex-col items-center gap-2">
+        <div v-if="isInputDisabled && store.activeChat.status !== 'pending' && store.activeChat.status !== 'friend' && !store.activeChat.isBlocked" class="absolute bottom-0 left-0 w-full bg-bg-base p-4 border-t border-border-default z-20 flex flex-col items-center gap-2">
             <div class="text-brand-primary font-bold text-sm">互動已達上限，是否成為好友？</div>
             <div class="flex gap-4">
                 <button class="px-4 py-1 bg-gray-200 rounded-full text-gray-600 text-sm" @click="store.rejectFriend(store.activeChatId)">拒絕</button>
@@ -489,7 +545,7 @@ class="
         </div>
 
         <!-- Message Container -->
-        <div ref="msgContainer" class="flex-1 overflow-y-auto p-6 space-y-4 bg-bg-base no-scrollbar">
+        <div ref="msgContainer" class="flex-1 overflow-y-auto p-6 space-y-4 bg-bg-base no-scrollbar" :class="{'pb-20': store.activeChat.isBlocked}">
           <div v-for="msg in store.activeChat.msgs" :key="msg.id" class="flex" :class="msg.sender === 'me' ? 'justify-end' : 'justify-start'">
             <div v-if="msg.sender !== 'me'" class="w-9 h-9 rounded-full bg-gray-300 mr-2 bg-cover" :style="{backgroundImage: `url(${store.activeChat.avatar})`}"></div>
             <div class="group relative max-w-[70%]">
@@ -534,7 +590,7 @@ class="
         </div>
 
         <!-- Input Area -->
-        <div v-if="!isInputDisabled" class="p-4 bg-bg-surface border-t border-border-default flex items-end gap-3 shrink-0 pb-7.5 md:pb-4">
+        <div v-if="!isInputDisabled && !store.activeChat.isBlocked" class="p-4 bg-bg-surface border-t border-border-default flex items-end gap-3 shrink-0 pb-7.5 md:pb-4">
           <div class="flex-1 bg-bg-base rounded-2xl flex flex-col relative border border-transparent focus-within:border-brand-primary transition-colors overflow-hidden">
             
             <!-- Reply Preview -->
