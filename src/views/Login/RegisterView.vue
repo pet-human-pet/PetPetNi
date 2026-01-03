@@ -3,23 +3,52 @@ import { ref } from 'vue'
 import SocialButton from './login-components/SocialButton.vue'
 import BaseInput from './login-components/BaseInput.vue'
 
+import { useRouter } from 'vue-router'
+import { useUIStore } from '@/stores/ui'
+
 // 表單狀態管理
+const router = useRouter()
+const uiStore = useUIStore()
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleLogin = () => {
-  // TODO: Implement Login Logic
+const isValidPassword = (pwd) => {
+  // 僅限 ASCII 標準字元 (32-126)，且不包含重音符號
+  // \x20-\x7E 涵蓋了所有標準可列印 ASCII 字元
+  const asciiRegex = /^[\x20-\x7E]+$/
+  return asciiRegex.test(pwd)
+}
+
+const handleRegister = () => {
+  if (!isValidPassword(password.value)) {
+    alert('密碼僅限英文字母、數字和符號，不可使用重音符號。')
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    alert('兩次密碼輸入不一致')
+    return
+  }
+
+  // TODO: Implement Register Logic
+
+  router.push('/').then(() => {
+    setTimeout(() => {
+      uiStore.openVerificationModal()
+    }, 100)
+  })
 }
 </script>
 
 <template>
   <div
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-400 to-pink-400 p-4"
+    class="`bg-gradient-to-br` flex min-h-screen items-center justify-center from-red-400 to-pink-400 p-4"
   >
     <div class="w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-sm md:p-10">
       <div class="mb-6 flex justify-center">
@@ -30,7 +59,7 @@ const handleLogin = () => {
         </div>
       </div>
 
-      <h1 class="mb-8 text-center text-2xl font-bold text-gray-800 md:text-3xl">歡迎回來</h1>
+      <h1 class="mb-8 text-center text-2xl font-bold text-gray-800 md:text-3xl">建立帳戶</h1>
 
       <div class="mb-6 grid grid-cols-3 gap-3">
         <SocialButton type="apple" />
@@ -47,7 +76,7 @@ const handleLogin = () => {
         </div>
       </div>
 
-      <form @submit.prevent="handleLogin">
+      <form @submit.prevent="handleRegister">
         <BaseInput v-model="email" label="帳號" placeholder="Enter your email..." type="email" />
 
         <div class="relative mb-4">
@@ -55,12 +84,12 @@ const handleLogin = () => {
             v-model="password"
             label="密碼"
             :type="showPassword ? 'text' : 'password'"
-            placeholder="Password"
+            placeholder="Create password"
           />
           <button
             type="button"
-            @click="togglePassword"
             class="absolute top-[42px] right-4 text-gray-500 hover:text-gray-700"
+            @click="togglePassword"
           >
             <svg
               v-if="!showPassword"
@@ -87,25 +116,28 @@ const handleLogin = () => {
           </button>
         </div>
 
-        <div class="mb-6 flex items-center justify-between">
-          <label class="flex cursor-pointer items-center">
-            <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
-            <span class="ml-2 text-sm text-gray-700">我會記得你的</span>
-          </label>
-          <a href="#" class="text-sm text-gray-500 hover:underline">忘記密碼？</a>
+        <div class="relative mb-6">
+          <BaseInput
+            v-model="confirmPassword"
+            label="確認密碼"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Confirm password"
+          />
         </div>
 
         <button
           type="submit"
           class="w-full rounded-xl bg-gray-900 py-3 font-medium text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
         >
-          登入
+          註冊
         </button>
       </form>
 
       <p class="mt-6 text-center text-sm text-gray-600">
-        還不是會員？
-        <a href="#" class="font-medium text-gray-900 hover:underline">註冊</a>
+        已有帳號？
+        <router-link to="/login" class="font-medium text-gray-900 hover:underline"
+          >登入</router-link
+        >
       </p>
     </div>
   </div>
