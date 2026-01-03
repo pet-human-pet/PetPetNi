@@ -55,7 +55,7 @@ const triggerImageUpload = () => {
 
 const submit = async () => {
   if (!canSubmit.value) return
-
+  
   const text = content.value.trim()
   const hasImages = images.value.length > 0
   

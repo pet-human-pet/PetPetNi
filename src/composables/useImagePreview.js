@@ -1,4 +1,3 @@
-// src\components\Share\ImagePreviewModal.vue
 import { ref } from 'vue'
 
 export const useImagePreview = () => {

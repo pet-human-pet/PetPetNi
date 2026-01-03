@@ -9,6 +9,8 @@ import { useToast } from '@/composables/useToast'
 
 const postStore = usePostStore()
 const { success, error } = useToast()
+import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
+import { useImagePreview } from '@/composables/useImagePreview'
 
 const rawPosts = ref([
   {
@@ -69,21 +71,7 @@ onMounted(() => {
 const leftPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 === 0))
 const rightPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 !== 0))
 
-// 圖片預覽彈窗
-const previewOpen = ref(false)
-const previewSrc = ref('')
-
-const onPreviewImage = (src) => {
-  previewSrc.value = src
-  previewOpen.value = true
-}
-
-const onClosePreview = () => {
-  previewOpen.value = false
-  previewSrc.value = ''
-}
-
-// 按讚
+/** 按讚 */
 const toggleLike = (postId) => {
   // TODO: 資料源不一 (顯示用 rawPosts，但這裡找 postStore)。未來需統一資料源。目前僅做樂觀更新，未來可串接 API
   const post = postStore.posts.find((p) => p.id === postId)
@@ -158,6 +146,9 @@ const handleSubmit = async (payload) => {
   success('貼文已發布')
 }
 
+// 圖片預覽
+const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
+
 /** 其他功能：先留接口 */
 // const openEdit = (postId) => console.log('edit', postId)
 const sharePost = () => {
@@ -181,7 +172,7 @@ const sharePost = () => {
             :post="p"
             :show-comments="commentManager.activeId.value === p.id"
             @update="handleUpdate"
-            @preview-image="onPreviewImage"
+            @preview-image="openPreview"
             @like="toggleLike"
             @open-comments="openComments"
             @close-comments="commentManager.deactivate()"
@@ -191,9 +182,9 @@ const sharePost = () => {
         </section>
 
         <!-- 桌機：雙欄 -->
-        <section v-if="isDesktop" class="mt-6 flex items-start gap-6">
+        <section class="mt-6 hidden w-full grid-cols-2 gap-6 md:grid">
           <!-- 左欄 -->
-          <div class="flex flex-1 flex-col gap-6">
+          <div class="flex flex-col gap-6">
             <PostCard
               v-for="p in leftPosts"
               :key="p.id"
@@ -201,7 +192,7 @@ const sharePost = () => {
               :post="p"
               :show-comments="commentManager.activeId.value === p.id"
               @update="handleUpdate"
-              @preview-image="onPreviewImage"
+              @preview-image="openPreview"
               @like="toggleLike"
               @open-comments="openComments"
               @close-comments="commentManager.deactivate()"
@@ -218,7 +209,7 @@ const sharePost = () => {
               :post="p"
               :show-comments="commentManager.activeId.value === p.id"
               @update="handleUpdate"
-              @preview-image="onPreviewImage"
+              @preview-image="openPreview"
               @like="toggleLike"
               @open-comments="openComments"
               @close-comments="commentManager.deactivate()"
@@ -236,25 +227,13 @@ const sharePost = () => {
         </div>
       </main>
 
-      <!-- 圖片預覽遮罩 -->
-      <div v-if="previewOpen" class="fixed inset-0 z-90">
-        <!--遮罩-->
-        <div class="absolute inset-0 bg-black/70" @click="onClosePreview"></div>
+      <ImagePreviewModal
+        v-model:index="previewIndex"
+        :open="previewOpen"
+        :images="previewImages"
+        @close="closePreview"
+      />
 
-        <div class="relative grid h-full w-full place-items-center p-6">
-          <div class="relative h-[80vh] w-[80vw] max-w-225 rounded-2xl bg-transparent">
-            <img :src="previewSrc" alt="" class="h-full w-full object-contain" />
-
-            <button
-              type="button"
-              class="absolute top-4 right-4 grid h-10 w-10 place-items-center rounded-full bg-white/90 shadow"
-              @click="onClosePreview"
-            >
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
