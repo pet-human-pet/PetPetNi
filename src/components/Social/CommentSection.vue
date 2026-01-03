@@ -79,6 +79,7 @@ const saveEdit = () => {
   const comment = comments.value.find((c) => c.id === editingCommentId.value)
   if (comment) {
     comment.content = editContent.value
+    comment.isEdited = true
   }
   cancelEdit()
 }
@@ -166,11 +167,18 @@ const onSwipeEnd = () => {
                 <div class="flex items-baseline justify-between pb-1">
                   <div class="flex items-center justify-center gap-3">
                     <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
-                    <span class="text-xs text-zinc-300">{{ c.time }}</span>
+                    <span class="text-xs text-zinc-300">
+                      {{ c.time }}
+                      <span v-if="c.isEdited" class="ml-1 text-zinc-400">(已編輯)</span>
+                    </span>
                   </div>
                   <div class="flex items-center gap-2">
                     <div v-if="c.user === 'me'" class="flex gap-6 pr-2">
-                      <button class="text-zinc-400 hover:text-zinc-600" @click.stop="startEdit(c)">
+                      <button
+                        v-if="!c.isEdited"
+                        class="text-zinc-400 hover:text-zinc-600"
+                        @click.stop="startEdit(c)"
+                      >
                         <i class="fa-solid fa-pen text-sm"></i>
                       </button>
                       <button
@@ -281,11 +289,15 @@ const onSwipeEnd = () => {
             <div class="flex items-baseline justify-between pb-1">
               <div class="flex items-center justify-center gap-5">
                 <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
-                <span class="text-xs text-zinc-400">{{ c.time }}</span>
+                <span class="text-xs text-zinc-400">
+                  {{ c.time }}
+                  <span v-if="c.isEdited" class="ml-1 text-zinc-300">(已編輯)</span>
+                </span>
               </div>
               <div class="flex items-center gap-4">
                 <div v-if="c.user === 'me'" class="flex gap-2">
                   <button
+                    v-if="!c.isEdited"
                     class="hover:text-brand-primary cursor-pointer text-zinc-300 transition-colors"
                     @click.stop="startEdit(c)"
                   >
