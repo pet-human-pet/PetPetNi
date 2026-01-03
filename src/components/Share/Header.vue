@@ -144,10 +144,10 @@ function toggleMenu() {
           <!-- ===== Mobile modal（<800px） ===== -->
           <teleport to="body">
             <div v-if="favOpen" class="hidden max-[800px]:block">
-              <div class="fixed inset-0 z-[2000] bg-black/30" @click="onBackdropClose" />
+              <div class="fixed inset-0 z-2000 bg-black/30" @click="onBackdropClose"></div>
 
               <div
-                class="fixed top-[60px] right-3 left-3 z-[2001] overflow-hidden rounded-2xl border border-[#eee] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
+                class="fixed top-15 right-3 left-3 z-2001 overflow-hidden rounded-2xl border border-[#eee] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.18)]"
               >
                 <div class="flex items-center justify-between border-b border-[#eee] px-4 py-3">
                   <div class="font-bold text-[#333]">已收藏</div>

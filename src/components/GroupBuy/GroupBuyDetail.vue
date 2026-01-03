@@ -23,7 +23,14 @@ const form = reactive({
   note: ''
 })
 
-const isValid = computed(() => form.name.trim() && form.phone.trim() && form.email.trim())
+const isValid = computed(() => form.name.trim() && form.phone.trim() && form.emailOk.trim())
+
+const emailOk = computed(() => {
+  const v = form.email.trim()
+  if (!v) return false
+  // 簡潔可靠版：夠用、不會過度嚴格
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
+})
 
 function openJoinForm() {
   if (hasApplied.value) return
@@ -42,7 +49,8 @@ function resetForm() {
 }
 
 function submitJoin() {
-  if (!isValid.value || !props.item) return
+  if (!props.item) return
+  if (!isValid.value) return
 
   emit('apply', {
     itemId: props.item.id,
@@ -81,7 +89,7 @@ watch(
         </div>
         <div class="flex gap-5 text-[14px] text-[#666]">
           <span><i class="fa-solid fa-users mr-1"></i>目標 {{ props.item.target }} 人</span>
-          <span><i class="fa-regular fa-clock mr-1"></i>截止: 2025/12/31</span>
+          <span><i class="fa-regular fa-clock mr-1"></i>截止: 2026/09/10</span>
         </div>
       </div>
 
@@ -134,8 +142,15 @@ watch(
                 v-model.trim="form.email"
                 type="email"
                 placeholder="例如：abc@gmail.com"
-                class="w-full rounded-xl border border-[#ddd] px-4 py-3 text-[14px] outline-none focus:border-[#ff9f43]"
+                class="w-full rounded-xl border px-4 py-3 text-[14px] outline-none focus:border-[#ff9f43]"
+                :class="form.email.trim() && !emailOk ? 'border-[#ff4d4f]' : 'border-[#ddd]'"
               />
+              <p
+                v-if="form.email.trim() && !emailOk"
+                class="mt-2 text-[12px] font-bold text-[#ff4d4f]"
+              >
+                Email 格式不正確，請輸入像 abc@gmail.com
+              </p>
             </label>
 
             <label class="block">
