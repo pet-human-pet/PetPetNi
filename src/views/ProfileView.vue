@@ -5,7 +5,7 @@ import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 // --- 1. 顏色與狀態 ---
 const BRAND_ORANGE = '#f48e31'
 const activeTab = ref('posts')
-const activeSubTab = ref('my')
+const activeSubTab = ref('my') // 控制子分頁：my/saved 或 create/follow/history
 const isEditing = ref(false)
 const showDetail = ref(false)
 const selectedItem = ref(null)
@@ -27,7 +27,7 @@ const profile = reactive({
   }
 })
 
-// --- 3. 假資料 (僅保留貼文與活動) ---
+// --- 3. 假資料庫 ---
 const myPosts = [
   {
     id: 1,
@@ -70,14 +70,6 @@ const savedPosts = [
     date: '2023-11-20',
     img: 'https://images.unsplash.com/photo-1570824104453-508955ab713e?auto=format&fit=crop&w=800&q=80',
     content: '整理了十款好玩的逗貓棒。'
-  },
-  {
-    id: 103,
-    type: 'post',
-    title: '室內貓健康飲食',
-    date: '2023-11-25',
-    img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=800&q=80',
-    content: '關於低碳水化合物的選購指南。'
   }
 ]
 const createdEvents = [
@@ -96,14 +88,6 @@ const createdEvents = [
     location: '大安森林公園',
     status: '已額滿',
     content: '一起來曬太陽跑跑跑。'
-  },
-  {
-    id: 203,
-    type: 'event',
-    name: '寵物鮮食工作坊',
-    location: '線上課程',
-    status: '報名中',
-    content: '製作美味寵物蛋糕。'
   }
 ]
 const followedEvents = [
@@ -122,18 +106,37 @@ const followedEvents = [
     location: 'Instagram 線上',
     status: '進行中',
     content: 'PO 出崩壞照。'
+  }
+]
+// 🔑 歷史活動假資料（內容獨立不重複）
+const historyEvents = [
+  {
+    id: 401,
+    type: 'event',
+    name: '2023 冬季寵物健檢',
+    location: '台大動物醫院',
+    status: '已結束',
+    content: '去年的年度健康檢查，豆泥表現很勇敢！'
   },
   {
-    id: 303,
+    id: 402,
     type: 'event',
-    name: '愛心認養市集',
-    location: '松菸園區',
-    status: '已收藏',
-    content: '認養代替購買。'
+    name: '自製貓抓板工作坊',
+    location: '誠品生活松菸',
+    status: '已結束',
+    content: '在那裡認識了很多布偶貓家長。'
+  },
+  {
+    id: 403,
+    type: 'event',
+    name: '貓咪行為學講座',
+    location: '線上直播',
+    status: '已結束',
+    content: '學到了很多關於貓咪踩奶的知識。'
   }
 ]
 
-// --- 4. 邏輯方法 (完整保留) ---
+// --- 4. 邏輯方法 ---
 const openDetail = (item) => {
   selectedItem.value = item
   showDetail.value = true
@@ -340,9 +343,9 @@ const addTag = () => {
             </div>
 
             <div v-if="activeTab === 'events'" class="space-y-8">
-              <div class="flex justify-center gap-6">
+              <div class="flex flex-wrap justify-center gap-4">
                 <button
-                  class="c-btn px-10 py-2.5"
+                  class="c-btn px-8 py-2.5"
                   :style="
                     activeSubTab === 'create'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -353,7 +356,7 @@ const addTag = () => {
                   發起活動
                 </button>
                 <button
-                  class="c-btn px-10 py-2.5"
+                  class="c-btn px-8 py-2.5"
                   :style="
                     activeSubTab === 'follow'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -363,10 +366,25 @@ const addTag = () => {
                 >
                   收藏活動
                 </button>
+                <button
+                  class="c-btn px-8 py-2.5"
+                  :style="
+                    activeSubTab === 'history'
+                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
+                      : { backgroundColor: '#f3f4f6' }
+                  "
+                  @click="activeSubTab = 'history'"
+                >
+                  歷史活動
+                </button>
               </div>
               <div class="grid gap-5">
                 <div
-                  v-for="event in activeSubTab === 'create' ? createdEvents : followedEvents"
+                  v-for="event in activeSubTab === 'create'
+                    ? createdEvents
+                    : activeSubTab === 'follow'
+                      ? followedEvents
+                      : historyEvents"
                   :key="event.id"
                   class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-6 transition-all hover:shadow-md active:scale-[0.98]"
                   @click="openDetail(event)"
@@ -375,9 +393,15 @@ const addTag = () => {
                     <h4 class="text-fg-primary text-lg font-bold">{{ event.name }}</h4>
                     <p class="text-fg-muted text-sm">{{ event.location }}</p>
                   </div>
-                  <span class="bg-brand-accent/20 rounded-full px-4 py-1 text-xs font-bold">{{
-                    event.status
-                  }}</span>
+                  <span
+                    class="rounded-full px-4 py-1 text-xs font-bold"
+                    :class="
+                      activeSubTab === 'history'
+                        ? 'bg-gray-100 text-gray-500'
+                        : 'bg-brand-accent/20 text-brand-orange'
+                    "
+                    >{{ event.status }}</span
+                  >
                 </div>
               </div>
             </div>
