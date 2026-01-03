@@ -12,7 +12,7 @@ const selectedItem = ref(null)
 const newTagInput = ref('')
 const fileInput = ref(null)
 
-// --- 2. 寵物個人資料 ---
+// --- 2. 寵物個人資料 (完整保留) ---
 const profile = reactive({
   avatar:
     'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
@@ -27,7 +27,7 @@ const profile = reactive({
   }
 })
 
-// --- 3. 恢復與簡化假資料 (🔑 移除好友英文名稱防止 RWD 跑版) ---
+// --- 3. 假資料 (僅保留貼文與活動) ---
 const myPosts = [
   {
     id: 1,
@@ -133,38 +133,7 @@ const followedEvents = [
   }
 ]
 
-// 🔑 修改點：僅移除英文名稱，防止寬度不足跑版
-const friendsList = [
-  {
-    id: 501,
-    type: 'friend',
-    name: '阿福',
-    breed: '黃金獵犬',
-    status: '線上',
-    content: '溫柔體貼的鄰居。',
-    img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80'
-  },
-  {
-    id: 502,
-    type: 'friend',
-    name: '酷醬',
-    breed: '法鬥',
-    status: '離線',
-    content: '熱情的法鬥男孩。',
-    img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=400&q=80'
-  },
-  {
-    id: 503,
-    type: 'friend',
-    name: '小柴',
-    breed: '柴犬',
-    status: '線上',
-    content: '傲嬌的散步好隊友。',
-    img: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?auto=format&fit=crop&w=400&q=80'
-  }
-]
-
-// --- 4. 邏輯方法 ---
+// --- 4. 邏輯方法 (完整保留) ---
 const openDetail = (item) => {
   selectedItem.value = item
   showDetail.value = true
@@ -310,8 +279,7 @@ const addTag = () => {
             <button
               v-for="tab in [
                 { id: 'posts', n: '貼文' },
-                { id: 'events', n: '活動' },
-                { id: 'friends', n: '好友' }
+                { id: 'events', n: '活動' }
               ]"
               :key="tab.id"
               class="relative w-full pb-5 text-center text-lg font-bold"
@@ -368,26 +336,6 @@ const addTag = () => {
                     {{ post.title }}
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div v-if="activeTab === 'friends'" class="grid gap-6">
-              <div
-                v-for="friend in friendsList"
-                :key="friend.id"
-                class="border-border-default flex cursor-pointer items-center justify-between rounded-[2rem] border bg-white p-8 transition-all hover:shadow-lg active:scale-95"
-                @click="openDetail(friend)"
-              >
-                <div class="flex items-center gap-6">
-                  <img :src="friend.img" class="h-16 w-16 rounded-full border-2 border-gray-50" />
-                  <div class="text-left">
-                    <p class="text-fg-primary text-2xl font-bold">{{ friend.name }}</p>
-                    <p class="text-fg-muted text-sm">狀態：{{ friend.status }}</p>
-                  </div>
-                </div>
-                <button class="px-6 text-xl font-bold" :style="{ color: BRAND_ORANGE }">
-                  查看
-                </button>
               </div>
             </div>
 
@@ -552,18 +500,15 @@ const addTag = () => {
                 {{ selectedItem.content }}
               </p>
             </template>
-            <template v-else-if="selectedItem.type === 'event'"
-              ><h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+            <template v-else-if="selectedItem.type === 'event'">
+              <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
                 {{ selectedItem.name }}
               </h2>
-              <p class="text-fg-secondary border-t pt-4">{{ selectedItem.content }}</p></template
-            >
-            <template v-else-if="selectedItem.type === 'friend'"
-              ><h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
-                {{ selectedItem.name }}
-              </h2>
-              <p class="text-fg-secondary border-t pt-4">{{ selectedItem.content }}</p></template
-            >
+              <p class="text-fg-primary text-lg font-bold">📍 {{ selectedItem.location }}</p>
+              <p class="text-fg-secondary border-t pt-4 leading-relaxed">
+                {{ selectedItem.content }}
+              </p>
+            </template>
           </div>
           <button
             class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg"
