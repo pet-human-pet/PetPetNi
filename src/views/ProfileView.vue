@@ -63,6 +63,8 @@ const myPosts = [
     isBookmarked: false
   }
 ]
+
+// 🔑 修正處：將 savedPosts 增加為兩筆資料
 const savedPosts = [
   {
     id: 101,
@@ -76,6 +78,20 @@ const savedPosts = [
     likeCount: 88,
     commentCount: 12,
     isLiked: false,
+    isBookmarked: true
+  },
+  {
+    id: 102,
+    author: '咪咪 (Mimi)',
+    avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
+    isMine: false,
+    audience: 'public',
+    content: '今天收到的新玩具，家裡的貓咪玩瘋了！',
+    images: ['https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=800'],
+    tags: ['#開箱', '#貓玩具'],
+    likeCount: 156,
+    commentCount: 24,
+    isLiked: true,
     isBookmarked: true
   }
 ]
@@ -256,20 +272,20 @@ const addTag = () => {
               </div>
               <div class="space-y-5 px-4">
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">品種</span
-                  ><span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">品種</span>
+                  <span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.breed
                   }}</span>
                 </p>
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">生日</span
-                  ><span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">生日</span>
+                  <span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.birthday
                   }}</span>
                 </p>
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">性別</span
-                  ><span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">性別</span>
+                  <span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.gender
                   }}</span>
                 </p>
@@ -397,8 +413,9 @@ const addTag = () => {
                   </div>
                   <span
                     class="rounded-full border border-orange-100 bg-orange-50 px-4 py-1 text-xs font-bold text-[#f48e31]"
-                    >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
                   >
+                    {{ activeSubTab === 'history' ? '已結束' : '進行中' }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -458,7 +475,6 @@ const addTag = () => {
               class="border-border-default w-full resize-none rounded-xl border p-3"
             ></textarea>
           </div>
-
           <div>
             <label class="text-fg-secondary mb-1 block font-bold">Hashtags</label>
             <div class="mb-2 flex flex-wrap gap-2 rounded-xl border border-dashed p-3">
@@ -489,8 +505,9 @@ const addTag = () => {
         </div>
         <div class="mt-8 flex gap-4">
           <button class="flex-1 rounded-full bg-gray-100 py-3 font-bold" @click="isEditing = false">
-            取消</button
-          ><button
+            取消
+          </button>
+          <button
             class="flex-1 rounded-full py-3 font-bold text-white shadow-lg"
             :style="{ backgroundColor: BRAND_ORANGE }"
             @click="isEditing = false"
@@ -501,8 +518,8 @@ const addTag = () => {
       </div>
     </div>
 
-    <Transition name="fade"
-      ><div
+    <Transition name="fade">
+      <div
         v-if="showDetail"
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       >
@@ -523,11 +540,11 @@ const addTag = () => {
             關閉視窗
           </button>
         </div>
-      </div></Transition
-    >
+      </div>
+    </Transition>
 
-    <Transition name="fade"
-      ><div
+    <Transition name="fade">
+      <div
         v-if="showUserList"
         class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       >
@@ -558,8 +575,8 @@ const addTag = () => {
             返回
           </button>
         </div>
-      </div></Transition
-    >
+      </div>
+    </Transition>
   </div>
 </template>
 
