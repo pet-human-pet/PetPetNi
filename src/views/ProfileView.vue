@@ -5,14 +5,19 @@ import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 // --- 1. 顏色與狀態 ---
 const BRAND_ORANGE = '#f48e31'
 const activeTab = ref('posts')
-const activeSubTab = ref('my') // 控制子分頁：my/saved 或 create/follow/history
+const activeSubTab = ref('my')
 const isEditing = ref(false)
 const showDetail = ref(false)
 const selectedItem = ref(null)
 const newTagInput = ref('')
 const fileInput = ref(null)
 
-// --- 2. 寵物個人資料 (完整保留) ---
+// 🔑 新增：控制名單彈窗的變數
+const showUserList = ref(false)
+const userListTitle = ref('')
+const currentUserList = ref([])
+
+// --- 2. 寵物個人資料 ( pet-profile 完整版內容 ) ---
 const profile = reactive({
   avatar:
     'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
@@ -27,7 +32,7 @@ const profile = reactive({
   }
 })
 
-// --- 3. 假資料庫 ---
+// --- 3. 假資料庫 ( 確保貼文與活動內容不變 ) ---
 const myPosts = [
   {
     id: 1,
@@ -70,6 +75,14 @@ const savedPosts = [
     date: '2023-11-20',
     img: 'https://images.unsplash.com/photo-1570824104453-508955ab713e?auto=format&fit=crop&w=800&q=80',
     content: '整理了十款好玩的逗貓棒。'
+  },
+  {
+    id: 103,
+    type: 'post',
+    title: '室內貓健康飲食',
+    date: '2023-11-25',
+    img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=800&q=80',
+    content: '關於低碳水化合物的選購指南。'
   }
 ]
 const createdEvents = [
@@ -88,6 +101,14 @@ const createdEvents = [
     location: '大安森林公園',
     status: '已額滿',
     content: '一起來曬太陽跑跑跑。'
+  },
+  {
+    id: 203,
+    type: 'event',
+    name: '寵物鮮食工作坊',
+    location: '線上課程',
+    status: '報名中',
+    content: '製作美味寵物蛋糕。'
   }
 ]
 const followedEvents = [
@@ -106,9 +127,16 @@ const followedEvents = [
     location: 'Instagram 線上',
     status: '進行中',
     content: 'PO 出崩壞照。'
+  },
+  {
+    id: 303,
+    type: 'event',
+    name: '愛心認養市集',
+    location: '松菸園區',
+    status: '已收藏',
+    content: '認養代替購買。'
   }
 ]
-// 🔑 歷史活動假資料（內容獨立不重複）
 const historyEvents = [
   {
     id: 401,
@@ -125,14 +153,60 @@ const historyEvents = [
     location: '誠品生活松菸',
     status: '已結束',
     content: '在那裡認識了很多布偶貓家長。'
+  }
+]
+
+// 🔑 新增：粉絲 (2) 與 追蹤中 (6) 名單假資料
+const followersList = [
+  {
+    id: 1,
+    name: '阿福',
+    avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
+    breed: '布偶貓'
   },
   {
-    id: 403,
-    type: 'event',
-    name: '貓咪行為學講座',
-    location: '線上直播',
-    status: '已結束',
-    content: '學到了很多關於貓咪踩奶的知識。'
+    id: 2,
+    name: '酷醬',
+    avatar: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=150',
+    breed: '法鬥'
+  }
+]
+const followingList = [
+  {
+    id: 1,
+    name: '金金',
+    avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150',
+    breed: '黃金獵犬'
+  },
+  {
+    id: 2,
+    name: '小柴',
+    avatar: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=150',
+    breed: '柴犬'
+  },
+  {
+    id: 3,
+    name: '咪咪',
+    avatar: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=150',
+    breed: '橘貓'
+  },
+  {
+    id: 4,
+    name: '圓圓',
+    avatar: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=150',
+    breed: '英短'
+  },
+  {
+    id: 5,
+    name: '波波',
+    avatar: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=150',
+    breed: '波斯貓'
+  },
+  {
+    id: 6,
+    name: '黑豆',
+    avatar: 'https://images.unsplash.com/photo-1548247416-ec66f4900b2e?w=150',
+    breed: '黑貓'
   }
 ]
 
@@ -160,6 +234,18 @@ const addTag = () => {
     )
     newTagInput.value = ''
   }
+}
+
+// 🔑 新增：名單彈窗控制
+const openUserList = (type) => {
+  if (type === 'followers') {
+    userListTitle.value = '粉絲名單'
+    currentUserList.value = followersList
+  } else {
+    userListTitle.value = '追蹤中名單'
+    currentUserList.value = followingList
+  }
+  showUserList.value = true
 }
 </script>
 
@@ -208,16 +294,28 @@ const addTag = () => {
               </button>
             </div>
           </div>
+
           <div class="mx-auto flex w-full max-w-[260px] justify-between py-2 text-center">
-            <div>
-              <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">105</p>
+            <div class="group cursor-pointer" @click="openUserList('followers')">
+              <p
+                class="text-3xl font-bold transition-transform group-hover:scale-110"
+                :style="{ color: BRAND_ORANGE }"
+              >
+                2
+              </p>
               <p class="text-fg-muted text-sm font-medium">粉絲</p>
             </div>
-            <div>
-              <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">15</p>
+            <div class="group cursor-pointer" @click="openUserList('following')">
+              <p
+                class="text-3xl font-bold transition-transform group-hover:scale-110"
+                :style="{ color: BRAND_ORANGE }"
+              >
+                6
+              </p>
               <p class="text-fg-muted text-sm font-medium">追蹤中</p>
             </div>
           </div>
+
           <div class="flex flex-wrap justify-center gap-3 px-8">
             <span
               v-for="tag in profile.hashtags"
@@ -393,15 +491,9 @@ const addTag = () => {
                     <h4 class="text-fg-primary text-lg font-bold">{{ event.name }}</h4>
                     <p class="text-fg-muted text-sm">{{ event.location }}</p>
                   </div>
-                  <span
-                    class="rounded-full px-4 py-1 text-xs font-bold"
-                    :class="
-                      activeSubTab === 'history'
-                        ? 'bg-gray-100 text-gray-500'
-                        : 'bg-brand-accent/20 text-brand-orange'
-                    "
-                    >{{ event.status }}</span
-                  >
+                  <span class="bg-brand-accent/20 rounded-full px-4 py-1 text-xs font-bold">{{
+                    event.status
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -409,6 +501,53 @@ const addTag = () => {
         </main>
       </div>
     </div>
+
+    <Transition name="fade">
+      <div
+        v-if="showUserList"
+        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+      >
+        <div class="c-card animate-scale-up mt-10 w-full max-w-md p-8 shadow-2xl">
+          <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">{{ userListTitle }}</h2>
+            <button
+              class="text-fg-muted hover:text-fg-primary text-2xl transition-colors"
+              @click="showUserList = false"
+            >
+              ✕
+            </button>
+          </div>
+          <div class="custom-scrollbar max-h-[450px] space-y-4 overflow-y-auto pr-2">
+            <div
+              v-for="user in currentUserList"
+              :key="user.id"
+              class="border-border-default flex items-center gap-4 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-gray-50"
+            >
+              <img
+                :src="user.avatar"
+                class="h-14 w-14 rounded-full border-2 border-white object-cover shadow-sm"
+              />
+              <div class="flex-1 text-left">
+                <p class="text-fg-primary font-bold">{{ user.name }}</p>
+                <p class="text-fg-muted text-xs">{{ user.breed }}</p>
+              </div>
+              <button
+                class="border-border-default rounded-full border px-4 py-2 text-xs font-bold shadow-sm transition-all hover:bg-white active:scale-95"
+              >
+                查看主頁
+              </button>
+            </div>
+          </div>
+          <button
+            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98]"
+            :style="{ backgroundColor: BRAND_ORANGE }"
+            @click="showUserList = false"
+          >
+            返回
+          </button>
+        </div>
+      </div>
+    </Transition>
 
     <div
       v-if="isEditing"
@@ -568,5 +707,19 @@ const addTag = () => {
 }
 .animate-scale-up {
   animation: scale-up 0.3s ease-out;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
 }
 </style>
