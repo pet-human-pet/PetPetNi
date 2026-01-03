@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
+import PostCard from '@/components/Social/PostCard.vue'
 
 // --- 1. 顏色與狀態 ---
 const BRAND_ORANGE = '#f48e31'
@@ -12,12 +13,11 @@ const selectedItem = ref(null)
 const newTagInput = ref('')
 const fileInput = ref(null)
 
-// 🔑 新增：控制名單彈窗的變數
 const showUserList = ref(false)
 const userListTitle = ref('')
 const currentUserList = ref([])
 
-// --- 2. 寵物個人資料 ( pet-profile 完整版內容 ) ---
+// --- 2. 寵物個人資料 (穩定版本) ---
 const profile = reactive({
   avatar:
     'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
@@ -28,135 +28,86 @@ const profile = reactive({
     breed: '布偶貓',
     birthday: '2023-01-15',
     gender: '母',
-    interest: '抓蝴蝶、踩奶、睡在鍵盤上'
+    interest: '抓蝴蝶、踩奶、睡在鍵盤上，最喜歡在半夜開演唱會，是家裡的小霸王。'
   }
 })
 
-// --- 3. 假資料庫 ( 確保貼文與活動內容不變 ) ---
+// --- 3. 貼文假資料 (包含修復頭像) ---
 const myPosts = [
   {
     id: 1,
-    type: 'post',
-    title: '午後的陽光剛好',
-    date: '2023-12-01',
-    img: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80',
-    content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！'
+    author: '豆泥 (Doni)',
+    avatar: profile.avatar,
+    isMine: true,
+    audience: 'public',
+    content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！',
+    images: ['https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800'],
+    tags: ['#午後', '#慵懶'],
+    likeCount: 12,
+    commentCount: 3,
+    isLiked: false,
+    isBookmarked: true
   },
   {
     id: 2,
-    type: 'post',
-    title: '新買的貓草球',
-    date: '2023-12-05',
-    img: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=800&q=80',
-    content: '一打開包裝就瘋了，抓著不放。'
-  },
-  {
-    id: 3,
-    type: 'post',
-    title: '今天的晚餐是罐罐',
-    date: '2023-12-10',
-    img: 'https://images.unsplash.com/photo-1516750105099-4b8a83e217ee?auto=format&fit=crop&w=800&q=80',
-    content: '期待很久的雞肉口味。'
+    author: '豆泥 (Doni)',
+    avatar: profile.avatar,
+    isMine: true,
+    audience: 'friends',
+    content: '新買的貓草球，一打開包裝就瘋了。',
+    images: ['https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=800'],
+    tags: ['#貓草'],
+    likeCount: 45,
+    commentCount: 8,
+    isLiked: true,
+    isBookmarked: false
   }
 ]
 const savedPosts = [
   {
     id: 101,
-    type: 'post',
-    title: '貓咪飲水機評測',
-    date: '2023-11-15',
-    img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
-    content: '這款超靜音，豆泥很愛喝。'
-  },
-  {
-    id: 102,
-    type: 'post',
-    title: '逗貓棒推薦清單',
-    date: '2023-11-20',
-    img: 'https://images.unsplash.com/photo-1570824104453-508955ab713e?auto=format&fit=crop&w=800&q=80',
-    content: '整理了十款好玩的逗貓棒。'
-  },
-  {
-    id: 103,
-    type: 'post',
-    title: '室內貓健康飲食',
-    date: '2023-11-25',
-    img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=800&q=80',
-    content: '關於低碳水化合物的選購指南。'
+    author: '小柴 (Shiba)',
+    avatar: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=150',
+    isMine: false,
+    audience: 'public',
+    content: '這款貓咪飲水機超靜音，推薦給各位家長！',
+    images: ['https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800'],
+    tags: ['#好物分享'],
+    likeCount: 88,
+    commentCount: 12,
+    isLiked: false,
+    isBookmarked: true
   }
 ]
+
+// --- 4. 活動、粉絲、追蹤資料 (全數回歸) ---
 const createdEvents = [
   {
     id: 201,
-    type: 'event',
     name: '布偶貓交流聚會',
-    location: '中山區咖啡廳',
+    location: '中山區',
     status: '招募中',
-    content: '歡迎帶主子來參加！'
-  },
-  {
-    id: 202,
-    type: 'event',
-    name: '週末草皮野餐',
-    location: '大安森林公園',
-    status: '已額滿',
-    content: '一起來曬太陽跑跑跑。'
-  },
-  {
-    id: 203,
-    type: 'event',
-    name: '寵物鮮食工作坊',
-    location: '線上課程',
-    status: '報名中',
-    content: '製作美味寵物蛋糕。'
+    content: '交流心得與罐罐試吃！'
   }
 ]
 const followedEvents = [
   {
     id: 301,
-    type: 'event',
     name: '年度寵物展覽',
     location: '世貿一館',
     status: '已收藏',
-    content: '大降價時刻到了。'
-  },
-  {
-    id: 302,
-    type: 'event',
-    name: '線上貓咪攝影賽',
-    location: 'Instagram 線上',
-    status: '進行中',
-    content: 'PO 出崩壞照。'
-  },
-  {
-    id: 303,
-    type: 'event',
-    name: '愛心認養市集',
-    location: '松菸園區',
-    status: '已收藏',
-    content: '認養代替購買。'
+    content: '年度大展，必去！'
   }
 ]
 const historyEvents = [
   {
     id: 401,
-    type: 'event',
-    name: '2023 冬季寵物健檢',
-    location: '台大動物醫院',
+    name: '2023 冬季健檢',
+    location: '台大醫院',
     status: '已結束',
-    content: '去年的年度健康檢查，豆泥表現很勇敢！'
-  },
-  {
-    id: 402,
-    type: 'event',
-    name: '自製貓抓板工作坊',
-    location: '誠品生活松菸',
-    status: '已結束',
-    content: '在那裡認識了很多布偶貓家長。'
+    content: '數據非常健康。'
   }
 ]
-
-// 🔑 新增：粉絲 (2) 與 追蹤中 (6) 名單假資料
 const followersList = [
   {
     id: 1,
@@ -210,11 +161,7 @@ const followingList = [
   }
 ]
 
-// --- 4. 邏輯方法 ---
-const openDetail = (item) => {
-  selectedItem.value = item
-  showDetail.value = true
-}
+// --- 5. 邏輯方法 (確保全數綁定) ---
 const handleAvatarClick = () => fileInput.value.click()
 const handleFileChange = (e) => {
   const file = e.target.files[0]
@@ -223,6 +170,15 @@ const handleFileChange = (e) => {
 const handleTabChange = (tab) => {
   activeTab.value = tab
   activeSubTab.value = tab === 'posts' ? 'my' : 'create'
+}
+const openUserList = (type) => {
+  userListTitle.value = type === 'followers' ? '粉絲名單' : '追蹤中名單'
+  currentUserList.value = type === 'followers' ? followersList : followingList
+  showUserList.value = true
+}
+const openDetail = (item) => {
+  selectedItem.value = item
+  showDetail.value = true
 }
 const removeTag = (index) => profile.hashtags.splice(index, 1)
 const addTag = () => {
@@ -235,135 +191,90 @@ const addTag = () => {
     newTagInput.value = ''
   }
 }
-
-// 🔑 新增：名單彈窗控制
-const openUserList = (type) => {
-  if (type === 'followers') {
-    userListTitle.value = '粉絲名單'
-    currentUserList.value = followersList
-  } else {
-    userListTitle.value = '追蹤中名單'
-    currentUserList.value = followingList
-  }
-  showUserList.value = true
-}
 </script>
 
 <template>
-  <div class="bg-bg-base relative min-h-screen overflow-x-hidden pb-20 font-sans">
+  <div class="bg-bg-base relative min-h-screen overflow-x-hidden pb-20 text-left font-sans">
     <BackgroundGrid />
 
     <div class="container mx-auto flex max-w-[1300px] justify-center px-10 py-8">
       <div class="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_2fr]">
-        <aside class="flex min-h-[850px] flex-col items-center space-y-8">
-          <div class="flex flex-col items-center text-center">
-            <h1 class="c-title mb-6 text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
-              {{ profile.name }}
-            </h1>
-            <div class="group relative mb-6 cursor-pointer" @click="handleAvatarClick">
-              <div class="shadow-card h-44 w-44 overflow-hidden rounded-full border-4 border-white">
-                <img
-                  :src="profile.avatar"
-                  alt="Avatar"
-                  class="h-full w-full object-cover transition-opacity group-hover:opacity-80"
-                />
-              </div>
-              <input
-                ref="fileInput"
-                type="file"
-                class="hidden"
-                accept="image/*"
-                @change="handleFileChange"
-              />
-              <span
-                class="border-border-default absolute right-2 bottom-2 rounded-full border bg-white px-3 py-1 text-xs font-bold shadow-sm"
-                >已驗證飼主</span
-              >
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-fg-muted text-lg">{{ profile.username }}</span>
-              <button class="group cursor-pointer" @click="isEditing = true">
-                <svg
-                  class="fill-fg-muted h-6 w-6 transition-all group-hover:rotate-90 hover:fill-[#f48e31]"
-                  viewBox="0 0 512 512"
-                >
-                  <path
-                    d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6l-44.3 119.5c-3.2 8.7-11.8 14.3-21.2 13.9l-58.4-2.8c-14.5 11.5-30.8 20.6-48.5 27.2l-10.3 57.7c-1.6 9.1-9.3 15.8-18.6 16.1l-127.3 3.6c-9.4 .3-17.7-5.5-20.1-14.5l-15.5-56.5c-16.9-7.9-32.3-18.6-45.7-31.5l-54.3 22.1c-8.7 3.6-18.8 .1-23.7-8.2L5.4 349.5c-4.9-8.3-3.6-18.9 3.2-25.7l40.1-40.6c-1.1-8.3-1.7-16.7-1.7-25.2s.6-16.9 1.7-25.2L8.6 192.1c-6.8-6.8-8.2-17.4-3.2-25.7L49.7 57.9c4.9-8.3 15-11.8 23.7-8.2l54.3 22.1c13.4-12.9 28.8-23.6 45.7-31.5l15.5-56.5c2.4-9 10.7-14.8 20.1-14.5l127.3 3.6c9.3 .3 17 7 18.6 16.1l10.3 57.7c17.7 6.6 34 15.7 48.5 27.2l58.4-2.8c9.4-.5 17.9 5.2 21.2 13.9l44.3 119.5zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="mx-auto flex w-full max-w-[260px] justify-between py-2 text-center">
-            <div class="group cursor-pointer" @click="openUserList('followers')">
-              <p
-                class="text-3xl font-bold transition-transform group-hover:scale-110"
-                :style="{ color: BRAND_ORANGE }"
-              >
-                2
-              </p>
-              <p class="text-fg-muted text-sm font-medium">粉絲</p>
-            </div>
-            <div class="group cursor-pointer" @click="openUserList('following')">
-              <p
-                class="text-3xl font-bold transition-transform group-hover:scale-110"
-                :style="{ color: BRAND_ORANGE }"
-              >
-                6
-              </p>
-              <p class="text-fg-muted text-sm font-medium">追蹤中</p>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap justify-center gap-3 px-8">
-            <span
-              v-for="tag in profile.hashtags"
-              :key="tag"
-              class="border-border-default text-fg-secondary flex h-[38px] w-[110px] items-center justify-center rounded-full border bg-white text-[11px] shadow-sm"
-              >{{ tag }}</span
-            >
-          </div>
-
+        <aside class="flex h-full flex-col">
           <div
-            class="c-card border-border-default/20 flex w-full flex-1 flex-col justify-center border p-8 shadow-sm"
+            class="c-card border-border-default/20 flex h-full flex-1 flex-col border bg-white p-8 shadow-sm"
           >
-            <div class="w-full space-y-6">
+            <div class="mb-8 flex w-full shrink-0 flex-col items-center text-center">
+              <h1 class="c-title mb-6 text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+                {{ profile.name }}
+              </h1>
+
+              <div class="group relative mb-6 cursor-pointer" @click="handleAvatarClick">
+                <div
+                  class="shadow-card h-44 w-44 overflow-hidden rounded-full border-4 border-white"
+                >
+                  <img :src="profile.avatar" class="h-full w-full object-cover" />
+                </div>
+                <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
+                <span
+                  class="absolute right-2 bottom-2 rounded-full border bg-white px-3 py-1 text-xs font-bold shadow-sm"
+                  >已驗證飼主</span
+                >
+              </div>
+
+              <div class="mb-6 flex items-center justify-center gap-3">
+                <span class="text-fg-muted text-lg">{{ profile.username }}</span>
+                <button class="group cursor-pointer" @click="isEditing = true">
+                  <svg
+                    class="fill-fg-muted h-6 w-6 transition-all group-hover:rotate-90 hover:fill-[#f48e31]"
+                    viewBox="0 0 512 512"
+                  >
+                    <path
+                      d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6l-44.3 119.5c-3.2 8.7-11.8 14.3-21.2 13.9l-58.4-2.8c-14.5 11.5-30.8 20.6-48.5 27.2l-10.3 57.7c-1.6 9.1-9.3 15.8-18.6 16.1l-127.3 3.6c-9.4 .3-17.7-5.5-20.1-14.5l-15.5-56.5c-16.9-7.9-32.3-18.6-45.7-31.5l-54.3 22.1c-8.7 3.6-18.8 .1-23.7-8.2L5.4 349.5c-4.9-8.3-3.6-18.9 3.2-25.7l40.1-40.6c-1.1-8.3-1.7-16.7-1.7-25.2s.6-16.9 1.7-25.2L8.6 192.1c-6.8-6.8-8.2-17.4-3.2-25.7L49.7 57.9c4.9-8.3 15-11.8 23.7-8.2l54.3 22.1c13.4-12.9 28.8-23.6 45.7-31.5l15.5-56.5c2.4-9 10.7-14.8 20.1-14.5l127.3 3.6c9.3 .3 17 7 18.6 16.1l10.3 57.7c17.7 6.6 34 15.7 48.5 27.2l58.4-2.8c9.4-.5 17.9 5.2 21.2 13.9l44.3 119.5zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="mx-auto flex w-full max-w-[260px] justify-between text-center">
+                <div class="group cursor-pointer" @click="openUserList('followers')">
+                  <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">2</p>
+                  <p class="text-fg-muted text-sm font-medium">粉絲</p>
+                </div>
+                <div class="group cursor-pointer" @click="openUserList('following')">
+                  <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">6</p>
+                  <p class="text-fg-muted text-sm font-medium">追蹤中</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="w-full flex-1 space-y-6 border-t border-gray-50 pt-8 text-left">
               <div
                 class="mb-8 flex items-center gap-3 border-l-4 pl-4"
                 :style="{ borderColor: BRAND_ORANGE }"
               >
                 <h2 class="text-fg-secondary text-xl font-bold tracking-wide">寵物詳細資料</h2>
               </div>
-              <div class="space-y-5 px-4 text-left">
+              <div class="space-y-5 px-4">
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold tracking-wider uppercase"
-                    >品種</span
-                  >
-                  <span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">品種</span
+                  ><span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.breed
                   }}</span>
                 </p>
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold tracking-wider uppercase"
-                    >生日</span
-                  >
-                  <span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">生日</span
+                  ><span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.birthday
                   }}</span>
                 </p>
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold tracking-wider uppercase"
-                    >性別</span
-                  >
-                  <span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">性別</span
+                  ><span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.gender
                   }}</span>
                 </p>
                 <div class="pt-2">
-                  <span class="text-fg-muted mb-2 block text-xs font-bold tracking-wider uppercase"
-                    >興趣愛好</span
-                  >
+                  <span class="text-fg-muted mb-2 block text-xs font-bold uppercase">興趣愛好</span>
                   <p class="text-fg-secondary text-lg leading-snug font-bold">
                     {{ profile.petInfo.interest }}
                   </p>
@@ -374,9 +285,11 @@ const openUserList = (type) => {
         </aside>
 
         <main
-          class="c-card border-border-default/50 flex min-h-[850px] w-full flex-col overflow-hidden border shadow-sm"
+          class="c-card border-border-default/50 flex h-[850px] w-full flex-col overflow-hidden border bg-white shadow-sm"
         >
-          <div class="border-border-default flex shrink-0 justify-around border-b px-6 pt-8">
+          <div
+            class="border-border-default z-10 flex shrink-0 justify-around border-b bg-white px-6 pt-8"
+          >
             <button
               v-for="tab in [
                 { id: 'posts', n: '貼文' },
@@ -384,7 +297,6 @@ const openUserList = (type) => {
               ]"
               :key="tab.id"
               class="relative w-full pb-5 text-center text-lg font-bold"
-              :class="activeTab === tab.id ? '' : 'text-fg-muted hover:text-fg-primary'"
               :style="{ color: activeTab === tab.id ? BRAND_ORANGE : '' }"
               @click="handleTabChange(tab.id)"
             >
@@ -397,9 +309,9 @@ const openUserList = (type) => {
             </button>
           </div>
 
-          <div class="flex-1 p-10">
-            <div v-if="activeTab === 'posts'" class="space-y-8">
-              <div class="flex justify-center gap-6">
+          <div class="custom-scrollbar flex-1 overflow-y-auto bg-gray-50/20 p-6 md:p-8">
+            <div v-if="activeTab === 'posts'" class="space-y-6">
+              <div class="mb-6 flex justify-center gap-6">
                 <button
                   class="c-btn px-10 py-2.5 shadow-sm"
                   :style="
@@ -423,27 +335,19 @@ const openUserList = (type) => {
                   儲存的貼文
                 </button>
               </div>
-              <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <div
+              <div class="mx-auto max-w-[550px] space-y-6 pb-10">
+                <PostCard
                   v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
                   :key="post.id"
-                  class="cursor-pointer overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md active:scale-95"
-                  @click="openDetail(post)"
-                >
-                  <div class="aspect-square overflow-hidden">
-                    <img :src="post.img" class="h-full w-full object-cover" />
-                  </div>
-                  <div class="text-fg-primary truncate p-4 text-center text-sm font-bold">
-                    {{ post.title }}
-                  </div>
-                </div>
+                  :post="post"
+                />
               </div>
             </div>
 
             <div v-if="activeTab === 'events'" class="space-y-8">
               <div class="flex flex-wrap justify-center gap-4">
                 <button
-                  class="c-btn px-8 py-2.5"
+                  class="c-btn px-8 py-2.5 shadow-sm"
                   :style="
                     activeSubTab === 'create'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -454,7 +358,7 @@ const openUserList = (type) => {
                   發起活動
                 </button>
                 <button
-                  class="c-btn px-8 py-2.5"
+                  class="c-btn px-8 py-2.5 shadow-sm"
                   :style="
                     activeSubTab === 'follow'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -465,7 +369,7 @@ const openUserList = (type) => {
                   收藏活動
                 </button>
                 <button
-                  class="c-btn px-8 py-2.5"
+                  class="c-btn px-8 py-2.5 shadow-sm"
                   :style="
                     activeSubTab === 'history'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -476,7 +380,7 @@ const openUserList = (type) => {
                   歷史活動
                 </button>
               </div>
-              <div class="grid gap-5">
+              <div class="grid gap-5 pb-10">
                 <div
                   v-for="event in activeSubTab === 'create'
                     ? createdEvents
@@ -484,16 +388,17 @@ const openUserList = (type) => {
                       ? followedEvents
                       : historyEvents"
                   :key="event.id"
-                  class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-6 transition-all hover:shadow-md active:scale-[0.98]"
+                  class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all hover:shadow-md"
                   @click="openDetail(event)"
                 >
-                  <div class="text-left">
+                  <div class="flex-1 text-left">
                     <h4 class="text-fg-primary text-lg font-bold">{{ event.name }}</h4>
                     <p class="text-fg-muted text-sm">{{ event.location }}</p>
                   </div>
-                  <span class="bg-brand-accent/20 rounded-full px-4 py-1 text-xs font-bold">{{
-                    event.status
-                  }}</span>
+                  <span
+                    class="rounded-full border border-orange-100 bg-orange-50 px-4 py-1 text-xs font-bold text-[#f48e31]"
+                    >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
+                  >
                 </div>
               </div>
             </div>
@@ -502,67 +407,19 @@ const openUserList = (type) => {
       </div>
     </div>
 
-    <Transition name="fade">
-      <div
-        v-if="showUserList"
-        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
-      >
-        <div class="c-card animate-scale-up mt-10 w-full max-w-md p-8 shadow-2xl">
-          <div class="mb-6 flex items-center justify-between">
-            <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">{{ userListTitle }}</h2>
-            <button
-              class="text-fg-muted hover:text-fg-primary text-2xl transition-colors"
-              @click="showUserList = false"
-            >
-              ✕
-            </button>
-          </div>
-          <div class="custom-scrollbar max-h-[450px] space-y-4 overflow-y-auto pr-2">
-            <div
-              v-for="user in currentUserList"
-              :key="user.id"
-              class="border-border-default flex items-center gap-4 rounded-2xl border bg-white p-4 shadow-sm transition-all hover:bg-gray-50"
-            >
-              <img
-                :src="user.avatar"
-                class="h-14 w-14 rounded-full border-2 border-white object-cover shadow-sm"
-              />
-              <div class="flex-1 text-left">
-                <p class="text-fg-primary font-bold">{{ user.name }}</p>
-                <p class="text-fg-muted text-xs">{{ user.breed }}</p>
-              </div>
-              <button
-                class="border-border-default rounded-full border px-4 py-2 text-xs font-bold shadow-sm transition-all hover:bg-white active:scale-95"
-              >
-                查看主頁
-              </button>
-            </div>
-          </div>
-          <button
-            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg transition-all active:scale-[0.98]"
-            :style="{ backgroundColor: BRAND_ORANGE }"
-            @click="showUserList = false"
-          >
-            返回
-          </button>
-        </div>
-      </div>
-    </Transition>
-
     <div
       v-if="isEditing"
-      class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 text-left backdrop-blur-sm"
     >
-      <div class="c-card mt-10 max-h-[90vh] w-full max-w-xl overflow-y-auto p-8 shadow-2xl">
+      <div class="c-card max-h-[90vh] w-full max-w-xl overflow-y-auto bg-white p-8 shadow-2xl">
         <h2 class="mb-6 text-center text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
           編輯寵物資料
         </h2>
-        <div class="space-y-5 text-left text-sm">
+        <div class="space-y-4">
           <div>
             <label class="text-fg-secondary mb-1 block font-bold">寵物名稱</label
             ><input
               v-model="profile.name"
-              type="text"
               class="border-border-default w-full rounded-xl border p-3"
             />
           </div>
@@ -571,7 +428,6 @@ const openUserList = (type) => {
               <label class="text-fg-secondary mb-1 block font-bold">品種</label
               ><input
                 v-model="profile.petInfo.breed"
-                type="text"
                 class="border-border-default w-full rounded-xl border p-3"
               />
             </div>
@@ -595,36 +451,34 @@ const openUserList = (type) => {
             />
           </div>
           <div>
-            <label class="text-fg-secondary mb-1 block font-bold">興趣</label
+            <label class="text-fg-secondary mb-1 block font-bold">興趣愛好</label
             ><textarea
               v-model="profile.petInfo.interest"
-              rows="2"
+              rows="3"
               class="border-border-default w-full resize-none rounded-xl border p-3"
             ></textarea>
           </div>
+
           <div>
             <label class="text-fg-secondary mb-1 block font-bold">Hashtags</label>
-            <div
-              class="border-border-default mb-2 flex flex-wrap gap-2 rounded-xl border border-dashed p-3"
-            >
+            <div class="mb-2 flex flex-wrap gap-2 rounded-xl border border-dashed p-3">
               <span
                 v-for="(tag, index) in profile.hashtags"
                 :key="index"
                 class="cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-xs hover:bg-red-50 hover:text-red-500"
                 @click="removeTag(index)"
+                >{{ tag }} ✕</span
               >
-                {{ tag }} ✕
-              </span>
             </div>
             <div class="flex gap-2">
               <input
                 v-model="newTagInput"
-                type="text"
                 placeholder="新增標籤..."
                 class="border-border-default flex-1 rounded-xl border p-3"
                 @keyup.enter="addTag"
-              /><button
-                class="rounded-xl px-5 font-bold text-white shadow-sm"
+              />
+              <button
+                class="rounded-xl px-5 font-bold text-white"
                 :style="{ backgroundColor: BRAND_ORANGE }"
                 @click="addTag"
               >
@@ -647,68 +501,69 @@ const openUserList = (type) => {
       </div>
     </div>
 
-    <Transition name="fade">
-      <div
+    <Transition name="fade"
+      ><div
         v-if="showDetail"
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       >
-        <div class="c-card animate-scale-up mt-10 w-full max-w-2xl p-8 shadow-2xl">
-          <div v-if="selectedItem" class="space-y-6 text-left">
-            <template v-if="selectedItem.type === 'post'">
-              <img :src="selectedItem.img" class="h-80 w-full rounded-2xl object-cover shadow-sm" />
-              <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
-                {{ selectedItem.title }}
-              </h2>
-              <p class="text-fg-secondary border-t pt-4 leading-relaxed">
-                {{ selectedItem.content }}
-              </p>
-            </template>
-            <template v-else-if="selectedItem.type === 'event'">
-              <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
-                {{ selectedItem.name }}
-              </h2>
-              <p class="text-fg-primary text-lg font-bold">📍 {{ selectedItem.location }}</p>
-              <p class="text-fg-secondary border-t pt-4 leading-relaxed">
-                {{ selectedItem.content }}
-              </p>
-            </template>
+        <div class="c-card w-full max-w-2xl bg-white p-8 text-left shadow-2xl">
+          <div v-if="selectedItem" class="space-y-6">
+            <h2 class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+              {{ selectedItem.name || '項目詳情' }}
+            </h2>
+            <div class="text-fg-secondary border-t pt-6 text-lg leading-relaxed">
+              {{ selectedItem.content }}
+            </div>
+          </div>
+          <button
+            class="mt-10 w-full rounded-full py-4 font-bold text-white shadow-lg"
+            :style="{ backgroundColor: BRAND_ORANGE }"
+            @click="showDetail = false"
+          >
+            關閉視窗
+          </button>
+        </div>
+      </div></Transition
+    >
+
+    <Transition name="fade"
+      ><div
+        v-if="showUserList"
+        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+      >
+        <div class="c-card w-full max-w-md bg-white p-8 text-left shadow-2xl">
+          <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">{{ userListTitle }}</h2>
+            <button class="text-2xl" @click="showUserList = false">✕</button>
+          </div>
+          <div class="custom-scrollbar max-h-[400px] space-y-4 overflow-y-auto">
+            <div
+              v-for="user in currentUserList"
+              :key="user.id"
+              class="flex items-center gap-4 rounded-2xl border bg-white p-4 text-left shadow-sm"
+            >
+              <img :src="user.avatar" class="h-12 w-12 rounded-full object-cover" />
+              <div class="flex-1 text-left">
+                <p class="font-bold">{{ user.name }}</p>
+                <p class="text-fg-muted text-xs">{{ user.breed }}</p>
+              </div>
+              <button class="rounded-full border px-3 py-1 text-xs font-bold">查看</button>
+            </div>
           </div>
           <button
             class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg"
             :style="{ backgroundColor: BRAND_ORANGE }"
-            @click="showDetail = false"
+            @click="showUserList = false"
           >
-            關閉
+            返回
           </button>
         </div>
-      </div>
-    </Transition>
+      </div></Transition
+    >
   </div>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-@keyframes scale-up {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-.animate-scale-up {
-  animation: scale-up 0.3s ease-out;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
