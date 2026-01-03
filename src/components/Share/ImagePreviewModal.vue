@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 z-99 bg-black/70" @click="$emit('close')">
+  <div v-if="open" class="fixed inset-0 z-1001 bg-black/70" @click="$emit('close')">
     <div class="grid h-full w-full place-items-center p-6">
       <div
         class="relative inline-block"
