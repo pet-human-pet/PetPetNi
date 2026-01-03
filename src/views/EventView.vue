@@ -73,21 +73,21 @@ const events = ref([
     locId: 1,
     title: '101 狗狗散步團',
     desc: '在 101 大樓下方的草地集合，享受週末陽光。',
-    status: 'approved'
+    status: 'active'
   },
   {
     id: 2,
     locId: 2,
     title: '國父紀念館飛盤賽',
     desc: '歡迎各路飛盤好狗前來挑戰！',
-    status: 'approved'
+    status: 'active'
   },
   {
     id: 3,
     locId: 3,
     title: '松山菸廠攝影競賽',
     desc: '歡迎拍攝好手，一起來參加攝影比賽!',
-    status: 'approved'
+    status: 'ended'
   }
 ])
 
@@ -125,7 +125,9 @@ const commentsByEvent = reactive({
     { id: 2, text: '建議帶水跟拾便袋～人也很多', createdAt: '2025-12-26 19:05' },
     { id: 3, text: '想問下次活動還會約嗎？', createdAt: '2025-12-26 20:10' }
   ],
-  2: [{ id: 4, text: '飛盤賽太可愛了，超多狗狗！', createdAt: '2025-12-25 16:40' }]
+  2: [{ id: 4, text: '飛盤賽太可愛了，超多狗狗！', createdAt: '2025-12-25 16:40' }],
+
+  3: [{ id: 3, text: '好喜歡攝影競賽，大家都好厲害！', createdAt: '2025-11-23 17:40' }]
 })
 
 const selectedEvent = computed(
@@ -150,13 +152,14 @@ const isMobileOverlayOpen = computed(
 
 /** refs：用來讓 pin click 可以 scroll 到卡片 */
 const eventSidebarRef = ref(null)
-const approvedEvents = computed(() => events.value.filter((e) => e.status === 'approved'))
+// ✅ sidebar 要顯示：approved + ended（不顯示 pending）
+const visibleEvents = computed(() => events.value.filter((e) => e.status !== 'pending'))
 
 function switchTab(next) {
   tab.value = next
   if (next === 'event') {
     rightView.value = 'map'
-    if (!selectedEventId.value && approvedEvents.value.length) selectEvent(approvedEvents.value[0])
+    if (!selectedEventId.value && visibleEvents.value.length) selectEvent(visibleEvents.value[0])
     return
   }
 
@@ -277,7 +280,7 @@ function showGroupBuyDetail(gb) {
 }
 
 onMounted(() => {
-  if (approvedEvents.value.length) selectEvent(approvedEvents.value[0])
+  if (visibleEvents.value.length) selectEvent(visibleEvents.value[0])
 })
 </script>
 
@@ -325,7 +328,7 @@ onMounted(() => {
         <EventSideBar
           v-show="tab === 'event'"
           ref="eventSidebarRef"
-          :events="approvedEvents"
+          :events="visibleEvents"
           :selected-id="selectedEventId"
           @select="selectEvent"
           @open-form="showEventForm"
