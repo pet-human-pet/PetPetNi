@@ -37,6 +37,19 @@ function closeJoinModal() {
   joinModalOpen.value = false
   joinedEvent.value = null
 }
+
+function groupBuyBadge(status) {
+  const s = String(status || '').toLowerCase()
+
+  if (s === 'active' || s === 'ongoing' || s === '進行中') {
+    return { text: '進行中', cls: 'bg-[#e3f2fd] text-[#2196f3]' }
+  }
+  if (s === 'ended' || s === 'closed' || s === '已結束') {
+    return { text: '已結束', cls: 'bg-[#f5f5f5] text-[#777]' }
+  }
+  // 預設當作審核中（也吃 pending）
+  return { text: '審核中', cls: 'bg-[#fff3e0] text-[#ef6c00]' }
+}
 </script>
 
 <template>
@@ -72,7 +85,19 @@ function closeJoinModal() {
         @click="emit('select', evt)"
       >
         <div class="p-3.75 max-[800px]:p-3">
-          <div class="mb-1 text-[16px] font-bold">{{ evt.title }}</div>
+          <div class="mb-1 flex items-start justify-between gap-2">
+            <div class="text-[16px] leading-snug font-bold">
+              {{ evt.title }}
+            </div>
+
+            <span
+              class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
+              :class="groupBuyBadge(evt.status).cls"
+            >
+              {{ groupBuyBadge(evt.status).text }}
+            </span>
+          </div>
+
           <div
             class="[display:-webkit-box] overflow-hidden text-[13px] leading-[1.4] text-[#666] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] max-[800px]:text-[12px]"
           >
@@ -83,10 +108,17 @@ function closeJoinModal() {
         <div class="flex gap-2.5 px-3.75 pb-3.75 max-[800px]:px-3 max-[800px]:pb-3.75">
           <button
             type="button"
-            class="h-8.5 flex-1 rounded-[17px] bg-[#ff9f43] text-[12px] font-bold text-white max-[800px]:h-8"
-            @click.stop="openJoinModal(evt)"
+            class="h-8.5 flex-1 rounded-[17px] text-[12px] font-bold max-[800px]:h-8"
+            :disabled="evt.status === 'ended'"
+            :class="
+              evt.status === 'ended'
+                ? 'cursor-not-allowed bg-[#eee] text-[#999]'
+                : 'bg-[#ff9f43] text-white'
+            "
+            @click.stop="evt.status !== 'ended' && openJoinModal(evt)"
           >
-            <i class="fa-solid fa-paw mr-1"></i> 參加
+            <i class="fa-solid fa-paw mr-1"></i>
+            {{ evt.status === 'ended' ? '已結束' : '參加' }}
           </button>
 
           <button

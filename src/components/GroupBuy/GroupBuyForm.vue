@@ -351,13 +351,15 @@ function backToForm() {
 
         <!-- 聯絡方式 -->
         <div class="flex flex-col gap-1">
-          <label class="text-[13px] font-bold text-[#666]"
-            >聯絡方式<span class="text-[#ff4d4f]">*</span></label
-          >
+          <label class="text-[13px] font-bold text-[#666]">
+            聯絡方式 <span class="text-[#ff4d4f]">*</span>
+          </label>
+          <p class="text-[12px] text-[#999]">請填寫 Email 或台灣手機號碼（09xxxxxxxx）</p>
           <input
             v-model="form.contact"
-            placeholder="例如：LINE ID / IG / 電話 / Email"
-            class="rounded-lg border border-[#ddd] p-2.5 placeholder:text-[#999]"
+            placeholder="例如：09xxxxxxxx 或 name@example.com"
+            class="rounded-lg border bg-white p-2.5 text-[14px] placeholder:text-[#999]"
+            :class="errors.contact ? 'border-[#ff4d4f]' : 'border-[#ddd]'"
           />
           <p v-if="errors.contact" class="text-[12px] text-[#ff4d4f]">{{ errors.contact }}</p>
         </div>
