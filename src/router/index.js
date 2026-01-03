@@ -19,6 +19,12 @@ const router = createRouter({
       component: () => import('@/views/Login/LoginView.vue'),
       meta: { headerType: 'none' }
     },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('@/views/Login/RegisterView.vue'),
+      meta: { headerType: 'none' }
+    },
 
     {
       path: '/chat-test',

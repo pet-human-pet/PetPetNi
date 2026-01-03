@@ -6,14 +6,19 @@ import BaseInput from './login-components/BaseInput.vue'
 // 表單狀態管理
 const email = ref('')
 const password = ref('')
+const confirmPassword = ref('')
 const showPassword = ref(false)
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleLogin = () => {
-  console.log('登入資訊:', { email: email.value, password: password.value })
+const handleRegister = () => {
+  if (password.value !== confirmPassword.value) {
+    alert('兩次密碼輸入不一致')
+    return
+  }
+  console.log('註冊資訊:', { email: email.value, password: password.value })
 }
 </script>
 
@@ -30,7 +35,7 @@ const handleLogin = () => {
         </div>
       </div>
 
-      <h1 class="mb-8 text-center text-2xl font-bold text-gray-800 md:text-3xl">歡迎回來</h1>
+      <h1 class="mb-8 text-center text-2xl font-bold text-gray-800 md:text-3xl">建立帳戶</h1>
 
       <div class="mb-6 grid grid-cols-3 gap-3">
         <SocialButton type="apple" />
@@ -47,7 +52,7 @@ const handleLogin = () => {
         </div>
       </div>
 
-      <form @submit.prevent="handleLogin">
+      <form @submit.prevent="handleRegister">
         <BaseInput v-model="email" label="帳號" placeholder="Enter your email..." type="email" />
 
         <div class="relative mb-4">
@@ -55,7 +60,7 @@ const handleLogin = () => {
             v-model="password"
             label="密碼"
             :type="showPassword ? 'text' : 'password'"
-            placeholder="Password"
+            placeholder="Create password"
           />
           <button
             type="button"
@@ -87,26 +92,27 @@ const handleLogin = () => {
           </button>
         </div>
 
-        <div class="mb-6 flex items-center justify-between">
-          <label class="flex cursor-pointer items-center">
-            <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
-            <span class="ml-2 text-sm text-gray-700">我會記得你的</span>
-          </label>
-          <a href="#" class="text-sm text-gray-500 hover:underline">忘記密碼？</a>
+        <div class="relative mb-6">
+          <BaseInput
+            v-model="confirmPassword"
+            label="確認密碼"
+            :type="showPassword ? 'text' : 'password'"
+            placeholder="Confirm password"
+          />
         </div>
 
         <button
           type="submit"
           class="w-full rounded-xl bg-gray-900 py-3 font-medium text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
         >
-          登入
+          註冊
         </button>
       </form>
 
       <p class="mt-6 text-center text-sm text-gray-600">
-        還不是會員？
-        <router-link to="/register" class="font-medium text-gray-900 hover:underline"
-          >註冊</router-link
+        已有帳號？
+        <router-link to="/login" class="font-medium text-gray-900 hover:underline"
+          >登入</router-link
         >
       </p>
     </div>

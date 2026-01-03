@@ -5,6 +5,7 @@ import AppHeader from './components/Share/AppHeader.vue'
 import MainHeader from './components/Share/Header.vue'
 import AppFooter from './components/Share/AppFooter.vue'
 import MenuOverlay from './components/Share/MenuOverlay.vue'
+import VerificationModal from './components/Auth/VerificationModal.vue'
 
 const route = useRoute()
 
@@ -23,13 +24,13 @@ const showFooter = computed(() => !route.meta.hideFooter)
     <!-- Main App Header (Event, Social, Profile) -->
     <MainHeader v-if="route.meta.headerType === 'app'" />
 
-    <main 
-      class="w-full flex-1"
-      :class="{ 'pt-17.5': route.meta.headerType === 'app' }"
-    >
+    <main class="w-full flex-1" :class="{ 'pt-17.5': route.meta.headerType === 'app' }">
       <RouterView />
     </main>
 
     <AppFooter v-if="showFooter" />
+
+    <!-- 全域彈窗 -->
+    <VerificationModal />
   </div>
 </template>

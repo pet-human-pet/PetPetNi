@@ -16,5 +16,25 @@ export const useUIStore = defineStore('ui', () => {
     isMenuOpen.value = true
   }
 
-  return { isMenuOpen, toggleMenu, closeMenu, openMenu }
+  /* === Modal Controls === */
+  const isVerificationModalOpen = ref(false)
+
+  function openVerificationModal() {
+    isVerificationModalOpen.value = true
+  }
+
+  function closeVerificationModal() {
+    isVerificationModalOpen.value = false
+  }
+
+  return {
+    isMenuOpen,
+    toggleMenu,
+    closeMenu,
+    openMenu,
+    // Modals
+    isVerificationModalOpen,
+    openVerificationModal,
+    closeVerificationModal
+  }
 })
