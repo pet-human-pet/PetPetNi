@@ -203,6 +203,6 @@ const editAudience = ref('public')
     />
 
     <!-- 留言區塊 -->
-    <CommentSection v-if="showComments" :post-id="post.id" @close="$emit('close-comments')" />
+    <CommentSection v-if="showComments" :post="post" @close="$emit('close-comments')" />
   </div>
 </template>
