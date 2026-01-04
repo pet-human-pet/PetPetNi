@@ -1,9 +1,9 @@
 <script setup>
+// ... (script 部分保持完全不變)
 import { ref, reactive } from 'vue'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 
-// --- 1. 顏色與狀態 ---
 const BRAND_ORANGE = '#f48e31'
 const activeTab = ref('posts')
 const activeSubTab = ref('my')
@@ -17,7 +17,6 @@ const showUserList = ref(false)
 const userListTitle = ref('')
 const currentUserList = ref([])
 
-// --- 2. 寵物個人資料 (穩定版本) ---
 const profile = reactive({
   avatar:
     'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
@@ -32,12 +31,11 @@ const profile = reactive({
   }
 })
 
-// --- 3. 貼文假資料 (包含修復頭像) ---
 const myPosts = [
   {
     id: 1,
     author: '豆泥 (Doni)',
-    avatar: profile.avatar,
+    avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
     isMine: true,
     audience: 'public',
     content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！',
@@ -51,7 +49,7 @@ const myPosts = [
   {
     id: 2,
     author: '豆泥 (Doni)',
-    avatar: profile.avatar,
+    avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
     isMine: true,
     audience: 'friends',
     content: '新買的貓草球，一打開包裝就瘋了。',
@@ -64,7 +62,6 @@ const myPosts = [
   }
 ]
 
-// 🔑 修正處：將 savedPosts 增加為兩筆資料
 const savedPosts = [
   {
     id: 101,
@@ -96,7 +93,6 @@ const savedPosts = [
   }
 ]
 
-// --- 4. 活動、粉絲、追蹤資料 (全數回歸) ---
 const createdEvents = [
   {
     id: 201,
@@ -177,7 +173,6 @@ const followingList = [
   }
 ]
 
-// --- 5. 邏輯方法 (確保全數綁定) ---
 const handleAvatarClick = () => fileInput.value.click()
 const handleFileChange = (e) => {
   const file = e.target.files[0]
@@ -213,7 +208,7 @@ const addTag = () => {
   <div class="bg-bg-base relative min-h-screen overflow-x-hidden pb-20 text-left font-sans">
     <BackgroundGrid />
 
-    <div class="container mx-auto flex max-w-[1300px] justify-center px-10 py-8">
+    <div class="mx-auto flex max-w-7xl justify-center px-0 py-8">
       <div class="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_2fr]">
         <aside class="flex h-full flex-col">
           <div
@@ -251,7 +246,7 @@ const addTag = () => {
                 </button>
               </div>
 
-              <div class="mx-auto flex w-full max-w-[260px] justify-between text-center">
+              <div class="mx-auto flex w-full justify-center gap-12 text-center">
                 <div class="group cursor-pointer" @click="openUserList('followers')">
                   <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">2</p>
                   <p class="text-fg-muted text-sm font-medium">粉絲</p>
@@ -260,6 +255,16 @@ const addTag = () => {
                   <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">6</p>
                   <p class="text-fg-muted text-sm font-medium">追蹤中</p>
                 </div>
+              </div>
+
+              <div class="mt-6 flex flex-wrap justify-center gap-2">
+                <span
+                  v-for="(tag, index) in profile.hashtags"
+                  :key="index"
+                  class="text-fg-muted rounded-full bg-gray-100 px-3 py-1 text-sm font-medium"
+                >
+                  {{ tag }}
+                </span>
               </div>
             </div>
 
@@ -270,7 +275,7 @@ const addTag = () => {
               >
                 <h2 class="text-fg-secondary text-xl font-bold tracking-wide">寵物詳細資料</h2>
               </div>
-              <div class="space-y-5 px-4">
+              <div class="space-y-5 px-4 font-bold">
                 <p class="flex flex-col border-b border-gray-50 pb-2">
                   <span class="text-fg-muted mb-1 text-xs font-bold uppercase">品種</span>
                   <span class="text-fg-secondary text-lg font-bold">{{
@@ -324,7 +329,6 @@ const addTag = () => {
               ></div>
             </button>
           </div>
-
           <div class="custom-scrollbar flex-1 overflow-y-auto bg-gray-50/20 p-6 md:p-8">
             <div v-if="activeTab === 'posts'" class="space-y-6">
               <div class="mb-6 flex justify-center gap-6">
@@ -351,7 +355,7 @@ const addTag = () => {
                   儲存的貼文
                 </button>
               </div>
-              <div class="mx-auto max-w-[550px] space-y-6 pb-10">
+              <div class="mx-auto max-w-[550px] space-y-6 pb-10 text-left">
                 <PostCard
                   v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
                   :key="post.id"
@@ -359,7 +363,6 @@ const addTag = () => {
                 />
               </div>
             </div>
-
             <div v-if="activeTab === 'events'" class="space-y-8">
               <div class="flex flex-wrap justify-center gap-4">
                 <button
@@ -396,7 +399,7 @@ const addTag = () => {
                   歷史活動
                 </button>
               </div>
-              <div class="grid gap-5 pb-10">
+              <div class="grid gap-5 pb-10 text-left">
                 <div
                   v-for="event in activeSubTab === 'create'
                     ? createdEvents
@@ -413,9 +416,8 @@ const addTag = () => {
                   </div>
                   <span
                     class="rounded-full border border-orange-100 bg-orange-50 px-4 py-1 text-xs font-bold text-[#f48e31]"
+                    >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
                   >
-                    {{ activeSubTab === 'history' ? '已結束' : '進行中' }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -423,7 +425,6 @@ const addTag = () => {
         </main>
       </div>
     </div>
-
     <div
       v-if="isEditing"
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 text-left backdrop-blur-sm"
@@ -492,8 +493,7 @@ const addTag = () => {
                 placeholder="新增標籤..."
                 class="border-border-default flex-1 rounded-xl border p-3"
                 @keyup.enter="addTag"
-              />
-              <button
+              /><button
                 class="rounded-xl px-5 font-bold text-white"
                 :style="{ backgroundColor: BRAND_ORANGE }"
                 @click="addTag"
@@ -505,9 +505,8 @@ const addTag = () => {
         </div>
         <div class="mt-8 flex gap-4">
           <button class="flex-1 rounded-full bg-gray-100 py-3 font-bold" @click="isEditing = false">
-            取消
-          </button>
-          <button
+            取消</button
+          ><button
             class="flex-1 rounded-full py-3 font-bold text-white shadow-lg"
             :style="{ backgroundColor: BRAND_ORANGE }"
             @click="isEditing = false"
@@ -517,9 +516,8 @@ const addTag = () => {
         </div>
       </div>
     </div>
-
-    <Transition name="fade">
-      <div
+    <Transition name="fade"
+      ><div
         v-if="showDetail"
         class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       >
@@ -540,11 +538,10 @@ const addTag = () => {
             關閉視窗
           </button>
         </div>
-      </div>
-    </Transition>
-
-    <Transition name="fade">
-      <div
+      </div></Transition
+    >
+    <Transition name="fade"
+      ><div
         v-if="showUserList"
         class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       >
@@ -575,23 +572,7 @@ const addTag = () => {
             返回
           </button>
         </div>
-      </div>
-    </Transition>
+      </div></Transition
+    >
   </div>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #d1d5db;
-}
-</style>
