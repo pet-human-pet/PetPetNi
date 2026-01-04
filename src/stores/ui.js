@@ -16,31 +16,15 @@ export const useUIStore = defineStore('ui', () => {
     isMenuOpen.value = true
   }
 
-  const isVerificationModalOpen = ref(false)
-  const onboardingStep = ref('role_select')
-
-  function openVerificationModal(step = 'role_select') {
-    onboardingStep.value = step
-    isVerificationModalOpen.value = true
-  }
-
-  function closeVerificationModal() {
-    isVerificationModalOpen.value = false
-  }
-
-  function setOnboardingStep(step) {
-    onboardingStep.value = step
-  }
+  // === 已移除：VerificationModal 相關功能 ===
+  // 註：原有的 isVerificationModalOpen、onboardingStep 等功能
+  // 已由 AuthView.vue 一頁式流程取代，故移除以避免混淆
 
   return {
+    // Menu
     isMenuOpen,
     toggleMenu,
     closeMenu,
-    openMenu,
-    isVerificationModalOpen,
-    onboardingStep,
-    openVerificationModal,
-    closeVerificationModal,
-    setOnboardingStep
+    openMenu
   }
 })
