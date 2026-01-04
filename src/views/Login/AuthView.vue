@@ -8,13 +8,15 @@ import OtpVerification from './login-components/OtpVerification.vue'
 import SocialBindPhone from './login-components/SocialBindPhone.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
+import SuccessView from './login-components/SuccessView.vue'
 // ChipVerification 組件保留但不在此流程中使用
 
 const route = useRoute()
 const router = useRouter()
-// 認證模式: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'pet'
+// 認證模式: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'pet' | 'success'
 // 註：chip 模式已從註冊流程中移除，ChipVerification 組件將用於其他頁面
 const authMode = ref('login')
+const userRole = ref('owner') // 用於 SuccessView 顯示不同訊息
 
 onMounted(() => {
   // 支援 query parameter: /login?mode=register
@@ -64,23 +66,23 @@ const handleOtpSuccess = () => {
 }
 
 const handleRoleSelect = (role) => {
+  userRole.value = role // 儲存用戶角色
   if (role === 'owner') {
     authMode.value = 'pet'
   } else {
-    // 雲鏟屎官：直接完成，跳轉首頁
+    // 雲鏟屎官：顯示完成頁面
     handleComplete()
   }
 }
 
 const handlePetSubmit = () => {
-  // 寵物資料填寫完成，直接完成註冊流程
-  // 註：晶片驗證已從註冊流程中移除
+  // 寵物資料填寫完成，顯示完成頁面
   handleComplete()
 }
 
 const handleComplete = () => {
-  // Onboarding 完成，跳轉首頁
-  router.push('/')
+  // 顯示註冊完成頁面，3秒後自動跳轉首頁
+  authMode.value = 'success'
 }
 </script>
 
@@ -143,6 +145,7 @@ const handleComplete = () => {
           >
             <PetBasicInfo @submit="handlePetSubmit" />
           </div>
+          <SuccessView v-else-if="authMode === 'success'" key="success" :user-role="userRole" />
         </Transition>
       </div>
     </div>
