@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import SocialButton from './SocialButton.vue'
 import BaseInput from './BaseInput.vue'
 
-defineEmits(['switch'])
+defineEmits(['switch', 'forgot'])
 
 const email = ref('')
 const password = ref('')
@@ -66,13 +66,7 @@ const handleLogin = () => {
             class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             @click="togglePassword"
           >
-            <svg
-              v-if="!showPassword"
-              class="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg v-if="!showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -94,13 +88,12 @@ const handleLogin = () => {
 
       <div class="flex items-center justify-between">
         <label class="flex cursor-pointer items-center">
-          <input
-            type="checkbox"
-            class="h-4 w-4 rounded border-gray-300 text-[#ffa75f] focus:ring-[#ffa75f]"
-          />
+          <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-[#ffa75f] focus:ring-[#ffa75f]" />
           <span class="ml-2 text-sm text-gray-500">我會記得你的</span>
         </label>
-        <a href="#" class="text-sm text-gray-400 hover:text-gray-600">忘記密碼？</a>
+        <button type="button" class="text-sm text-gray-400 hover:text-gray-600" @click="$emit('forgot')">
+          忘記密碼？
+        </button>
       </div>
 
       <button
@@ -115,12 +108,7 @@ const handleLogin = () => {
 
     <p class="mt-8 text-center text-sm text-gray-500">
       還不是會員？
-      <button
-        class="font-medium hover:underline"
-        style="color: #ffa75f"
-        type="button"
-        @click="$emit('switch')"
-      >
+      <button class="font-medium hover:underline" style="color: #ffa75f" type="button" @click="$emit('switch')">
         <!-- TODO: Replace with CSS variable var(--app-primary) -->
         註冊
       </button>
