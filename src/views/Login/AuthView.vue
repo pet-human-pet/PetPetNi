@@ -1,20 +1,19 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import LoginForm from './login-components/LoginForm.vue'
-import RegisterForm from './login-components/RegisterForm.vue'
-import ForgetPasswordForm from './login-components/ForgetPasswordForm.vue'
-import OtpVerification from './login-components/OtpVerification.vue'
-import SocialBindPhone from './login-components/SocialBindPhone.vue'
+import LoginForm from '@/views/Login/login-components/LoginForm.vue'
+import RegisterForm from '@/views/Login/login-components/RegisterForm.vue'
+import ForgetPasswordForm from '@/views/Login/login-components/ForgetPasswordForm.vue'
+import OtpVerification from '@/views/Login/login-components/OtpVerification.vue'
+import SocialBindPhone from '@/views/Login/login-components/SocialBindPhone.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
-import SuccessView from './login-components/SuccessView.vue'
-// ChipVerification 組件保留但不在此流程中使用
+import SuccessView from '@/views/Login/login-components/SuccessView.vue'
 
 const route = useRoute()
 const router = useRouter()
 // 認證模式: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'pet' | 'success'
-// 註：chip 模式已從註冊流程中移除，ChipVerification 組件將用於其他頁面
+
 const authMode = ref('login')
 const userRole = ref('owner') // 用於 SuccessView 顯示不同訊息
 
