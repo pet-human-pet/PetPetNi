@@ -73,7 +73,7 @@ function validate() {
     if (!Number.isFinite(n) || n <= 0) errors.capacity = '人數需為正整數'
     else if (!Number.isInteger(n)) errors.capacity = '人數需為整數'
     else if (n < 2) errors.capacity = '人數至少 2 人以上'
-    else if (n > 300) errors.capacity = '人數上限建議不超過 300'
+    else if (n > 50) errors.capacity = '人數上限不超過 50'
   }
 
   if (!form.locId) errors.locId = '請選擇地點'
