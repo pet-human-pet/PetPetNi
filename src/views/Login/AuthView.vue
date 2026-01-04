@@ -8,11 +8,12 @@ import OtpVerification from './login-components/OtpVerification.vue'
 import SocialBindPhone from './login-components/SocialBindPhone.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
-import ChipVerification from '@/components/Form/ChipVerification.vue'
+// ChipVerification 組件保留但不在此流程中使用
 
 const route = useRoute()
 const router = useRouter()
-// 擴展 authMode: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'pet' | 'chip'
+// 認證模式: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'pet'
+// 註：chip 模式已從註冊流程中移除，ChipVerification 組件將用於其他頁面
 const authMode = ref('login')
 
 onMounted(() => {
@@ -53,7 +54,7 @@ const handleRegisterSuccess = () => {
 }
 
 const handleSocialBindSuccess = () => {
-  // 社交綁定手機成功，進入角色選擇
+  // 社交綁定 Email 成功，進入角色選擇
   authMode.value = 'role'
 }
 
@@ -72,7 +73,9 @@ const handleRoleSelect = (role) => {
 }
 
 const handlePetSubmit = () => {
-  authMode.value = 'chip'
+  // 寵物資料填寫完成，直接完成註冊流程
+  // 註：晶片驗證已從註冊流程中移除
+  handleComplete()
 }
 
 const handleComplete = () => {
@@ -139,13 +142,6 @@ const handleComplete = () => {
             class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
           >
             <PetBasicInfo @submit="handlePetSubmit" />
-          </div>
-          <div
-            v-else-if="authMode === 'chip'"
-            key="chip"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
-          >
-            <ChipVerification pet-name="您的毛孩" @submit="handleComplete" @skip="handleComplete" />
           </div>
         </Transition>
       </div>
