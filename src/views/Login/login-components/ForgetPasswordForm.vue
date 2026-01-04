@@ -4,11 +4,11 @@ import BaseInput from './BaseInput.vue'
 
 const emit = defineEmits(['change-view'])
 
-const contact = ref('')
+const email = ref('')
 
 const handleSubmit = () => {
   // 模擬發送驗證碼
-  console.log('發送驗證碼至:', contact.value)
+  console.log('發送驗證碼至:', email.value)
   emit('change-view', 'OTP_VERIFY')
 }
 </script>
@@ -17,13 +17,16 @@ const handleSubmit = () => {
   <div class="w-full">
     <h1 class="mb-4 text-center text-2xl font-bold text-gray-800 md:text-3xl">忘記密碼</h1>
     <p class="mb-8 text-center text-sm text-gray-500">
-      請輸入您註冊的 Email 或手機號碼，
+      請輸入您註冊的 Email，
       <br />
       我們將發送驗證碼給您。
     </p>
 
     <form @submit.prevent="handleSubmit">
-      <BaseInput v-model="contact" label="Email 或手機號碼" placeholder="example@email.com" type="text" />
+      <div class="mb-4">
+        <label class="mb-2 block text-sm font-medium text-gray-600">Email</label>
+        <BaseInput v-model="email" placeholder="example@email.com" type="email" />
+      </div>
 
       <button
         type="submit"
