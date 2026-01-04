@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import BaseInput from './BaseInput.vue'
+import BaseInput from '@/components/Form/BaseInput.vue'
 
 const emit = defineEmits(['success'])
 
