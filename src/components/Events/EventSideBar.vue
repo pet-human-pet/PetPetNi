@@ -33,21 +33,35 @@ function openJoinModal(evt) {
   joinModalOpen.value = true
 }
 
+function canJoin(status) {
+  const s = String(status || '').toLowerCase()
+  return s === 'recruiting' || s === 'signup' || s === 'open'
+}
+
 function closeJoinModal() {
   joinModalOpen.value = false
   joinedEvent.value = null
 }
 
-function groupBuyBadge(status) {
+function eventBadge(status) {
   const s = String(status || '').toLowerCase()
 
-  if (s === 'active' || s === 'ongoing' || s === '進行中') {
+  // 報名中
+  if (s === 'recruiting' || s === 'signup' || s === 'open') {
+    return { text: '報名中', cls: 'bg-[#e8f5e9] text-[#2e7d32]' }
+  }
+
+  // 進行中
+  if (s === 'ongoing' || s === 'active' || s === 'in_progress') {
     return { text: '進行中', cls: 'bg-[#e3f2fd] text-[#2196f3]' }
   }
-  if (s === 'ended' || s === 'closed' || s === '已結束') {
+
+  // 已結束
+  if (s === 'ended' || s === 'closed') {
     return { text: '已結束', cls: 'bg-[#f5f5f5] text-[#777]' }
   }
-  // 預設當作審核中（也吃 pending）
+
+  // 審核中（pending）
   return { text: '審核中', cls: 'bg-[#fff3e0] text-[#ef6c00]' }
 }
 </script>
@@ -92,9 +106,9 @@ function groupBuyBadge(status) {
 
             <span
               class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
-              :class="groupBuyBadge(evt.status).cls"
+              :class="eventBadge(evt.status).cls"
             >
-              {{ groupBuyBadge(evt.status).text }}
+              {{ eventBadge(evt.status).text }}
             </span>
           </div>
 
@@ -109,13 +123,9 @@ function groupBuyBadge(status) {
           <button
             type="button"
             class="h-8.5 flex-1 rounded-[17px] text-[12px] font-bold max-[800px]:h-8"
-            :disabled="evt.status === 'ended'"
-            :class="
-              evt.status === 'ended'
-                ? 'cursor-not-allowed bg-[#eee] text-[#999]'
-                : 'bg-[#ff9f43] text-white'
-            "
-            @click.stop="evt.status !== 'ended' && openJoinModal(evt)"
+            :disabled="!canJoin(evt.status)"
+            :class="!canJoin(evt.status) ? 'cursor-not-allowed ...' : 'bg-[#ff9f43] text-white'"
+            @click.stop="canJoin(evt.status) && openJoinModal(evt)"
           >
             <i class="fa-solid fa-paw mr-1"></i>
             {{ evt.status === 'ended' ? '已結束' : '參加' }}
