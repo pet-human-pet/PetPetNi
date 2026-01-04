@@ -186,7 +186,7 @@ const onSwipeEnd = () => {
                       </button>
                       <button
                         class="text-zinc-400 hover:text-red-500"
-                        @click.stop="deleteComment(c.id)"
+                        @click.stop="handleDelete(c.id)"
                       >
                         <i class="fa-solid fa-trash text-sm"></i>
                       </button>
