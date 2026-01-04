@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { useSwipe } from '@vueuse/core'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useSwipe, useScrollLock } from '@vueuse/core'
 import { useScreen } from '@/composables/useScreen'
 import { formatCommentTime } from '@/utils/formatTime'
 import { useCommentStore } from '@/stores/comment'
@@ -19,6 +19,21 @@ const comments = computed(() => commentStore.getComments(props.post.id))
 const emit = defineEmits(['close', 'update-count'])
 
 const { isMobile } = useScreen()
+
+// Mobile 滾動鎖定
+const isLocked = useScrollLock(document.body)
+
+watch(
+  isMobile,
+  (val) => {
+    isLocked.value = val
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => {
+  isLocked.value = false
+})
 
 // 監聽留言數量變化並通知上層
 watch(
@@ -71,11 +86,11 @@ const { lengthY, isSwiping } = useSwipe(mobileSheetRef)
 // 下滑超過一定距離則關閉
 const swipeOffset = computed(() => {
   if (!isMobile.value || !isSwiping.value) return 0
-  return lengthY.value > 0 ? lengthY.value : 0 // 只允許下滑
+  return lengthY.value < 0 ? -lengthY.value : 0 // 只允許下滑 (lengthY < 0 為下滑)
 })
 
 const onSwipeEnd = () => {
-  if (lengthY.value > 100) {
+  if (lengthY.value < -100) {
     emit('close')
   }
 }
@@ -105,7 +120,14 @@ const onSwipeEnd = () => {
         </div>
 
         <!-- Comment -->
-        <div class="max-h-[60vh] overflow-y-auto px-4 pt-2">
+        <div class="max-h-[60vh] min-h-[16vh] overflow-y-auto px-4 pt-2">
+          <div
+            v-if="comments.length === 0"
+            class="flex flex-col items-center justify-center py-10 text-zinc-400"
+          >
+            <i class="fa-regular fa-comment-dots mb-2 text-2xl"></i>
+            <span class="text-sm">目前沒有留言</span>
+          </div>
           <div
             v-for="c in comments"
             :key="c.id"
@@ -215,7 +237,7 @@ const onSwipeEnd = () => {
   <!-- Desktop -->
   <div
     v-if="!isMobile"
-    class="animate-pop-in absolute right-5 bottom-16 z-30 w-[80%] origin-bottom-right rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl"
+    class="animate-pop-in absolute right-5 bottom-16 z-30 w-[80%] origin-bottom-left rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl"
   >
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
@@ -226,7 +248,13 @@ const onSwipeEnd = () => {
     </div>
 
     <!-- List -->
-    <div class="no-scrollbar max-h-60 space-y-1 overflow-y-auto p-1">
+    <div class="no-scrollbar max-h-60 min-h-14 space-y-1 overflow-y-auto p-1">
+      <div
+        v-if="comments.length === 0"
+        class="flex flex-col items-center justify-center py-8 text-zinc-400"
+      >
+        <span class="text-sm">目前沒有留言</span>
+      </div>
       <div
         v-for="c in comments"
         :key="c.id"
@@ -245,18 +273,26 @@ const onSwipeEnd = () => {
                 @keydown.enter.prevent="saveEdit"
               ></textarea>
               <div class="flex items-center justify-between">
-                <span
-                  class="text-xs"
-                  :class="editContent.length > 50 ? 'text-zinc-600' : 'text-zinc-400'"
-                >
-                  {{ editContent.length }}/50
-                </span>
+                <div>
+                  <span
+                    class="text-xs"
+                    :class="editContent.length > 50 ? 'text-zinc-600' : 'text-zinc-400'"
+                  >
+                    {{ editContent.length }}/50
+                  </span>
+                  <span class="ml-2 p-0.5 text-[10px] text-red-500/80">
+                    * 注意: 每筆留言僅能編輯一次
+                  </span>
+                </div>
                 <div class="flex gap-2 text-xs font-bold">
-                  <button class="text-zinc-500 hover:text-zinc-700" @click.stop="cancelEdit">
+                  <button
+                    class="cursor-pointer text-zinc-400 hover:text-zinc-700"
+                    @click.stop="cancelEdit"
+                  >
                     取消
                   </button>
                   <button
-                    class="text-brand-primary disabled:text-zinc-300"
+                    class="text-brand-primary cursor-pointer disabled:text-zinc-300"
                     :disabled="!editContent.trim() || editContent.length > 50"
                     @click.stop="saveEdit"
                   >
