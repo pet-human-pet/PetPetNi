@@ -1,6 +1,5 @@
 <script setup>
-// ... (script 部分保持完全不變)
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 
@@ -10,8 +9,62 @@ const activeSubTab = ref('my')
 const isEditing = ref(false)
 const showDetail = ref(false)
 const selectedItem = ref(null)
-const newTagInput = ref('')
 const fileInput = ref(null)
+
+// --- 50 個真實寵物標籤資料 (保留) ---
+const predefinedTags = [
+  '#布偶貓',
+  '#藍眼',
+  '#午睡愛好者',
+  '#罐罐小偷',
+  '#踩奶大師',
+  '#半夜開演唱會',
+  '#拆家小能手',
+  '#優雅貓生',
+  '#長毛怪',
+  '#黏人精',
+  '#主子威武',
+  '#家中小霸王',
+  '#呼嚕機',
+  '#吸貓成癮',
+  '#屁顛屁顛',
+  '#呆萌',
+  '#好奇寶寶',
+  '#拆家專家',
+  '#睡神',
+  '#專業乞食者',
+  '#毛茸茸',
+  '#眼裡只有肉',
+  '#慢條斯理',
+  '#動作敏捷',
+  '#宅貓',
+  '#戶外探險家',
+  '#接球達人',
+  '#搖尾巴',
+  '#傻白甜',
+  '#高冷王子',
+  '#貓草中毒',
+  '#追球高手',
+  '#沙發破壞者',
+  '#偷吃現行犯',
+  '#傲嬌',
+  '#社交達人',
+  '#安靜乖乖',
+  '#活潑好動',
+  '#智慧擔當',
+  '#專業陪睡',
+  '#大胃王',
+  '#潔癖怪',
+  '#捕蚊英雄',
+  '#鍵盤干擾',
+  '#箱子控',
+  '#陽光男孩',
+  '#精緻女孩',
+  '#小短腿',
+  '#大長腿',
+  '#混血美男子'
+]
+const showTagPicker = ref(false)
 
 const showUserList = ref(false)
 const userListTitle = ref('')
@@ -31,6 +84,17 @@ const profile = reactive({
   }
 })
 
+const selectTag = (tag) => {
+  if (profile.hashtags.length >= 5) return
+  if (!profile.hashtags.includes(tag)) {
+    profile.hashtags.push(tag)
+  }
+  showTagPicker.value = false
+}
+
+const removeTag = (index) => profile.hashtags.splice(index, 1)
+
+// --- 資料恢復：我的貼文與儲存貼文 (保持 avatar 圖片) ---
 const myPosts = [
   {
     id: 1,
@@ -40,7 +104,7 @@ const myPosts = [
     audience: 'public',
     content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！',
     images: ['https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800'],
-    tags: ['#午後', '#慵懶'],
+    tags: ['#午後'],
     likeCount: 12,
     commentCount: 3,
     isLiked: false,
@@ -61,7 +125,6 @@ const myPosts = [
     isBookmarked: false
   }
 ]
-
 const savedPosts = [
   {
     id: 101,
@@ -93,33 +156,7 @@ const savedPosts = [
   }
 ]
 
-const createdEvents = [
-  {
-    id: 201,
-    name: '布偶貓交流聚會',
-    location: '中山區',
-    status: '招募中',
-    content: '交流心得與罐罐試吃！'
-  }
-]
-const followedEvents = [
-  {
-    id: 301,
-    name: '年度寵物展覽',
-    location: '世貿一館',
-    status: '已收藏',
-    content: '年度大展，必去！'
-  }
-]
-const historyEvents = [
-  {
-    id: 401,
-    name: '2023 冬季健檢',
-    location: '台大醫院',
-    status: '已結束',
-    content: '數據非常健康。'
-  }
-]
+// --- 🔑 修正處：恢復 6 筆追蹤中清單假資料 ---
 const followersList = [
   {
     id: 1,
@@ -173,6 +210,16 @@ const followingList = [
   }
 ]
 
+const createdEvents = [
+  { id: 201, name: '布偶貓交流聚會', location: '中山區', status: '招募中', content: '交流心得！' }
+]
+const followedEvents = [
+  { id: 301, name: '年度寵物展覽', location: '世貿一館', status: '已收藏', content: '年度大展！' }
+]
+const historyEvents = [
+  { id: 401, name: '2023 冬季健檢', location: '台大醫院', status: '已結束', content: '健康。' }
+]
+
 const handleAvatarClick = () => fileInput.value.click()
 const handleFileChange = (e) => {
   const file = e.target.files[0]
@@ -191,17 +238,6 @@ const openDetail = (item) => {
   selectedItem.value = item
   showDetail.value = true
 }
-const removeTag = (index) => profile.hashtags.splice(index, 1)
-const addTag = () => {
-  if (newTagInput.value.trim()) {
-    profile.hashtags.push(
-      newTagInput.value.trim().startsWith('#')
-        ? newTagInput.value.trim()
-        : `#${newTagInput.value.trim()}`
-    )
-    newTagInput.value = ''
-  }
-}
 </script>
 
 <template>
@@ -212,13 +248,12 @@ const addTag = () => {
       <div class="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_2fr]">
         <aside class="flex h-full flex-col">
           <div
-            class="c-card border-border-default/20 flex h-full flex-1 flex-col border bg-white p-8 shadow-sm"
+            class="c-card border-border-default/20 flex h-full flex-1 flex-col border bg-white p-8 text-left shadow-sm"
           >
             <div class="mb-8 flex w-full shrink-0 flex-col items-center text-center">
               <h1 class="c-title mb-6 text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
                 {{ profile.name }}
               </h1>
-
               <div class="group relative mb-6 cursor-pointer" @click="handleAvatarClick">
                 <div
                   class="shadow-card h-44 w-44 overflow-hidden rounded-full border-4 border-white"
@@ -231,7 +266,6 @@ const addTag = () => {
                   >已驗證飼主</span
                 >
               </div>
-
               <div class="mb-6 flex items-center justify-center gap-3">
                 <span class="text-fg-muted text-lg">{{ profile.username }}</span>
                 <button class="group cursor-pointer" @click="isEditing = true">
@@ -245,7 +279,6 @@ const addTag = () => {
                   </svg>
                 </button>
               </div>
-
               <div class="mx-auto flex w-full justify-center gap-12 text-center">
                 <div class="group cursor-pointer" @click="openUserList('followers')">
                   <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">2</p>
@@ -257,14 +290,13 @@ const addTag = () => {
                 </div>
               </div>
 
-              <div class="mt-6 flex flex-wrap justify-center gap-2">
+              <div class="mt-6 grid w-full grid-cols-3 gap-2 px-4">
                 <span
                   v-for="(tag, index) in profile.hashtags"
                   :key="index"
-                  class="text-fg-muted rounded-full bg-gray-100 px-3 py-1 text-sm font-medium"
+                  class="text-fg-muted truncate rounded-full bg-gray-100 px-2 py-1 text-center text-[11px] font-medium"
+                  >{{ tag }}</span
                 >
-                  {{ tag }}
-                </span>
               </div>
             </div>
 
@@ -277,21 +309,15 @@ const addTag = () => {
               </div>
               <div class="space-y-5 px-4 font-bold">
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">品種</span>
-                  <span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">品種</span
+                  ><span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.breed
                   }}</span>
                 </p>
                 <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">生日</span>
-                  <span class="text-fg-secondary text-lg font-bold">{{
+                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">生日</span
+                  ><span class="text-fg-secondary text-lg font-bold">{{
                     profile.petInfo.birthday
-                  }}</span>
-                </p>
-                <p class="flex flex-col border-b border-gray-50 pb-2">
-                  <span class="text-fg-muted mb-1 text-xs font-bold uppercase">性別</span>
-                  <span class="text-fg-secondary text-lg font-bold">{{
-                    profile.petInfo.gender
                   }}</span>
                 </p>
                 <div class="pt-2">
@@ -306,7 +332,7 @@ const addTag = () => {
         </aside>
 
         <main
-          class="c-card border-border-default/50 flex h-[850px] w-full flex-col overflow-hidden border bg-white shadow-sm"
+          class="c-card border-border-default/50 flex h-[850px] w-full flex-col overflow-hidden border bg-white text-left shadow-sm"
         >
           <div
             class="border-border-default z-10 flex shrink-0 justify-around border-b bg-white px-6 pt-8"
@@ -355,7 +381,7 @@ const addTag = () => {
                   儲存的貼文
                 </button>
               </div>
-              <div class="mx-auto max-w-[550px] space-y-6 pb-10 text-left">
+              <div class="mx-auto max-w-[550px] space-y-6 pb-10">
                 <PostCard
                   v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
                   :key="post.id"
@@ -399,7 +425,7 @@ const addTag = () => {
                   歷史活動
                 </button>
               </div>
-              <div class="grid gap-5 pb-10 text-left">
+              <div class="grid gap-5 pb-10">
                 <div
                   v-for="event in activeSubTab === 'create'
                     ? createdEvents
@@ -425,97 +451,105 @@ const addTag = () => {
         </main>
       </div>
     </div>
+
     <div
       v-if="isEditing"
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 text-left backdrop-blur-sm"
     >
       <div class="c-card max-h-[90vh] w-full max-w-xl overflow-y-auto bg-white p-8 shadow-2xl">
-        <h2 class="mb-6 text-center text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
-          編輯寵物資料
+        <h2 class="mb-8 text-center text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+          編輯寵物 Hashtags
         </h2>
-        <div class="space-y-4">
+
+        <div class="space-y-8">
           <div>
-            <label class="text-fg-secondary mb-1 block font-bold">寵物名稱</label
-            ><input
-              v-model="profile.name"
-              class="border-border-default w-full rounded-xl border p-3"
-            />
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="text-fg-secondary mb-1 block font-bold">品種</label
-              ><input
-                v-model="profile.petInfo.breed"
-                class="border-border-default w-full rounded-xl border p-3"
-              />
-            </div>
-            <div>
-              <label class="text-fg-secondary mb-1 block font-bold">性別</label
-              ><select
-                v-model="profile.petInfo.gender"
-                class="border-border-default w-full rounded-xl border p-3"
+            <div class="mb-4 flex items-center justify-between">
+              <label class="text-fg-secondary text-lg font-bold"
+                >目前已選標籤 ({{ profile.hashtags.length }}/5)</label
               >
-                <option>公</option>
-                <option>母</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="text-fg-secondary mb-1 block font-bold">生日</label
-            ><input
-              v-model="profile.petInfo.birthday"
-              type="date"
-              class="border-border-default w-full rounded-xl border p-3"
-            />
-          </div>
-          <div>
-            <label class="text-fg-secondary mb-1 block font-bold">興趣愛好</label
-            ><textarea
-              v-model="profile.petInfo.interest"
-              rows="3"
-              class="border-border-default w-full resize-none rounded-xl border p-3"
-            ></textarea>
-          </div>
-          <div>
-            <label class="text-fg-secondary mb-1 block font-bold">Hashtags</label>
-            <div class="mb-2 flex flex-wrap gap-2 rounded-xl border border-dashed p-3">
               <span
+                v-if="profile.hashtags.length >= 5"
+                class="animate-bounce text-sm font-bold text-red-500"
+                >已達上限！</span
+              >
+            </div>
+
+            <div
+              class="mb-6 grid grid-cols-3 gap-3 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-6"
+            >
+              <span
+                v-if="profile.hashtags.length === 0"
+                class="text-fg-muted col-span-3 py-4 text-center text-sm italic"
+                >請點擊下方按鈕開始選擇</span
+              >
+              <div
                 v-for="(tag, index) in profile.hashtags"
                 :key="index"
-                class="cursor-pointer rounded-full bg-gray-100 px-3 py-1 text-xs hover:bg-red-50 hover:text-red-500"
+                class="flex cursor-pointer items-center justify-between rounded-full border border-orange-100 bg-white px-3 py-2 text-xs font-bold text-[#f48e31] shadow-sm transition-all hover:border-red-300 hover:text-red-500"
                 @click="removeTag(index)"
-                >{{ tag }} ✕</span
               >
+                <span class="truncate">{{ tag }}</span
+                ><span class="ml-1 shrink-0 text-[10px]">✕</span>
+              </div>
             </div>
-            <div class="flex gap-2">
-              <input
-                v-model="newTagInput"
-                placeholder="新增標籤..."
-                class="border-border-default flex-1 rounded-xl border p-3"
-                @keyup.enter="addTag"
-              /><button
-                class="rounded-xl px-5 font-bold text-white"
-                :style="{ backgroundColor: BRAND_ORANGE }"
-                @click="addTag"
-              >
-                新增
-              </button>
-            </div>
+
+            <button
+              class="w-full rounded-2xl py-4 font-bold text-white shadow-md transition-all active:scale-95"
+              :class="
+                profile.hashtags.length >= 5
+                  ? 'cursor-not-allowed grayscale'
+                  : 'hover:brightness-110'
+              "
+              :style="{ backgroundColor: BRAND_ORANGE }"
+              :disabled="profile.hashtags.length >= 5"
+              @click="showTagPicker = true"
+            >
+              選擇標籤
+            </button>
           </div>
         </div>
-        <div class="mt-8 flex gap-4">
-          <button class="flex-1 rounded-full bg-gray-100 py-3 font-bold" @click="isEditing = false">
-            取消</button
-          ><button
-            class="flex-1 rounded-full py-3 font-bold text-white shadow-lg"
-            :style="{ backgroundColor: BRAND_ORANGE }"
+        <div class="mt-12">
+          <button
+            class="w-full rounded-full bg-gray-100 py-4 text-lg font-bold transition-colors hover:bg-gray-200"
             @click="isEditing = false"
           >
-            確認修改
+            關閉視窗
+          </button>
+        </div>
+      </div>
+
+      <div
+        v-if="showTagPicker"
+        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
+      >
+        <div class="c-card w-full max-w-lg bg-white p-8 shadow-2xl">
+          <h3 class="mb-4 text-xl font-bold">選擇標籤 ({{ profile.hashtags.length }}/5)</h3>
+          <div class="custom-scrollbar grid max-h-[350px] grid-cols-3 gap-2 overflow-y-auto p-2">
+            <button
+              v-for="tag in predefinedTags"
+              :key="tag"
+              class="rounded-lg border p-2 text-xs transition-all"
+              :class="
+                profile.hashtags.includes(tag)
+                  ? 'cursor-not-allowed border-orange-300 bg-orange-100 text-[#f48e31]'
+                  : 'border-gray-200 hover:bg-orange-50'
+              "
+              :disabled="profile.hashtags.includes(tag)"
+              @click="selectTag(tag)"
+            >
+              {{ tag }}
+            </button>
+          </div>
+          <button
+            class="mt-6 w-full rounded-full bg-gray-100 py-3 font-bold"
+            @click="showTagPicker = false"
+          >
+            取消
           </button>
         </div>
       </div>
     </div>
+
     <Transition name="fade"
       ><div
         v-if="showDetail"
@@ -576,3 +610,24 @@ const addTag = () => {
     >
   </div>
 </template>
+
+<style scoped>
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+</style>
