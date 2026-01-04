@@ -85,6 +85,21 @@ const toggleLike = (postId) => {
   showToast(post.isLiked ? '已按讚' : '已取消按讚')
 }
 
+/** 留言管理 (State) */
+const { isDesktop } = useScreen()
+
+const commentManager = useActiveItem({
+  enableClickOutside: isDesktop
+})
+
+const openComments = (postId) => {
+  if (commentManager.activeId.value === postId) {
+    commentManager.deactivate()
+  } else {
+    commentManager.activate(postId)
+  }
+}
+
 /** 收藏 */
 const toggleBookmark = (postId) => {
   const post = rawPosts.value.find((p) => p.id === postId)
@@ -98,20 +113,21 @@ const toggleBookmark = (postId) => {
 const handleUpdate = (payload) => {
   const post = rawPosts.value.find((p) => p.id === payload.id)
   if (!post) return
-  post.content = payload.content
-  post.audience = payload.audience || post.audience
 
-  showToast('貼文已更新')
+  if (payload.content !== undefined) post.content = payload.content
+  if (payload.audience !== undefined) post.audience = payload.audience
+  if (payload.commentCount !== undefined) post.commentCount = payload.commentCount
+
+  // 只有真的有更新內容或權限時才顯示提示，單純更新留言數不用提示
+  if (payload.content !== undefined || payload.audience !== undefined) {
+    showToast('貼文已更新')
+  }
 }
 
 /** 發文：把新貼文塞到最前面 */
 const handleSubmit = (payload) => {
   const text = (payload.content ?? '').trim()
   const images = payload.images ?? []
-
-  // const hasImages = images.length > 0
-  // const textLength = text.length
-
   const newPostId = Date.now()
 
   rawPosts.value.unshift({
@@ -129,7 +145,6 @@ const handleSubmit = (payload) => {
     isBookmarked: false
   })
 
-  // 新增貼文後，4秒後移除 isNew 標記
   setTimeout(() => {
     const post = rawPosts.value.find((p) => p.id === newPostId)
     if (post) post.isNew = false
@@ -146,10 +161,6 @@ const showToast = (message) => {
   toast.value.open = true
   toast.value.message = message
 
-  // 當使用者進行互動(如按讚/收藏/發文)，若剛好留言區開著，不需要關閉
-  // 需求：點擊 Action Bar 的其他 icon → 不關
-  // 這個規則已經透過 DOM contains 處理 (Action Bar 在 PostCard 內)
-
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => {
     toast.value.open = false
@@ -160,25 +171,6 @@ const showToast = (message) => {
 // const openEdit = (postId) => console.log('edit', postId)
 const sharePost = () => {
   /* share */
-}
-
-/** 留言管理 (State) */
-const { isDesktop } = useScreen()
-
-// 在桌機版才啟用「點擊外部關閉」，手機版由 Modal 自行處理
-const commentManager = useActiveItem({
-  enableClickOutside: isDesktop
-})
-
-// 綁定給 PostCard 的 @open-comments
-const openComments = (postId) => {
-  // 如果已經打開，點同一個 -> 關閉 (Toggle)
-  // 如果點不同個 -> 切換
-  if (commentManager.activeId.value === postId) {
-    commentManager.deactivate()
-  } else {
-    commentManager.activate(postId)
-  }
 }
 </script>
 

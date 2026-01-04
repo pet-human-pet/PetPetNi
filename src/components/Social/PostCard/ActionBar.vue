@@ -1,4 +1,10 @@
 <script setup>
+import { computed } from 'vue'
+import { useCommentStore } from '@/stores/comment'
+
+// 使用 Pinia Store 取得即時留言數量
+const commentStore = useCommentStore()
+
 const props = defineProps({
   postId: { type: [String, Number], required: true },
   likeCount: { type: Number, default: 0 },
@@ -6,6 +12,8 @@ const props = defineProps({
   isLiked: { type: Boolean, default: false },
   isBookmarked: { type: Boolean, default: false }
 })
+
+const comments = computed(() => commentStore.getComments(props.postId))
 
 const emit = defineEmits(['like', 'open-comments', 'share', 'bookmark'])
 
@@ -32,12 +40,12 @@ const onBookmark = () => emit('bookmark', props.postId)
 
       <button
         type="button"
-        class="flex items-center gap-2 cursor-pointer"
+        class="flex cursor-pointer items-center gap-2"
         aria-label="Comment"
         @click="onOpenComments"
       >
         <span class="text-xl"><i class="fa-solid fa-comment" /></span>
-        <span class="text-sm">{{ commentCount }}</span>
+        <span class="text-sm">{{ comments.length }}</span>
       </button>
 
       <button type="button" class="flex items-center gap-2" aria-label="Share" @click="onShare">
@@ -51,7 +59,10 @@ const onBookmark = () => emit('bookmark', props.postId)
       @click="onBookmark"
     >
       <span class="text-xl"
-        ><i :class="isBookmarked ? 'fa-solid fa-bookmark text-brand-accent' : 'fa-regular fa-bookmark'"
+        ><i
+          :class="
+            isBookmarked ? 'fa-solid fa-bookmark text-brand-accent' : 'fa-regular fa-bookmark'
+          "
       /></span>
     </button>
   </div>

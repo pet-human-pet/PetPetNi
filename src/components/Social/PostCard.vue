@@ -1,9 +1,9 @@
 <script setup>
-import ActionBar from './PostCard/ActionBar.vue'
 import { ref, watch, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
+import ActionBar from './PostCard/ActionBar.vue'
 import AudiencePicker from './AudiencePicker.vue'
 import CommentSection from './CommentSection.vue'
-import { useRouter } from 'vue-router'
 
 const props = defineProps({
   post: { type: Object, required: true },
@@ -203,6 +203,11 @@ const editAudience = ref('public')
     />
 
     <!-- 留言區塊 -->
-    <CommentSection v-if="showComments" :post="post" @close="$emit('close-comments')" />
+    <CommentSection
+      v-if="showComments"
+      :post="post"
+      @close="$emit('close-comments')"
+      @update-count="$emit('update', { id: post.id, commentCount: $event })"
+    />
   </div>
 </template>

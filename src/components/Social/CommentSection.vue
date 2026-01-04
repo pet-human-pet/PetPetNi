@@ -1,17 +1,36 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useSwipe } from '@vueuse/core'
 import { useScreen } from '@/composables/useScreen'
 import { formatCommentTime } from '@/utils/formatTime'
-import { storeToRefs } from 'pinia'
 import { useCommentStore } from '@/stores/comment'
 
-const commentStore = useCommentStore()
-const { comments } = storeToRefs(commentStore)
+const props = defineProps({
+  post: {
+    type: Object,
+    required: true
+  }
+})
 
-const emit = defineEmits(['close'])
+const commentStore = useCommentStore()
+
+const comments = computed(() => commentStore.getComments(props.post.id))
+
+const emit = defineEmits(['close', 'update-count'])
 
 const { isMobile } = useScreen()
+
+// 監聽留言數量變化並通知上層
+watch(
+  () => comments.value.length,
+  (newCount) => {
+    emit('update-count', newCount)
+  }
+)
+
+onMounted(() => {
+  emit('update-count', comments.value.length)
+})
 
 // 編輯功能
 const editingCommentId = ref(null)
@@ -22,7 +41,7 @@ const newComment = ref('')
 
 const submitComment = () => {
   if (!newComment.value.trim() || newComment.value.length > 50) return
-  commentStore.addComment(newComment.value)
+  commentStore.addComment(props.post.id, newComment.value)
   newComment.value = ''
 }
 
@@ -38,12 +57,12 @@ const cancelEdit = () => {
 
 const saveEdit = () => {
   if (!editContent.value.trim() || editContent.value.length > 50) return
-  commentStore.updateComment(editingCommentId.value, editContent.value)
+  commentStore.updateComment(props.post.id, editingCommentId.value, editContent.value)
   cancelEdit()
 }
 
 const handleDelete = (id) => {
-  commentStore.deleteComment(id)
+  commentStore.deleteComment(props.post.id, id)
 }
 
 const mobileSheetRef = ref(null)
@@ -172,11 +191,11 @@ const onSwipeEnd = () => {
                 @keyup.enter="submitComment"
               />
               <button
-                class="text-blue-600 disabled:text-zinc-400"
+                class="text-brand-primary disabled:text-zinc-400"
                 :disabled="!newComment.trim() || newComment.length > 50"
                 @click="submitComment"
               >
-                <i class="fa-solid fa-paper-plane"></i>
+                <i class="fa-solid fa-arrow-up"></i>
               </button>
             </div>
             <div class="flex justify-end px-2">
