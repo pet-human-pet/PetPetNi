@@ -73,7 +73,7 @@ const events = ref([
     locId: 1,
     title: '101 狗狗散步團',
     desc: '在 101 大樓下方的草地集合，享受週末陽光。',
-    status: 'active'
+    status: 'open'
   },
   {
     id: 2,
@@ -134,7 +134,6 @@ const selectedEvent = computed(
   () => events.value.find((e) => String(e.id) === String(selectedEventId.value)) || null
 )
 
-const gbFormOpen = computed(() => rightView.value === 'gbForm')
 const selectedGb = computed(() => groupBuys.value.find((g) => g.id === selectedGbId.value) || null)
 const pendingGroupBuys = computed(() =>
   groupBuys.value
@@ -201,10 +200,10 @@ function createEvent(payload) {
 
   events.value.push(newEvt)
 
-  // 原本會進「待審核」：這裡保留原本切換邏輯
-  // rightView.value = 'submitted' 或你現有的待審核畫面
-  // 先不要 selectEvent(newEvt)，因為它不該出現在 sidebar
-  rightView.value = 'map'
+  // ✅ 留在 EventForm，讓 submittedOpen 成功畫面顯示
+  rightView.value = 'eventForm'
+
+  alert('活動已送出審核！可在此頁查看送出內容')
 }
 
 function showEventForm() {
@@ -227,10 +226,16 @@ function backToMap() {
 }
 
 function addComment(text) {
-  const id = selectedEventId.value
-  if (id == null) return
+  const evt = selectedEvent.value
+  if (!evt) return
 
-  const key = String(id)
+  // ✅ 只有 ended 才能新增（父層最終守門）
+  if (String(evt.status).toLowerCase() !== 'ended') {
+    alert('活動尚未結束，目前僅可查看歷史評論')
+    return
+  }
+
+  const key = String(evt.id)
   if (!commentsByEvent[key]) commentsByEvent[key] = []
 
   commentsByEvent[key].unshift({
