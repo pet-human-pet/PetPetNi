@@ -182,7 +182,7 @@ const sharePost = () => {
           <PostComposer username="" @submit="handleSubmit" @toast="showToast" />
         </div>
         <!-- 手機/平板：單欄 -->
-        <section class="mt-4 flex flex-col gap-4 md:hidden">
+        <section v-if="!isDesktop" class="mt-4 flex flex-col gap-4">
           <PostCard
             v-for="p in rawPosts"
             :key="p.id"
@@ -200,7 +200,7 @@ const sharePost = () => {
         </section>
 
         <!-- 桌機：雙欄 -->
-        <section class="mt-6 hidden items-start gap-6 md:flex">
+        <section v-if="isDesktop" class="mt-6 flex items-start gap-6">
           <!-- 左欄 -->
           <div class="flex flex-1 flex-col gap-6">
             <PostCard
