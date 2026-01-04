@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import SocialButton from './SocialButton.vue'
-import BaseInput from './BaseInput.vue'
+import SocialButton from '@/views/Login/login-components/SocialButton.vue'
+import BaseInput from '@/components/Form/BaseInput.vue'
 
 defineEmits(['switch', 'forgot'])
 
