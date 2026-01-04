@@ -12,7 +12,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 模擬發起 OAuth 登入
-   * 實際專案會跳轉至後端 API: /api/auth/google
+   * TODO: 整合真實的 OAuth API
+   * 正式環境需要：
+   * 1. 串接後端 /api/auth/{provider}
+   * 2. 處理真實的 OAuth callback
+   * 3. 驗證 access token
    */
   const initiateOAuthLogin = (provider) => {
     console.log(`[AuthStore] Initiating ${provider} login...`)
@@ -23,7 +27,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 處理 OAuth Callback
-   * 模擬後端驗證 Code 並決定流程
+   * TODO: 替換為真實 API 呼叫
+   * 目前使用 setTimeout 模擬，需改為 axios 請求：
+   * await axios.post('/api/auth/callback', { code, provider })
    */
   const handleOAuthCallback = async (code, provider) => {
     console.log(`[AuthStore] Handling callback with code: ${code}`)
@@ -58,10 +64,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 完成手機綁定，正式註冊
+   * 完成 Email 綁定，正式註冊
+   * TODO: 整合真實 API
+   * 需串接: POST /api/auth/register { email, oauthData }
    */
-  const registerWithPhone = async (phone) => {
-    console.log('[AuthStore] Registering with phone:', phone)
+  const registerWithEmail = async (email) => {
+    console.log('[AuthStore] Registering with email:', email)
     if (!tempOAuthData.value) {
       throw new Error('No OAuth data found')
     }
@@ -72,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
         // 註冊成功，寫入用戶狀態
         user.value = {
           ...tempOAuthData.value,
-          phone,
+          email, // 使用 Email 而非 phone
           role: 'PENDING' // 等待選擇身分
         }
         // 清除暫存
@@ -90,6 +98,6 @@ export const useAuthStore = defineStore('auth', () => {
     tempOAuthData,
     initiateOAuthLogin,
     handleOAuthCallback,
-    registerWithPhone
+    registerWithEmail // 已更名為 registerWithEmail
   }
 })
