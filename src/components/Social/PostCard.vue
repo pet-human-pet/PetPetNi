@@ -193,7 +193,6 @@ const editAudience = ref('public')
     <ActionBar
       :post-id="post.id"
       :like-count="post.likeCount"
-      :comment-count="post.commentCount"
       :is-liked="post.isLiked"
       :is-bookmarked="post.isBookmarked"
       @like="$emit('like', $event)"
@@ -203,11 +202,6 @@ const editAudience = ref('public')
     />
 
     <!-- 留言區塊 -->
-    <CommentSection
-      v-if="showComments"
-      :post="post"
-      @close="$emit('close-comments')"
-      @update-count="$emit('update', { id: post.id, commentCount: $event })"
-    />
+    <CommentSection v-if="showComments" :post="post" @close="$emit('close-comments')" />
   </div>
 </template>

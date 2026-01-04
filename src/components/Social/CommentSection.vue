@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useSwipe, useScrollLock } from '@vueuse/core'
 import { useScreen } from '@/composables/useScreen'
 import { formatCommentTime } from '@/utils/formatTime'
@@ -16,7 +16,7 @@ const commentStore = useCommentStore()
 
 const comments = computed(() => commentStore.getComments(props.post.id))
 
-const emit = defineEmits(['close', 'update-count'])
+const emit = defineEmits(['close'])
 
 const { isMobile } = useScreen()
 
@@ -35,17 +35,7 @@ onUnmounted(() => {
   isLocked.value = false
 })
 
-// 監聽留言數量變化並通知上層
-watch(
-  () => comments.value.length,
-  (newCount) => {
-    emit('update-count', newCount)
-  }
-)
-
-onMounted(() => {
-  emit('update-count', comments.value.length)
-})
+const MAX_COMMENT_LENGTH = 50
 
 // 編輯功能
 const editingCommentId = ref(null)
@@ -55,7 +45,7 @@ const editContent = ref('')
 const newComment = ref('')
 
 const submitComment = () => {
-  if (!newComment.value.trim() || newComment.value.length > 50) return
+  if (!newComment.value.trim() || newComment.value.length > MAX_COMMENT_LENGTH) return
   commentStore.addComment(props.post.id, newComment.value)
   newComment.value = ''
 }
@@ -71,7 +61,7 @@ const cancelEdit = () => {
 }
 
 const saveEdit = () => {
-  if (!editContent.value.trim() || editContent.value.length > 50) return
+  if (!editContent.value.trim() || editContent.value.length > MAX_COMMENT_LENGTH) return
   commentStore.updateComment(props.post.id, editingCommentId.value, editContent.value)
   cancelEdit()
 }
@@ -139,7 +129,6 @@ const onSwipeEnd = () => {
               <div v-if="editingCommentId === c.id">
                 <div class="flex flex-col gap-2">
                   <textarea
-                    ref="editInputRef"
                     v-model="editContent"
                     rows="2"
                     class="w-full resize-none rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm break-all whitespace-pre-wrap outline-none focus:border-blue-500"
@@ -149,15 +138,17 @@ const onSwipeEnd = () => {
                   <div class="flex items-center justify-between">
                     <span
                       class="text-xs"
-                      :class="editContent.length > 50 ? 'text-red-500' : 'text-zinc-400'"
+                      :class="
+                        editContent.length > MAX_COMMENT_LENGTH ? 'text-red-500' : 'text-zinc-400'
+                      "
                     >
-                      {{ editContent.length }}/50
+                      {{ editContent.length }}/{{ MAX_COMMENT_LENGTH }}
                     </span>
                     <div class="flex gap-2 text-sm">
                       <button class="text-zinc-500" @click.stop="cancelEdit">取消</button>
                       <button
                         class="text-brand-primary disabled:text-zinc-400"
-                        :disabled="!editContent.trim() || editContent.length > 50"
+                        :disabled="!editContent.trim() || editContent.length > MAX_COMMENT_LENGTH"
                         @click.stop="saveEdit"
                       >
                         儲存
@@ -214,7 +205,7 @@ const onSwipeEnd = () => {
               />
               <button
                 class="text-brand-primary disabled:text-zinc-400"
-                :disabled="!newComment.trim() || newComment.length > 50"
+                :disabled="!newComment.trim() || newComment.length > MAX_COMMENT_LENGTH"
                 @click="submitComment"
               >
                 <i class="fa-solid fa-arrow-up"></i>
@@ -223,9 +214,9 @@ const onSwipeEnd = () => {
             <div class="flex justify-end px-2">
               <span
                 class="text-xs"
-                :class="newComment.length > 50 ? 'text-red-500' : 'text-zinc-400'"
+                :class="newComment.length > MAX_COMMENT_LENGTH ? 'text-red-500' : 'text-zinc-400'"
               >
-                {{ newComment.length }}/50
+                {{ newComment.length }}/{{ MAX_COMMENT_LENGTH }}
               </span>
             </div>
           </div>
@@ -276,9 +267,11 @@ const onSwipeEnd = () => {
                 <div>
                   <span
                     class="text-xs"
-                    :class="editContent.length > 50 ? 'text-zinc-600' : 'text-zinc-400'"
+                    :class="
+                      editContent.length > MAX_COMMENT_LENGTH ? 'text-red-500' : 'text-zinc-400'
+                    "
                   >
-                    {{ editContent.length }}/50
+                    {{ editContent.length }}/{{ MAX_COMMENT_LENGTH }}
                   </span>
                   <span class="ml-2 p-0.5 text-[10px] text-red-500/80">
                     * 注意: 每筆留言僅能編輯一次
@@ -293,7 +286,7 @@ const onSwipeEnd = () => {
                   </button>
                   <button
                     class="text-brand-primary cursor-pointer disabled:text-zinc-300"
-                    :disabled="!editContent.trim() || editContent.length > 50"
+                    :disabled="!editContent.trim() || editContent.length > MAX_COMMENT_LENGTH"
                     @click.stop="saveEdit"
                   >
                     儲存
@@ -350,9 +343,10 @@ const onSwipeEnd = () => {
           />
           <button
             class="grid h-7 w-7 place-items-center rounded-full text-white transition-colors disabled:cursor-not-allowed disabled:bg-zinc-200"
-            :disabled="!newComment.trim() || newComment.length > 50"
+            :disabled="!newComment.trim() || newComment.length > MAX_COMMENT_LENGTH"
             :class="{
-              'bg-brand-primary cursor-pointer': newComment.trim() && newComment.length <= 50
+              'bg-brand-primary cursor-pointer':
+                newComment.trim() && newComment.length <= MAX_COMMENT_LENGTH
             }"
             @click="submitComment"
           >
@@ -360,8 +354,11 @@ const onSwipeEnd = () => {
           </button>
         </div>
         <div class="flex justify-end px-2">
-          <span class="text-xs" :class="newComment.length > 50 ? 'text-red-500' : 'text-zinc-400'">
-            {{ newComment.length }}/50
+          <span
+            class="text-xs"
+            :class="newComment.length > MAX_COMMENT_LENGTH ? 'text-red-500' : 'text-zinc-400'"
+          >
+            {{ newComment.length }}/{{ MAX_COMMENT_LENGTH }}
           </span>
         </div>
       </div>

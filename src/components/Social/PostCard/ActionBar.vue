@@ -8,7 +8,6 @@ const commentStore = useCommentStore()
 const props = defineProps({
   postId: { type: [String, Number], required: true },
   likeCount: { type: Number, default: 0 },
-  commentCount: { type: Number, default: 0 },
   isLiked: { type: Boolean, default: false },
   isBookmarked: { type: Boolean, default: false }
 })
