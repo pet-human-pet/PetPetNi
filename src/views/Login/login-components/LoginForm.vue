@@ -44,12 +44,7 @@ const handleLogin = () => {
     <form class="space-y-6" @submit.prevent="handleLogin">
       <div class="space-y-2">
         <label class="text-sm font-medium text-gray-600">帳號</label>
-        <BaseInput
-          v-model="email"
-          placeholder="Enter your email..."
-          type="email"
-          class="rounded-xl! border-gray-200!"
-        />
+        <BaseInput v-model="email" placeholder="Enter your email..." type="email" />
       </div>
 
       <div class="space-y-2">
@@ -59,11 +54,11 @@ const handleLogin = () => {
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Password"
-            class="rounded-xl! border-gray-200! pr-12"
+            class="pr-12"
           />
           <button
             type="button"
-            class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
             @click="togglePassword"
           >
             <svg v-if="!showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
