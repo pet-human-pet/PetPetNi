@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat.js'
 import { useConfirm } from '@/composables/useConfirm'
 import { useReport } from '@/composables/useReport'
+import FriendProfile from '@/components/Chat/FriendProfile.vue'
 
 const router = useRouter()
 const store = useChatStore()
@@ -17,6 +18,42 @@ const messageInput = ref('')
 const msgContainer = ref(null)
 const timeLeft = ref('')
 const privateSubTab = ref('friend')
+const selectedFriendId = ref(null)
+
+const selectedFriend = computed(() => {
+  if (!selectedFriendId.value) return null
+  return store.db.match.find(f => f.id === selectedFriendId.value)
+})
+
+const handleStartChat = (id) => {
+  store.switchCategory('match')
+  // 如果在 match 裡的 friend tab 找不到，可能需要切換 tab? 
+  // 為了保險，先切換到 'friend' tab
+  privateSubTab.value = 'friend'
+  store.openChat(id)
+  selectedFriendId.value = null
+}
+
+const handleViewProfile = (id) => {
+  router.push({ name: 'Profile', params: { id } })
+}
+
+const handleRemoveFriend = async (id) => {
+  const isConfirmed = await showConfirm({
+    title: '刪除好友',
+    message: '確定要將此人從好友名單中移除嗎？',
+    type: 'danger',
+    confirmText: '刪除'
+  })
+  
+  if (isConfirmed) {
+    // TODO: store.removeFriend(id)
+    // 這裡暫時用 deleteChat 模擬，因為資料源是同一個
+    store.deleteChat(id)
+    success('已刪除好友')
+    selectedFriendId.value = null
+  }
+}
 
 // --- 左側導航資料 ---
 const navItems = [
@@ -290,7 +327,7 @@ watch(() => store.activeChatId, () => {
   <div class="relative w-screen h-dvh overflow-hidden bg-bg-surface flex flex-col md:flex-row font-sans">
     <!-- Close Button -->
     <button
-      class="absolute top-4 right-4 z-70 flex h-10 w-10 items-center justify-center rounded-full bg-bg-surface/80 text-fg-secondary shadow-md transition-all hover:bg-bg-base hover:text-brand-accent"
+      class="absolute top-4 right-4 z-[70] flex h-10 w-10 items-center justify-center rounded-full bg-bg-surface/80 text-fg-secondary shadow-md transition-all hover:bg-bg-base hover:text-brand-accent"
       title="關閉"
       type="button"
       @click="router.back()"
@@ -428,14 +465,23 @@ class="
         <div 
           v-for="chat in filteredChatList" :key="chat.id"
           class="flex items-center p-3 rounded-xl cursor-pointer hover:bg-bg-base mb-1 relative group transition-colors"
-          :class="{'bg-bg-base': store.activeChatId === chat.id, 'bg-bg-base/50': chat.pinned}"
-          @click="store.openChat(chat.id)"
+          :class="{
+            'bg-bg-base': store.activeChatId === chat.id || selectedFriendId === chat.id, 
+            'bg-bg-base/50': chat.pinned
+          }"
+          @click="store.currentCategory === 'friendList' ? selectedFriendId = chat.id : store.openChat(chat.id)"
           @contextmenu="openContextMenu($event, chat)"
         >
-          <div class="relative">
-            <div class="w-12 h-12 rounded-full bg-cover bg-center bg-gray-200" :style="{backgroundImage: `url(${chat.avatar})`, filter: chat.isBlocked ? 'grayscale(100%)' : 'none'}"></div>
-            <div v-if="store.currentCategory === 'match' && chat.status !== 'pending' && !chat.isBlocked" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+          <!-- 頭像區域：點擊開啟 Profile Card -->
+          <div class="relative shrink-0" @click.stop="selectedFriendId = chat.id">
+            <div 
+              class="w-12 h-12 rounded-[18px] bg-cover bg-center bg-gray-200 border border-black/5 shadow-sm hover:scale-105 transition-transform" 
+              :style="{backgroundImage: `url(${chat.avatar})`, filter: chat.isBlocked ? 'grayscale(100%)' : 'none'}"
+            ></div>
+            <div v-if="chat.status !== 'pending' && !chat.isBlocked" class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
           </div>
+
+          <!-- 文字區域：點擊開啟 Chat Window (如果是 friendList 模式點擊文字依然是開啟 Profile) -->
           <div class="ml-3 flex-1 min-w-0">
             <div class="flex justify-between items-center mb-1">
               <div class="font-bold text-fg-primary text-sm flex items-center gap-1">
@@ -453,7 +499,7 @@ class="
                 <span class="text-red-500">已封鎖此用戶</span>
               </template>
               <template v-else-if="store.currentCategory === 'friendList'">
-                點擊頭像開始對話
+                點擊頭像查看資料
               </template>
               <template v-else>
                 {{ chat.msgs.length ? chat.msgs[chat.msgs.length-1].text : '點擊開始聊天' }}
@@ -486,14 +532,26 @@ class="
 class="
       flex-1 h-full min-w-0 bg-bg-base md:relative flex flex-col
       fixed inset-0 z-60 md:translate-x-0 transition-transform duration-300 transform translate-x-full
-    " :class="{ 'translate-x-0!': store.activeChatId }">
+    " :class="{ 'translate-x-0!': store.activeChatId || selectedFriendId }">
       
-      <div v-if="!store.activeChat" class="hidden md:flex flex-col items-center justify-center h-full text-fg-muted">
+      <!-- Empty State -->
+      <div v-if="!store.activeChat && !selectedFriend" class="hidden md:flex flex-col items-center justify-center h-full text-fg-muted">
         <i class="fa-solid fa-comments text-5xl mb-4 text-gray-200"></i>
-        <p>請選擇一個對話開始聊天</p>
+        <p>請選擇一個對話或好友開始</p>
       </div>
 
-      <div v-else class="flex flex-col h-full relative">
+      <!-- Friend Profile Mode -->
+      <FriendProfile 
+        v-else-if="selectedFriend"
+        :friend="selectedFriend"
+        @chat="handleStartChat"
+        @profile="handleViewProfile"
+        @delete="handleRemoveFriend"
+        @close="selectedFriendId = null"
+      />
+
+      <!-- Chat Window Mode -->
+      <div v-else-if="store.activeChat" class="flex flex-col h-full relative">
         <div class="h-17.5 bg-bg-surface border-b border-border-default flex items-center justify-between px-6 shrink-0 z-10">
           <div class="flex items-center gap-3">
              <i class="fa-solid fa-chevron-left md:hidden text-xl cursor-pointer text-fg-primary" @click="store.activeChatId=null"></i>
