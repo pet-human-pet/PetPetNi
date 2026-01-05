@@ -81,6 +81,7 @@ const handleRegister = () => {
             :type="showPassword ? 'text' : 'password'"
             :error="passwordError"
             placeholder="Password"
+            input-class="pr-12"
           />
           <button
             type="button"
