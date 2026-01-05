@@ -33,9 +33,20 @@ const handleVerify = async () => {
   isLoading.value = true
   status.value = 'submitting'
 
-  // 模擬 API 呼叫
+  // TODO: 未來需替換成真實 API 呼叫（例如：POST /api/pets/verify-chip）
+  // 目前為模擬 API，包含隨機失敗機制以測試錯誤處理
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await new Promise((resolve, reject) => {
+      // 模擬隨機成功或失敗
+      const isSuccess = Math.random() > 0.2 // 80% 成功率
+      setTimeout(() => {
+        if (isSuccess) {
+          resolve()
+        } else {
+          reject(new Error('模擬網路錯誤'))
+        }
+      }, 1500)
+    })
     // 成功送出，進入「待審核」狀態
     status.value = 'pending'
     emit('submit', chipNumber.value)
@@ -53,14 +64,10 @@ const handleSkip = () => {
 </script>
 
 <template>
-  <div
-    class="mx-auto w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-sm md:p-10"
-  >
+  <div class="mx-auto w-full max-w-md rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-sm md:p-10">
     <!-- UI 狀態：待審核 (提交成功後) -->
     <div v-if="status === 'pending'" class="py-8 text-center">
-      <div
-        class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-100 text-yellow-500"
-      >
+      <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
         <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -72,7 +79,8 @@ const handleSkip = () => {
       </div>
       <h3 class="mb-2 text-2xl font-bold text-gray-800">已提交審核</h3>
       <p class="mb-8 text-gray-600">
-        我們已收到{{ petName }}的晶片資料<br />
+        我們已收到{{ petName }}的晶片資料
+        <br />
         管理員將在 24 小時內完成驗證。
       </p>
       <button
@@ -88,18 +96,14 @@ const handleSkip = () => {
       <div class="mb-8 text-center">
         <h2 class="mb-2 text-2xl font-bold text-gray-800">寵物晶片驗證</h2>
         <p class="text-sm text-gray-500">
-          驗證晶片可獲得「已認證飼主」標章<br />
+          驗證晶片可獲得「已認證飼主」標章
+          <br />
           並解鎖更多社群功能
         </p>
       </div>
 
       <div class="mb-6 flex items-start gap-3 rounded-xl bg-blue-50 p-4">
-        <svg
-          class="mt-0.5 h-5 w-5 shrink-0 text-blue-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -112,12 +116,7 @@ const handleSkip = () => {
         </p>
       </div>
 
-      <BaseInput
-        v-model="chipNumber"
-        label="晶片號碼"
-        placeholder="請輸入 10 或 15 碼數字"
-        :error="errorMsg"
-      />
+      <BaseInput v-model="chipNumber" label="晶片號碼" placeholder="請輸入 10 或 15 碼數字" :error="errorMsg" />
 
       <div class="mt-8 flex flex-col gap-3">
         <button
@@ -125,20 +124,8 @@ const handleSkip = () => {
           :disabled="isLoading"
           @click="handleVerify"
         >
-          <svg
-            v-if="isLoading"
-            class="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
-            ></circle>
+          <svg v-if="isLoading" class="mr-3 -ml-1 h-5 w-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path
               class="opacity-75"
               fill="currentColor"
