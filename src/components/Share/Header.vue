@@ -77,7 +77,7 @@ function toggleMenu() {
           >
             <!-- 有收藏：用品牌強調色（避免使用未定義 token 的紅色） -->
             <i
-              :class="fav.count ? 'fa-solid fa-heart text-brand-accent' : 'fa-regular fa-heart'"
+              :class="fav.count ? 'fa-solid fa-heart text-func-danger' : 'fa-regular fa-heart'"
             ></i>
           </button>
 
