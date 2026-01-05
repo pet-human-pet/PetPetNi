@@ -49,7 +49,7 @@ const handleVerify = () => {
       <button
         type="button"
         class="w-full rounded-xl border border-gray-300 bg-white py-3 font-medium text-gray-700 hover:bg-gray-50 active:scale-95"
-        @click="$emit('change-view', 'FORGET_PWD')"
+        @click="$emit('change-view', 'FORGET')"
       >
         重新輸入 Email
       </button>
