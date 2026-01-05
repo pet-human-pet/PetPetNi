@@ -108,6 +108,7 @@
   --color-brand-primary: #2e6256; /* 綠：主品牌（主按鈕/選中/自己訊息） */
   --color-brand-accent: #edc920; /* 黃：強調（badge/小CTA） */
   --color-mayekawa: #2a594f; /* 首頁綠色 */
+  --color-func-danger: #ff4d4f; /* 紅：危險/錯誤/收藏 */
 
   /* Foreground (text/border source) */
   --color-fg-primary: #382710; /* 深棕：主要文字 */
