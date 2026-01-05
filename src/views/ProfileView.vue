@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 
@@ -11,10 +11,10 @@ const showDetail = ref(false)
 const selectedItem = ref(null)
 const fileInput = ref(null)
 
-// 🔑 新增：控制「關於我」顯示狀態
+// 🔑 控制「關於我」按鈕
 const isAboutVisible = ref(false)
 
-// --- 50 個真實寵物標籤資料 (保留) ---
+// --- 50 個真實標籤假資料 ---
 const predefinedTags = [
   '#布偶貓',
   '#藍眼',
@@ -79,24 +79,18 @@ const profile = reactive({
   name: '豆泥 (Doni)',
   username: '@doni_cat',
   hashtags: ['#布偶貓', '#藍眼', '#午睡愛好者', '#罐罐小偷'],
-  petInfo: {
-    breed: '布偶貓',
-    birthday: '2023-01-15',
-    gender: '母'
-  }
+  petInfo: { breed: '布偶貓', birthday: '2023-01-15', gender: '母' }
 })
 
 const selectTag = (tag) => {
   if (profile.hashtags.length >= 5) return
-  if (!profile.hashtags.includes(tag)) {
-    profile.hashtags.push(tag)
-  }
+  if (!profile.hashtags.includes(tag)) profile.hashtags.push(tag)
   showTagPicker.value = false
 }
 
 const removeTag = (index) => profile.hashtags.splice(index, 1)
 
-// 資料假資料保持
+// --- 假資料 ---
 const myPosts = [
   {
     id: 1,
@@ -104,7 +98,7 @@ const myPosts = [
     avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
     isMine: true,
     audience: 'public',
-    content: '今天陽光曬起來好舒服！',
+    content: '今天陽光曬起來好舒服，豆泥最喜歡的窗邊位置！',
     images: ['https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800'],
     tags: ['#午後'],
     likeCount: 12,
@@ -134,7 +128,7 @@ const savedPosts = [
     avatar: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=150',
     isMine: false,
     audience: 'public',
-    content: '這款貓咪飲水機超靜音！',
+    content: '這款貓咪飲水機超靜音，推薦給各位家長！',
     images: ['https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800'],
     tags: ['#好物分享'],
     likeCount: 88,
@@ -148,7 +142,7 @@ const savedPosts = [
     avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150',
     isMine: false,
     audience: 'public',
-    content: '新玩具玩瘋了！',
+    content: '今天收到的新玩具，家裡的貓咪玩瘋了！',
     images: ['https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=800'],
     tags: ['#開箱'],
     likeCount: 156,
@@ -210,13 +204,13 @@ const followingList = [
   }
 ]
 const createdEvents = [
-  { id: 201, name: '布偶貓聚會', location: '中山區', status: '招募中', content: '交流！' }
+  { id: 201, name: '布偶貓交流聚會', location: '中山區', status: '招募中', content: '交流心得！' }
 ]
 const followedEvents = [
-  { id: 301, name: '寵物展覽', location: '世貿一館', status: '已收藏', content: '必去！' }
+  { id: 301, name: '年度寵物展覽', location: '世貿一館', status: '已收藏', content: '年度大展！' }
 ]
 const historyEvents = [
-  { id: 401, name: '冬季健檢', location: '台大醫院', status: '已結束', content: '數據健康。' }
+  { id: 401, name: '2023 冬季健檢', location: '台大醫院', status: '已結束', content: '健康。' }
 ]
 
 const handleAvatarClick = () => fileInput.value.click()
@@ -240,20 +234,25 @@ const openDetail = (item) => {
 </script>
 
 <template>
-  <div class="bg-bg-base relative min-h-screen overflow-x-hidden pb-20 text-left font-sans">
+  <div
+    class="bg-bg-base relative flex h-screen w-full flex-col overflow-hidden text-left font-sans"
+  >
     <BackgroundGrid />
 
-    <div class="mx-auto flex max-w-7xl justify-center px-0 py-8">
-      <div class="grid w-full grid-cols-1 items-stretch gap-10 lg:grid-cols-[1.2fr_2fr]">
-        <aside class="flex h-full flex-col text-left">
+    <div
+      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-hidden px-4 pt-6 pb-20 md:pt-10 md:pb-28"
+    >
+      <div
+        class="grid h-full w-full grid-cols-1 items-stretch gap-10 overflow-hidden text-left lg:grid-cols-[1.2fr_2fr]"
+      >
+        <aside class="flex h-full flex-col overflow-hidden">
           <div
-            class="c-card border-border-default/20 flex h-full flex-1 flex-col border bg-white p-8 shadow-sm"
+            class="c-card border-border-default/20 custom-scrollbar flex h-full flex-col overflow-y-auto border bg-white p-8 shadow-sm"
           >
             <div class="mb-8 flex w-full shrink-0 flex-col items-center text-center">
               <h1 class="c-title mb-6 text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
                 {{ profile.name }}
               </h1>
-
               <div class="group relative mb-6 cursor-pointer" @click="handleAvatarClick">
                 <div
                   class="shadow-card h-44 w-44 overflow-hidden rounded-full border-4 border-white"
@@ -266,7 +265,6 @@ const openDetail = (item) => {
                   >已驗證飼主</span
                 >
               </div>
-
               <div class="mb-6 flex items-center justify-center gap-3">
                 <span class="text-fg-muted text-lg">{{ profile.username }}</span>
                 <button class="group cursor-pointer" @click="isEditing = true">
@@ -282,15 +280,14 @@ const openDetail = (item) => {
               </div>
 
               <div
-                class="mx-auto flex w-full items-center justify-center gap-6 text-center md:gap-10 lg:gap-12"
+                class="mx-auto flex w-full items-center justify-center gap-10 text-center md:gap-14 lg:gap-20"
               >
                 <div class="group cursor-pointer" @click="openUserList('followers')">
-                  <p class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">2</p>
-                  <p class="text-fg-muted text-xs font-medium">粉絲</p>
+                  <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">2</p>
+                  <p class="text-fg-muted text-sm font-medium">粉絲</p>
                 </div>
-
                 <button
-                  class="rounded-full border px-5 py-1.5 text-sm font-bold transition-all"
+                  class="shrink-0 rounded-full border px-5 py-1.5 text-sm font-bold transition-all"
                   :style="
                     isAboutVisible
                       ? { backgroundColor: BRAND_ORANGE, color: 'white', borderColor: BRAND_ORANGE }
@@ -300,10 +297,9 @@ const openDetail = (item) => {
                 >
                   關於我
                 </button>
-
                 <div class="group cursor-pointer" @click="openUserList('following')">
-                  <p class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">6</p>
-                  <p class="text-fg-muted text-xs font-medium">追蹤中</p>
+                  <p class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">6</p>
+                  <p class="text-fg-muted text-sm font-medium">追蹤中</p>
                 </div>
               </div>
 
@@ -317,37 +313,40 @@ const openDetail = (item) => {
               </div>
             </div>
 
-            <Transition name="fade">
-              <div v-if="isAboutVisible" class="w-full flex-1 border-t border-gray-50 pt-6">
+            <Transition name="fade"
+              ><div
+                v-if="isAboutVisible"
+                class="w-full shrink-0 border-t border-gray-50 pt-6 text-left"
+              >
                 <div class="flex items-center justify-around px-2 text-center">
                   <div class="flex flex-1 flex-col">
-                    <span class="text-fg-muted mb-1 text-[10px] font-bold uppercase">品種</span>
-                    <span class="text-fg-secondary truncate px-1 text-sm font-bold">{{
+                    <span class="text-fg-muted mb-1 text-[10px] font-bold uppercase">品種</span
+                    ><span class="text-fg-secondary truncate px-1 text-sm font-bold">{{
                       profile.petInfo.breed
                     }}</span>
                   </div>
                   <div class="h-8 w-[1px] bg-gray-100"></div>
                   <div class="flex flex-1 flex-col">
-                    <span class="text-fg-muted mb-1 text-[10px] font-bold uppercase">生日</span>
-                    <span class="text-fg-secondary truncate px-1 text-sm font-bold">{{
+                    <span class="text-fg-muted mb-1 text-[10px] font-bold uppercase">生日</span
+                    ><span class="text-fg-secondary truncate px-1 text-sm font-bold">{{
                       profile.petInfo.birthday
                     }}</span>
                   </div>
                   <div class="h-8 w-[1px] bg-gray-100"></div>
                   <div class="flex flex-1 flex-col">
-                    <span class="text-fg-muted mb-1 text-[10px] font-bold uppercase">性別</span>
-                    <span class="text-fg-secondary truncate px-1 text-sm font-bold">{{
+                    <span class="text-fg-muted mb-1 text-[10px] font-bold uppercase">性別</span
+                    ><span class="text-fg-secondary truncate px-1 text-sm font-bold">{{
                       profile.petInfo.gender
                     }}</span>
                   </div>
                 </div>
-              </div>
-            </Transition>
+              </div></Transition
+            >
           </div>
         </aside>
 
         <main
-          class="c-card border-border-default/50 flex h-[850px] w-full flex-col overflow-hidden border bg-white text-left shadow-sm"
+          class="c-card border-border-default/50 flex h-full flex-col overflow-hidden border bg-white text-left shadow-sm"
         >
           <div
             class="border-border-default z-10 flex shrink-0 justify-around border-b bg-white px-6 pt-8"
@@ -370,6 +369,7 @@ const openDetail = (item) => {
               ></div>
             </button>
           </div>
+
           <div class="custom-scrollbar flex-1 overflow-y-auto bg-gray-50/20 p-6 md:p-8">
             <div v-if="activeTab === 'posts'" class="space-y-6">
               <div class="mb-6 flex justify-center gap-6">
@@ -395,7 +395,7 @@ const openDetail = (item) => {
                   儲存的貼文
                 </button>
               </div>
-              <div class="mx-auto max-w-[550px] space-y-6 pb-10 text-left">
+              <div class="mx-auto max-w-[550px] space-y-6 pb-10">
                 <PostCard
                   v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
                   :key="post.id"
@@ -448,9 +448,9 @@ const openDetail = (item) => {
                   class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all hover:shadow-md"
                   @click="openDetail(event)"
                 >
-                  <div class="flex-1 text-left">
+                  <div class="flex-1">
                     <h4 class="text-fg-primary text-lg font-bold">{{ event.name }}</h4>
-                    <p class="text-fg-muted text-left text-sm">{{ event.location }}</p>
+                    <p class="text-fg-muted text-sm">{{ event.location }}</p>
                   </div>
                   <span
                     class="rounded-full border border-orange-100 bg-orange-50 px-4 py-1 text-xs font-bold text-[#f48e31]"
@@ -489,71 +489,64 @@ const openDetail = (item) => {
               <span
                 v-if="profile.hashtags.length === 0"
                 class="text-fg-muted col-span-3 py-4 text-center text-sm italic"
-                >點擊下方按鈕開始選擇</span
+                >點擊按鈕開始選擇</span
               >
               <div
                 v-for="(tag, index) in profile.hashtags"
                 :key="index"
-                class="flex cursor-pointer items-center justify-between rounded-full border border-orange-100 bg-white px-3 py-2 text-[10px] font-bold text-[#f48e31] shadow-sm transition-all hover:border-red-300 hover:text-red-500"
+                class="flex cursor-pointer items-center justify-between rounded-full border border-orange-100 bg-white px-3 py-2 text-[10px] font-bold text-[#f48e31] shadow-sm"
                 @click="removeTag(index)"
               >
                 <span class="truncate">{{ tag }}</span
-                ><span class="ml-1 shrink-0 text-[10px]">✕</span>
+                ><span class="ml-1 shrink-0">✕</span>
               </div>
             </div>
             <button
               class="w-full rounded-2xl py-4 font-bold text-white shadow-md transition-all active:scale-95"
-              :class="
-                profile.hashtags.length >= 5
-                  ? 'cursor-not-allowed grayscale'
-                  : 'hover:brightness-110'
-              "
               :style="{ backgroundColor: BRAND_ORANGE }"
-              :disabled="profile.hashtags.length >= 5"
               @click="showTagPicker = true"
             >
               選擇標籤
             </button>
           </div>
         </div>
-        <div class="mt-12">
-          <button
-            class="w-full rounded-full bg-gray-100 py-4 text-lg font-bold transition-colors hover:bg-gray-200"
-            @click="isEditing = false"
-          >
-            關閉視窗
-          </button>
-        </div>
+        <button
+          class="mt-8 w-full rounded-full bg-gray-100 py-4 font-bold"
+          @click="isEditing = false"
+        >
+          關閉視窗
+        </button>
       </div>
-      <div
-        v-if="showTagPicker"
-        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
-      >
-        <div class="c-card w-full max-w-lg bg-white p-8 shadow-2xl">
-          <h3 class="mb-4 text-xl font-bold">選擇標籤 ({{ profile.hashtags.length }}/5)</h3>
-          <div class="custom-scrollbar grid max-h-[350px] grid-cols-3 gap-2 overflow-y-auto p-2">
-            <button
-              v-for="tag in predefinedTags"
-              :key="tag"
-              class="rounded-lg border p-2 text-xs transition-all"
-              :class="
-                profile.hashtags.includes(tag)
-                  ? 'cursor-not-allowed border-orange-300 bg-orange-100 text-[#f48e31]'
-                  : 'border-gray-200 hover:bg-orange-50'
-              "
-              :disabled="profile.hashtags.includes(tag)"
-              @click="selectTag(tag)"
-            >
-              {{ tag }}
-            </button>
-          </div>
+    </div>
+
+    <div
+      v-if="showTagPicker"
+      class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
+    >
+      <div class="c-card w-full max-w-lg bg-white p-8 shadow-2xl">
+        <h3 class="mb-4 text-left text-xl font-bold">選擇標籤 ({{ profile.hashtags.length }}/5)</h3>
+        <div class="custom-scrollbar grid max-h-[350px] grid-cols-3 gap-2 overflow-y-auto p-2">
           <button
-            class="mt-6 w-full rounded-full bg-gray-100 py-3 font-bold"
-            @click="showTagPicker = false"
+            v-for="tag in predefinedTags"
+            :key="tag"
+            class="rounded-lg border p-2 text-xs transition-all"
+            :class="
+              profile.hashtags.includes(tag)
+                ? 'cursor-not-allowed border-orange-300 bg-orange-100 text-[#f48e31]'
+                : 'border-gray-200 hover:bg-orange-50'
+            "
+            :disabled="profile.hashtags.includes(tag)"
+            @click="selectTag(tag)"
           >
-            取消
+            {{ tag }}
           </button>
         </div>
+        <button
+          class="mt-6 w-full rounded-full bg-gray-100 py-3 font-bold"
+          @click="showTagPicker = false"
+        >
+          取消
+        </button>
       </div>
     </div>
 
@@ -565,18 +558,13 @@ const openDetail = (item) => {
         <div class="c-card w-full max-w-md bg-white p-8 text-left shadow-2xl">
           <div class="mb-6 flex items-center justify-between border-b pb-4">
             <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">{{ userListTitle }}</h2>
-            <button
-              class="text-2xl transition-transform hover:rotate-90"
-              @click="showUserList = false"
-            >
-              ✕
-            </button>
+            <button class="text-2xl" @click="showUserList = false">✕</button>
           </div>
           <div class="custom-scrollbar max-h-[400px] space-y-4 overflow-y-auto px-6 py-4">
             <div
               v-for="user in currentUserList"
               :key="user.id"
-              class="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-md transition-shadow hover:shadow-lg"
+              class="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-md"
             >
               <img
                 :src="user.avatar"
@@ -594,7 +582,7 @@ const openDetail = (item) => {
             </div>
           </div>
           <button
-            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg transition-transform active:scale-95"
+            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg"
             :style="{ backgroundColor: BRAND_ORANGE }"
             @click="showUserList = false"
           >
@@ -607,14 +595,14 @@ const openDetail = (item) => {
     <Transition name="fade"
       ><div
         v-if="showDetail"
-        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 text-left backdrop-blur-md"
       >
         <div class="c-card w-full max-w-2xl bg-white p-8 text-left shadow-2xl">
-          <div v-if="selectedItem" class="space-y-6">
-            <h2 class="text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
-              {{ selectedItem.name || '詳情' }}
+          <div v-if="selectedItem" class="space-y-6 text-left">
+            <h2 class="text-left text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+              {{ selectedItem.name }}
             </h2>
-            <div class="text-fg-secondary border-t pt-6 text-lg leading-relaxed">
+            <div class="text-fg-secondary border-t pt-6 text-left text-lg leading-relaxed">
               {{ selectedItem.content }}
             </div>
           </div>
@@ -632,11 +620,20 @@ const openDetail = (item) => {
 </template>
 
 <style scoped>
+/* 確保 Body 與全網頁完全不產生滾輪 */
+:global(body) {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 捲軸美化：確保貼文列表可以看到小捲軸 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
@@ -650,7 +647,8 @@ const openDetail = (item) => {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
 }
-/* 🔑 修正過渡效果 */
+
+/* 過渡效果 */
 .fade-enter-active,
 .fade-leave-active {
   transition:
