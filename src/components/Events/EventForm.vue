@@ -1,6 +1,7 @@
 <script setup>
 // 1. Imports
 import { computed, reactive, ref } from 'vue'
+import { isValidEmail, isValidPhoneTW } from '@/utils/validators'
 
 // 2. Props & Emits
 const emit = defineEmits(['submit', 'cancel'])
@@ -53,14 +54,7 @@ function resetForm() {
   Object.keys(errors).forEach((k) => (errors[k] = ''))
 }
 
-function isEmail(v) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-}
-
-function isPhoneTW(v) {
-  const digits = v.replace(/[\s-]/g, '')
-  return /^09\d{8}$/.test(digits)
-}
+// 驗證函式已移至 @/utils/validators
 
 function validate() {
   Object.keys(errors).forEach((k) => (errors[k] = ''))
@@ -90,7 +84,7 @@ function validate() {
 
   const contact = form.contact.trim()
   if (!contact) errors.contact = '請填寫聯絡方式（手機或 Email）'
-  else if (!isEmail(contact) && !isPhoneTW(contact)) {
+  else if (!isValidEmail(contact) && !isValidPhoneTW(contact)) {
     errors.contact = '格式不正確，請輸入 Email 或台灣手機號碼（09xxxxxxxx）'
   }
 
