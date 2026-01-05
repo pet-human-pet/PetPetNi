@@ -54,28 +54,21 @@ function toggleMenu() {
 <template>
   <div class="h-(--header-h) w-full">
     <header
-      class="border-border-default bg-bg-surface fixed top-0 left-0 z-50 w-full h-(--header-h) border-b"
+      class="border-border-default bg-bg-surface fixed top-0 left-0 z-50 h-(--header-h) w-full border-b"
     >
-      <div
-        class="mx-auto flex h-full max-w-300 items-center justify-between px-6 max-md:px-4"
-      >
+      <div class="mx-auto flex h-full max-w-300 items-center justify-between px-6 max-md:px-4">
         <router-link
           :to="{ name: 'home' }"
           class="flex items-center no-underline"
           :class="{ 'pointer-events-none opacity-40': menuOpen }"
         >
           <!-- Logo（先用文字：不使用 inline font；後續可改成圖片） -->
-          <span class="text-brand-primary text-2xl font-semibold md:text-3xl"
-            >PetPetNi</span
-          >
+          <span class="text-brand-primary text-2xl font-semibold md:text-3xl">PetPetNi</span>
         </router-link>
 
         <div class="flex items-center gap-3 max-md:gap-2">
           <!-- 收藏：桌機 dropdown、手機 modal -->
-          <div
-            class="relative"
-            :class="{ 'pointer-events-none opacity-40': menuOpen }"
-          >
+          <div class="relative" :class="{ 'pointer-events-none opacity-40': menuOpen }">
             <button
               class="c-icon-btn"
               title="收藏"
@@ -85,19 +78,12 @@ function toggleMenu() {
             >
               <!-- 有收藏：用品牌強調色（避免使用未定義 token 的紅色） -->
               <i
-                :class="
-                  fav.count
-                    ? 'fa-solid fa-heart text-func-danger'
-                    : 'fa-regular fa-heart'
-                "
+                :class="fav.count ? 'fa-solid fa-heart text-brand-accent' : 'fa-regular fa-heart'"
               ></i>
             </button>
 
             <!-- ===== Desktop dropdown（md 以上） ===== -->
-            <div
-              v-if="favOpen"
-              class="c-popover absolute right-0 mt-2 w-72 max-md:hidden"
-            >
+            <div v-if="favOpen" class="c-popover absolute right-0 mt-2 w-72 max-md:hidden">
               <div
                 class="border-border-default flex items-center justify-between border-b px-3 py-2"
               >
@@ -121,17 +107,13 @@ function toggleMenu() {
                 </div>
               </div>
 
-              <div v-if="!fav.count" class="text-fg-muted p-3 text-sm">
-                目前沒有收藏活動
-              </div>
+              <div v-if="!fav.count" class="text-fg-muted p-3 text-sm">目前沒有收藏活動</div>
 
               <ul v-else class="no-scrollbar max-h-80 overflow-y-auto p-2">
                 <li v-for="e in fav.items" :key="e.id" class="c-list-item">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <div
-                        class="text-fg-primary truncate text-sm font-semibold"
-                      >
+                      <div class="text-fg-primary truncate text-sm font-semibold">
                         {{ e.title || `活動 #${e.id}` }}
                       </div>
                       <div class="text-fg-muted truncate text-sm">
@@ -154,18 +136,13 @@ function toggleMenu() {
             <!-- ===== Mobile modal（max-md） ===== -->
             <teleport to="body">
               <div v-if="favOpen" class="md:hidden">
-                <div
-                  class="fixed inset-0 z-40 bg-black/30"
-                  @click="onBackdropClose"
-                ></div>
+                <div class="fixed inset-0 z-40 bg-black/30" @click="onBackdropClose"></div>
 
                 <div class="c-sheet fixed top-15 right-3 left-3 z-50">
                   <div
                     class="border-border-default flex items-center justify-between border-b px-4 py-3"
                   >
-                    <div class="text-fg-primary text-sm font-semibold">
-                      已收藏
-                    </div>
+                    <div class="text-fg-primary text-sm font-semibold">已收藏</div>
                     <div class="flex items-center gap-3">
                       <button
                         v-if="fav.count"
@@ -185,20 +162,13 @@ function toggleMenu() {
                     </div>
                   </div>
 
-                  <div v-if="!fav.count" class="text-fg-muted p-4 text-sm">
-                    目前沒有收藏活動
-                  </div>
+                  <div v-if="!fav.count" class="text-fg-muted p-4 text-sm">目前沒有收藏活動</div>
 
-                  <ul
-                    v-else
-                    class="no-scrollbar max-h-[60vh] overflow-y-auto p-2"
-                  >
+                  <ul v-else class="no-scrollbar max-h-[60vh] overflow-y-auto p-2">
                     <li v-for="e in fav.items" :key="e.id" class="c-list-item">
                       <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
-                          <div
-                            class="text-fg-primary truncate text-sm font-semibold"
-                          >
+                          <div class="text-fg-primary truncate text-sm font-semibold">
                             {{ e.title || `活動 #${e.id}` }}
                           </div>
                           <div class="text-fg-muted mt-1 line-clamp-2 text-sm">
