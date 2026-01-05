@@ -25,7 +25,7 @@ onMounted(async () => {
       statusText.value = '偵測到新用戶，正在導向註冊流程...'
       // 導回登入頁，並指定進入 BIND_PHONE 步驟
       setTimeout(() => {
-        router.push({ name: 'login', query: { step: 'BIND_PHONE' } })
+        router.push({ name: 'login', query: { mode: 'social_bind' } })
       }, 1000)
     } else {
       statusText.value = '登入成功！正在進入首頁...'
