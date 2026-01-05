@@ -62,23 +62,13 @@ const handleRegister = () => {
     <form class="space-y-6" @submit.prevent="handleRegister">
       <div class="space-y-2">
         <label class="text-sm font-medium text-gray-600">帳號</label>
-        <BaseInput
-          v-model="email"
-          placeholder="Enter your email..."
-          type="email"
-          class="rounded-xl! border-gray-200!"
-        />
+        <BaseInput v-model="email" placeholder="Enter your email..." type="email" />
       </div>
 
       <div class="space-y-2">
         <label class="text-sm font-medium text-gray-600">密碼</label>
         <div class="relative">
-          <BaseInput
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="Password"
-            class="rounded-xl! border-gray-200! pr-12"
-          />
+          <BaseInput v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="Password" />
           <button
             type="button"
             class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -110,7 +100,6 @@ const handleRegister = () => {
           v-model="confirmPassword"
           :type="showPassword ? 'text' : 'password'"
           placeholder="Confirm Password"
-          class="rounded-xl! border-gray-200!"
         />
       </div>
 
