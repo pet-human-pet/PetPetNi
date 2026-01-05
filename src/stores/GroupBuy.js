@@ -10,7 +10,7 @@ export const useGroupBuyStore = defineStore('groupBuy', () => {
       target: 30,
       img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80',
       desc: '這款雨衣透氣又防水,適合台灣潮濕的天氣。湊滿30件廠商給批發價!',
-      status: 'approved'
+      status: 'recruiting'
     },
     {
       id: 202,
@@ -19,11 +19,13 @@ export const useGroupBuyStore = defineStore('groupBuy', () => {
       target: 50,
       img: 'https://images.unsplash.com/photo-1582798358481-d199fb7347bb?auto=format&fit=crop&w=800&q=80',
       desc: '無添加防腐劑,自家烘焙,每包100g。需要冷藏保存。',
-      status: 'approved'
+      status: 'recruiting'
     }
   ])
 
-  const approvedGroupBuys = computed(() => groupBuys.value.filter((g) => g.status === 'approved'))
+  const approvedGroupBuys = computed(() =>
+    groupBuys.value.filter((g) => ['approved', 'recruiting', 'ongoing', 'open'].includes(g.status))
+  )
 
   const pendingGroupBuys = computed(() =>
     groupBuys.value
