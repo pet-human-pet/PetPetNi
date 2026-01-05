@@ -48,59 +48,59 @@ function eventBadge(status) {
 
   // 報名中
   if (s === 'recruiting' || s === 'signup' || s === 'open') {
-    return { text: '報名中', cls: 'bg-[#e8f5e9] text-[#2e7d32]' }
+    return { text: '報名中', cls: 'bg-green-50 text-green-700' }
   }
 
   // 進行中
   if (s === 'ongoing' || s === 'active' || s === 'in_progress') {
-    return { text: '進行中', cls: 'bg-[#e3f2fd] text-[#2196f3]' }
+    return { text: '進行中', cls: 'bg-blue-50 text-blue-500' }
   }
 
   // 已結束
   if (s === 'ended' || s === 'closed') {
-    return { text: '已結束', cls: 'bg-[#f5f5f5] text-[#777]' }
+    return { text: '已結束', cls: 'bg-gray-100 text-fg-muted' }
   }
 
   // 審核中（pending）
-  return { text: '審核中', cls: 'bg-[#fff3e0] text-[#ef6c00]' }
+  return { text: '審核中', cls: 'bg-orange-50 text-orange-600' }
 }
 </script>
 
 <template>
   <section
-    class="max-[800px]:no-scrollbar flex flex-col gap-3.75 max-[800px]:pointer-events-auto max-[800px]:snap-x max-[800px]:snap-mandatory max-[800px]:flex-row max-[800px]:gap-3 max-[800px]:overflow-x-auto max-[800px]:pb-1.25"
+    class="no-scrollbar flex flex-row gap-3 overflow-x-auto pb-1.25 md:flex-col md:gap-3.75 md:overflow-visible md:pb-0"
   >
     <!-- create card -->
     <div
-      class="rounded-xl border-2 border-dashed border-[#ff9f43] bg-white p-4 transition-all max-[800px]:flex max-[800px]:h-40 max-[800px]:w-60 max-[800px]:flex-none max-[800px]:snap-center max-[800px]:flex-col max-[800px]:items-center max-[800px]:justify-center max-[800px]:rounded-2xl max-[800px]:p-0 max-[800px]:shadow-[0_4px_15px_rgba(0,0,0,0.1)]"
+      class="border-brand-primary bg-bg-surface shadow-card flex h-40 w-60 flex-none snap-center flex-col items-center justify-center rounded-2xl border-2 border-dashed p-0 transition-all md:h-auto md:w-full md:flex-initial md:flex-row md:items-stretch md:justify-start md:rounded-xl md:p-4 md:shadow-none"
     >
       <button
-        class="flex w-full items-center justify-center gap-2 bg-transparent py-2 text-[16px] font-bold text-[#ff9f43] max-[800px]:h-full max-[800px]:flex-col max-[800px]:text-[14px]"
+        class="text-brand-primary flex h-full w-full flex-col items-center justify-center gap-2 bg-transparent py-2 text-[14px] font-bold md:h-auto md:flex-row md:text-[16px]"
         type="button"
         @click="emit('open-form')"
       >
-        <i class="fa-solid fa-circle-plus max-[800px]:text-[28px]"></i>
+        <i class="fa-solid fa-circle-plus text-[28px] md:text-base"></i>
         <span>發起新活動</span>
       </button>
     </div>
 
     <!-- cards -->
-    <ul class="m-0 flex list-none flex-col gap-3.75 p-0 max-[800px]:contents">
+    <ul class="m-0 flex list-none flex-col gap-3.75 p-0 max-md:contents">
       <li
         v-for="evt in props.events"
         :key="evt.id"
         :ref="setCardRef(evt.id)"
-        class="relative cursor-pointer overflow-hidden rounded-xl border border-[#ddd] bg-white transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] max-[800px]:flex max-[800px]:h-40 max-[800px]:w-60 max-[800px]:flex-none max-[800px]:snap-center max-[800px]:flex-col max-[800px]:justify-between max-[800px]:rounded-2xl max-[800px]:shadow-[0_4px_15px_rgba(0,0,0,0.1)]"
+        class="border-border-default bg-bg-surface shadow-card hover:shadow-card relative flex h-40 w-60 flex-none cursor-pointer snap-center flex-col justify-between overflow-hidden rounded-2xl border transition hover:-translate-y-0.5 md:h-auto md:w-full md:rounded-xl"
         :class="
           String(props.selectedId) === String(evt.id)
-            ? 'border-2 border-[#ff9f43] bg-[#fffcf7]'
+            ? 'border-brand-primary bg-bg-base border-2'
             : ''
         "
         @click="emit('select', evt)"
       >
-        <div class="p-3.75 max-[800px]:p-3">
+        <div class="p-3 md:p-3.75">
           <div class="mb-1 flex items-start justify-between gap-2">
-            <div class="text-[16px] leading-snug font-bold">
+            <div class="text-fg-primary text-[16px] leading-snug font-bold">
               {{ evt.title }}
             </div>
 
@@ -113,18 +113,22 @@ function eventBadge(status) {
           </div>
 
           <div
-            class="[display:-webkit-box] overflow-hidden text-[13px] leading-[1.4] text-[#666] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] max-[800px]:text-[12px]"
+            class="text-fg-secondary [display:-webkit-box] overflow-hidden text-[12px] leading-[1.4] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] md:text-[13px]"
           >
             {{ evt.desc }}
           </div>
         </div>
 
-        <div class="flex gap-2.5 px-3.75 pb-3.75 max-[800px]:px-3 max-[800px]:pb-3.75">
+        <div class="flex gap-2.5 px-3 pb-3.75 md:px-3.75">
           <button
             type="button"
-            class="h-8.5 flex-1 rounded-[17px] text-[12px] font-bold max-[800px]:h-8"
+            class="h-8 flex-1 rounded-[17px] text-[12px] font-bold md:h-8.5"
             :disabled="!canJoin(evt.status)"
-            :class="!canJoin(evt.status) ? 'cursor-not-allowed ...' : 'bg-[#ff9f43] text-white'"
+            :class="
+              !canJoin(evt.status)
+                ? 'c-btn text-fg-muted cursor-not-allowed bg-gray-100'
+                : 'c-btn--primary text-white'
+            "
             @click.stop="canJoin(evt.status) && openJoinModal(evt)"
           >
             <i class="fa-solid fa-paw mr-1"></i>
@@ -133,8 +137,8 @@ function eventBadge(status) {
 
           <button
             type="button"
-            class="h-8.5 flex-1 rounded-[17px] bg-[#f0f2f5] text-[12px] font-bold max-[800px]:h-8"
-            :class="fav.has(evt.id) ? 'text-[#ff4d4f]' : 'text-[#555]'"
+            class="h-8 flex-1 rounded-[17px] bg-gray-100 text-[12px] font-bold md:h-8.5"
+            :class="fav.has(evt.id) ? 'text-func-danger' : 'text-fg-secondary'"
             :aria-pressed="fav.has(evt.id)"
             aria-label="收藏活動"
             @click.stop="fav.toggle(evt)"
@@ -144,7 +148,7 @@ function eventBadge(status) {
 
           <button
             type="button"
-            class="h-8 flex-1 rounded-[17px] bg-[#f0f2f5] text-[12px] font-bold text-[#555] max-[800px]:h-8"
+            class="text-fg-secondary h-8 flex-1 rounded-[17px] bg-gray-100 text-[12px] font-bold md:h-8.5"
             @click.stop="emit('open-comments', evt)"
           >
             <i class="fa-regular fa-comment-dots"></i>
@@ -156,22 +160,19 @@ function eventBadge(status) {
     <!-- join success modal -->
     <div
       v-if="joinModalOpen"
-      class="fixed inset-0 z-1100 flex items-center justify-center bg-black/40 p-5"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-5"
       @click="closeJoinModal"
     >
-      <div
-        class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
-        @click.stop
-      >
-        <div class="mb-2 text-[18px] font-bold text-[#333]">已成功報名 🎉</div>
-        <p class="text-[14px] text-[#666]">
-          你已報名「<span class="font-bold text-[#ff9f43]">{{ joinedEvent?.title }}</span
+      <div class="bg-bg-surface shadow-dialog w-full max-w-sm rounded-2xl p-5" @click.stop>
+        <div class="text-fg-primary mb-2 text-[18px] font-bold">已成功報名 🎉</div>
+        <p class="text-fg-secondary text-[14px]">
+          你已報名「<span class="text-brand-primary font-bold">{{ joinedEvent?.title }}</span
           >」活動！
         </p>
 
         <button
           type="button"
-          class="mt-4 w-full rounded-xl bg-[#ff9f43] p-3 text-[14px] font-bold text-white"
+          class="c-btn--primary mt-4 w-full p-3 text-[14px]"
           @click="closeJoinModal"
         >
           確定
