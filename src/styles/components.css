@@ -45,6 +45,29 @@
     }
   }
 
+  /* Header / Nav Icon Button */
+  .c-icon-btn {
+    @apply relative inline-flex items-center justify-center rounded-full transition-colors;
+    @apply h-10 w-10 max-md:h-9 max-md:w-9;
+    @apply text-fg-secondary hover:bg-bg-base hover:text-brand-primary;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Header dropdown / popover 容器（桌機） */
+  .c-popover {
+    @apply bg-bg-surface shadow-card rounded-card border-border-default overflow-hidden border;
+  }
+
+  /* Header sheet / dialog 容器（手機） */
+  .c-sheet {
+    @apply bg-bg-surface shadow-dialog rounded-card border-border-default overflow-hidden border;
+  }
+
+  /* 收藏清單 item */
+  .c-list-item {
+    @apply rounded-card hover:bg-bg-base p-3 transition-colors;
+  }
+
   /* Social */
 
   /* 卡片元件基底 */
