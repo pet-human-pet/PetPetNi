@@ -109,6 +109,12 @@
   --color-brand-accent: #edc920; /* 黃：強調（badge/小CTA） */
   --color-mayekawa: #2a594f; /* 首頁綠色 */
   --color-func-danger: #ff4d4f; /* 紅：危險/錯誤/收藏 */
+  --color-status-success: #16a34a; /* 綠：成功狀態文字 */
+  --color-status-success-bg: #f6fffb; /* 淺綠：成功狀態背景 */
+  --color-status-success-border: #d1fae5; /* 淺綠：成功狀態邊框 */
+
+  --color-status-warning: #ff9f43; /* 橘：警告/進行中狀態 */
+  --color-status-warning-bg: #fffcf7; /* 淺橘：警告/進行中背景 */
 
   /* Foreground (text/border source) */
   --color-fg-primary: #382710; /* 深棕：主要文字 */
