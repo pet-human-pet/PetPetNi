@@ -6,10 +6,6 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  title: {
-    type: String,
-    default: ''
-  },
   showCloseButton: {
     type: Boolean,
     default: true
