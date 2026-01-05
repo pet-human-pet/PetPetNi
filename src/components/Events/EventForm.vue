@@ -166,7 +166,7 @@ function createAnother() {
       </div>
 
       <!-- 時間：開始 / 結束 -->
-      <div class="grid grid-cols-2 gap-3 max-[800px]:grid-cols-1">
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div class="flex flex-col gap-1">
           <label class="text-fg-secondary text-[13px] font-bold">
             開始時間 <span class="text-red-500">*</span>

@@ -3,7 +3,7 @@ import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useGroupBuyStore } from '@/stores/GroupBuy'
-import { useEventCommentStore } from '@/stores/EventComment'
+// import { useEventCommentStore } from '@/stores/EventComment'
 
 import EventSideBar from '@/components/Events/EventSideBar.vue'
 import EventMap from '@/components/Events/EventMap.vue'
@@ -14,16 +14,15 @@ import GroupBuyForm from '@/components/GroupBuy/GroupBuyForm.vue'
 import GroupBuyDetail from '@/components/GroupBuy/GroupBuyDetail.vue'
 import mapImg from '@/assets/EventMapFinal.jpg'
 
-// Store setup
+// Store 設定
 const eventStore = useEventMapStore()
 const groupBuyStore = useGroupBuyStore()
-const commentStore = useEventCommentStore()
 
 const { events, visibleEvents } = storeToRefs(eventStore)
 const { groupBuys, approvedGroupBuys, pendingGroupBuys } = storeToRefs(groupBuyStore)
-// Comment store use direct actions/getters
+// 評論 Store 直接使用 actions/getters
 
-// Scroll locking logic
+// 滾動鎖定邏輯
 let _prevOverflow = ''
 let _prevPaddingRight = ''
 
@@ -46,7 +45,7 @@ function unlockBodyScroll() {
 onMounted(lockBodyScroll)
 onBeforeUnmount(unlockBodyScroll)
 
-// Map Profile Logic
+// 地圖設定邏輯
 const MAP_PROFILE = {
   desktop: { scale: 1, dx: 0, dy: 0 },
   tablet: { scale: 1, dx: -100, dy: 90 },
@@ -59,7 +58,7 @@ onMounted(() => window.addEventListener('resize', onResize))
 onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 
 const locations = computed(() => {
-  // Use 'lg' (1024px) as boundary for tablet, 'md' (768px) for mobile
+  // 使用 'lg' (1024px) 作為平板邊界，'md' (768px) 作為手機邊界
   const profile = vw.value < 768 ? 'mobile' : vw.value < 1024 ? 'tablet' : 'desktop'
   const { scale, dx, dy } = MAP_PROFILE[profile]
 
@@ -74,7 +73,7 @@ const locations = computed(() => {
   return out
 })
 
-// Tab & Navigation Logic
+// 頁籤與導航邏輯
 const tab = ref('event') // 'event' | 'groupbuy'
 const rightView = ref('map') // 'map' | 'comments' | 'eventForm' | 'gbForm' | 'gbDetail'
 
@@ -102,7 +101,7 @@ function switchTab(next) {
     return
   }
 
-  // groupbuy
+  // 團購
   if (approvedGroupBuys.value.length) {
     showGroupBuyDetail(approvedGroupBuys.value[0])
   } else {
@@ -151,18 +150,6 @@ function backToMap() {
   rightView.value = 'map'
 }
 
-function addComment(text) {
-  const evt = selectedEvent.value
-  if (!evt) return
-
-  if (String(evt.status).toLowerCase() !== 'ended') {
-    alert('活動尚未結束，目前僅可查看歷史評論')
-    return
-  }
-
-  commentStore.addComment(evt.id, text)
-}
-
 function showGroupBuyForm() {
   tab.value = 'groupbuy'
   rightView.value = 'gbForm'
@@ -203,28 +190,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-screen overflow-hidden bg-[#f9f9f9] text-[#333]">
-    <!-- main layout -->
+  <div class="bg-bg-base text-fg-primary h-screen overflow-hidden">
+    <!-- 主要佈局 -->
     <main
       class="relative mx-auto block h-[calc(100vh-64px)] w-full max-w-300 overflow-hidden p-0 md:flex md:gap-6 md:px-5 md:pt-6 md:pb-10"
     >
-      <!-- Sidebar (Mobile: Fixed Top | Desktop: Sticky) -->
-      <!-- Refactored max-[800px] to md: (Mobile First approach sort of, using md for desktop switch) -->
-      <!-- Logic: By default (mobile), it's fixed top (under header). On md+, it becomes sticky side. -->
+      <!-- 側邊欄 (手機: 固定頂部 | 桌機: 黏性定位) -->
+      <!-- 將 max-[800px] 重構為 md: (類 Mobile First 方法，使用 md 作為桌機切換點) -->
+      <!-- 邏輯：預設 (手機) 為固定頂部 (header 下方)。在 md+ 變為黏性側邊欄。 -->
       <aside
         class="pointer-events-none fixed top-[70px] left-0 z-10 flex h-[calc(100vh-90px)] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0"
         :class="{ hidden: isMobileOverlayOpen && vw < 768 }"
       >
-        <!-- Tabs -->
+        <!-- 頁籤 -->
         <nav
-          class="pointer-events-auto mb-0 flex gap-1 rounded-xl bg-[#eee] bg-white/90 p-1 shadow-[0_2px_8px_rgba(0,0,0,0.1)] backdrop-blur-xs md:mb-0 md:bg-[#eee] md:shadow-none md:backdrop-filter-none"
+          class="shadow-card pointer-events-auto mb-0 flex gap-1 rounded-xl bg-gray-100 p-1 backdrop-blur-xs md:mb-0 md:bg-gray-100 md:shadow-none md:backdrop-filter-none"
         >
           <button
             class="flex-1 rounded-[10px] py-2.5 text-[14px] font-bold transition"
             :class="
               tab === 'event'
-                ? 'bg-white text-[#ff9f43] shadow-[0_2px_6px_rgba(0,0,0,0.1)]'
-                : 'bg-transparent text-[#666]'
+                ? 'bg-bg-surface text-brand-primary shadow-card'
+                : 'text-fg-secondary bg-transparent'
             "
             type="button"
             @click="switchTab('event')"
@@ -235,8 +222,8 @@ onMounted(() => {
             class="flex-1 rounded-[10px] py-2.5 text-[14px] font-bold transition"
             :class="
               tab === 'groupbuy'
-                ? 'bg-white text-[#ff9f43] shadow-[0_2px_6px_rgba(0,0,0,0.1)]'
-                : 'bg-transparent text-[#666]'
+                ? 'bg-bg-surface text-brand-primary shadow-card'
+                : 'text-fg-secondary bg-transparent'
             "
             type="button"
             @click="switchTab('groupbuy')"
@@ -245,37 +232,37 @@ onMounted(() => {
           </button>
         </nav>
 
-        <!-- Content only visible on desktop here, mobile uses overlay or logic below? 
-                Wait, in original code, sidebar content was inside aside. 
-                On mobile, sidebar content (EventSidebar) should be hidden? 
-                Original: max-[800px]:fixed ... bottom-7.5
-                The sidebar content (lists) - where does it go on mobile?
-                Original code didn't seem to hide EventSideBar on mobile explicitly, 
-                but the aside height might be small or it's just the tabs?
-                Actually, original code had: max-[800px]:mb-130 for tabs. 
-                And the aside itself was fixed bottom.
-                The lists seems to be there but maybe hidden off screen?
-                Let's look at original again.
-                aside -> fixed bottom.
-                nav -> mb-130.
-                So the list items are likely below the nav or above?
-                If nav has mb-130, it pushes content up? No, margin-bottom on nav pushes siblings down.
-                Actually checking the original code, the aside is a flex-col.
-                The nav is the first child.
-                If aside is fixed bottom, flex-col means nav is at top of aside container, then Sidebar items below it.
-                If aside is bottom-7.5, and nav has mb-130... this layout is weird.
-                Maybe the user intents to ONLY show tabs on mobile bottom, and lists are shown elsewhere?
-                But EventSidebar is inside aside.
-                If I look at typical mobile designs, usually map is full screen, and you have bottom sheet.
-                Let's assume for now we just want the Tabs to be visible.
+        <!-- 內容僅在桌機顯示，手機使用覆蓋層或下方邏輯？ 
+                等等，原始代碼中，側邊欄內容在 aside 內部。
+                在手機上，側邊欄內容 (EventSidebar) 應該隱藏？
+                原始：max-[800px]:fixed ... bottom-7.5
+                側邊欄內容 (列表) - 在手機上去哪了？
+                原始代碼似乎沒有在手機上明確隱藏 EventSideBar，
+                但 aside 高度可能很小或者是只有 tabs？
+                事實上，原始代碼有：max-[800px]:mb-130 給 tabs。
+                而且 aside 本身是固定底部。
+                列表似乎在那裡但也許被隱藏在螢幕外？
+                再看一次原始代碼。
+                aside -> 固定底部。
+                nav -> mb-130。
+                所以列表項目可能在 nav 下方或上方？
+                如果 nav 有 mb-130，它會把內容往下推？不，nav 的 margin-bottom 會把兄弟元素往下推。
+                實際上檢查原始代碼，aside 是一個 flex-col。
+                nav 是第一個子元素。
+                如果 aside 是固定底部，flex-col 意味著 nav 在 aside 容器頂部，然後 Sidebar 項目在它下方。
+                如果 aside 是 bottom-7.5，且 nav 有 mb-130... 這個佈局很怪。
+                也許使用者的意圖是只在手機底部顯示 Tabs，列表顯示在其他地方？
+                但 EventSidebar 在 aside 裡面。
+                如果我看典型的行動設計，通常地圖是全螢幕，並且有一個底部工作表 (bottom sheet)。
+                暫時假設我們只想讓 Tabs 可見。
            -->
-        <!-- Restoring original behavior but cleaner: On mobile, only Tabs are easily accessible or it acts as a drawer?
-                The previous code had `mb-130` on nav in mobile. This is huge.
-                It might be pushing the sidebar content out of view?
-                Or maybe the sidebar content is only for desktop?
+        <!-- 恢復原始行為但更乾淨：在手機上，只有 Tabs 容易存取或者它充當抽屜？
+                之前的代碼在手機 nav 上有 `mb-130`。這很大。
+                它可能把側邊欄內容推到視圖外？
+                或者側邊欄內容僅供桌機？
                 "EventSideBar v-show=tab==='event'"
-                On mobile, maybe we don't show the list of events? We show the map.
-                Let's keep the structure but ensure Tabs are visible.
+                在手機上，也許我們不顯示活動列表？我們顯示地圖。
+                讓我們保持結構但確保 Tabs 可見。
            -->
         <EventSideBar
           v-show="tab === 'event'"
@@ -296,12 +283,12 @@ onMounted(() => {
         />
       </aside>
 
-      <!-- Right content (Map / Details) -->
+      <!-- 右側內容 (地圖 / 詳情) -->
       <section
-        class="fixed top-0 left-0 z-1 flex h-[calc(100vh-60px)] h-full w-full flex-1 flex-col overflow-hidden rounded-2xl rounded-none border border-0 border-[#ccc] bg-white md:sticky md:top-25 md:z-auto md:h-full md:rounded-2xl md:border"
-        :class="{ 'z-[9999]': isMobileOverlayOpen }"
+        class="border-border-default bg-bg-surface fixed top-0 left-0 z-1 flex h-full w-full flex-1 flex-col overflow-hidden rounded-2xl border md:sticky md:top-25 md:z-auto md:h-full md:rounded-2xl md:border"
+        :class="{ 'z-100': isMobileOverlayOpen }"
       >
-        <!-- View 1: Map -->
+        <!-- 視圖 1: 地圖 -->
         <EventMap
           v-show="rightView === 'map'"
           :events="events"
@@ -310,22 +297,16 @@ onMounted(() => {
           :map-src="mapImg"
           @pin-click="(evt) => selectEvent(evt, { scrollCard: true })"
         />
-        <!--View 2: Comments-->
-        <EventComments
-          v-show="rightView === 'comments'"
-          :event="selectedEvent"
-          :comments="selectedEventId != null ? commentStore.getComments(selectedEventId) : []"
-          @back="backToMap"
-          @add="addComment"
-        />
-        <!--View 3: EventForm-->
+        <!--視圖 2: 評論-->
+        <EventComments v-show="rightView === 'comments'" :event="selectedEvent" @back="backToMap" />
+        <!--視圖 3: 活動表單-->
         <EventForm
           v-show="rightView === 'eventForm'"
           @submit="createEvent"
           @cancel="cancelEventForm"
         />
 
-        <!-- View 4: GroupBuy Form -->
+        <!-- 視圖 4: 團購表單 -->
         <GroupBuyForm
           v-show="rightView === 'gbForm'"
           :pending-items="pendingGroupBuys"
@@ -333,7 +314,7 @@ onMounted(() => {
           @cancel="cancelGroupBuyForm"
         />
 
-        <!-- View 5: GroupBuy Detail -->
+        <!-- 視圖 5: 團購詳情 -->
         <GroupBuyDetail
           v-show="rightView === 'gbDetail'"
           :item="selectedGb"
