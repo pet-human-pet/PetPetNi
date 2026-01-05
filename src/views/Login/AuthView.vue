@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LoginForm from '@/views/Login/login-components/LoginForm.vue'
 import RegisterForm from '@/views/Login/login-components/RegisterForm.vue'
@@ -8,14 +8,15 @@ import OtpVerification from '@/views/Login/login-components/OtpVerification.vue'
 import SocialBindEmail from '@/views/Login/login-components/SocialBindEmail.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
-import SuccessView from '@/views/Login/login-components/SuccessView.vue'
 
 const route = useRoute()
 const router = useRouter()
 // 認證模式: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'pet' | 'success'
 
 const authMode = ref('login')
-const userRole = ref('owner') // 用於 SuccessView 顯示不同訊息
+const userRole = ref('owner') // 用於成功頁面顯示不同訊息
+const countdown = ref(3)
+let countdownTimer = null
 
 onMounted(() => {
   // 支援 query parameter: /login?mode=register
@@ -82,7 +83,37 @@ const handlePetSubmit = () => {
 const handleComplete = () => {
   // 顯示註冊完成頁面，3秒後自動跳轉首頁
   authMode.value = 'success'
+  startCountdown()
 }
+
+// 成功頁面相關邏輯
+const welcomeMessage = computed(() => {
+  if (userRole.value === 'cloud') {
+    return '準備好探索毛孩的世界了嗎？'
+  }
+  return '準備好開始記錄您的毛孩日記了嗎？'
+})
+
+const goToHome = () => {
+  if (countdownTimer) clearInterval(countdownTimer)
+  router.push('/')
+}
+
+const startCountdown = () => {
+  countdown.value = 3
+  countdownTimer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(countdownTimer)
+      countdownTimer = null
+      router.push('/')
+    }
+  }, 1000)
+}
+
+onUnmounted(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
+})
 </script>
 
 <template>
@@ -144,7 +175,53 @@ const handleComplete = () => {
           >
             <PetBasicInfo @submit="handlePetSubmit" />
           </div>
-          <SuccessView v-else-if="authMode === 'success'" key="success" :user-role="userRole" />
+          <!-- 註冊成功頁面 -->
+          <div
+            v-else-if="authMode === 'success'"
+            key="success"
+            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+          >
+            <!-- 完成圖示 -->
+            <div class="mb-6 flex justify-center">
+              <div class="animate-scale-in flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+                <svg
+                  class="animate-check h-12 w-12 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- 標題 -->
+            <h2 class="mb-2 text-center text-3xl font-bold text-gray-800">註冊完成！</h2>
+            <p class="mb-2 text-center text-xl font-medium" style="color: #ffa75f">歡迎來到 PetPetNi</p>
+
+            <!-- 訊息 -->
+            <p class="mb-8 text-center text-sm text-gray-500">
+              {{ welcomeMessage }}
+            </p>
+
+            <!-- 倒數計時 -->
+            <div class="mb-6 text-center">
+              <p class="text-sm text-gray-400">
+                <span class="text-2xl font-bold" style="color: #ffa75f">{{ countdown }}</span>
+                秒後自動進入
+              </p>
+            </div>
+
+            <!-- 立即進入按鈕 -->
+            <button
+              type="button"
+              class="w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+              style="background-color: #ffa75f"
+              @click="goToHome"
+            >
+              立即進入
+            </button>
+          </div>
         </Transition>
       </div>
     </div>
@@ -166,5 +243,36 @@ const handleComplete = () => {
 .auth-form-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+/* 成功頁面動畫 */
+@keyframes scale-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes check-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-check path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: check-draw 0.6s ease-in-out 0.3s forwards;
 }
 </style>
