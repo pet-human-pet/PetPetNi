@@ -43,32 +43,16 @@ function closeJoinModal() {
   joinedEvent.value = null
 }
 
+import { getStatusBadge } from '@/utils/statusHelper'
+
 function eventBadge(status) {
-  const s = String(status || '').toLowerCase()
-
-  // 報名中
-  if (s === 'recruiting' || s === 'signup' || s === 'open') {
-    return { text: '報名中', cls: 'bg-green-50 text-green-700' }
-  }
-
-  // 進行中
-  if (s === 'ongoing' || s === 'active' || s === 'in_progress') {
-    return { text: '進行中', cls: 'bg-blue-50 text-blue-500' }
-  }
-
-  // 已結束
-  if (s === 'ended' || s === 'closed') {
-    return { text: '已結束', cls: 'bg-gray-100 text-fg-muted' }
-  }
-
-  // 審核中（pending）
-  return { text: '審核中', cls: 'bg-orange-50 text-orange-600' }
+  return getStatusBadge(status)
 }
 </script>
 
 <template>
   <section
-    class="no-scrollbar flex flex-row gap-3 overflow-x-auto pb-1.25 md:flex-col md:gap-3.75 md:overflow-visible md:pb-0"
+    class="no-scrollbar pointer-events-auto flex flex-row gap-3 overflow-x-auto pb-1.25 md:flex-col md:gap-3.75 md:overflow-visible md:pb-0"
   >
     <!-- create card -->
     <div
@@ -85,17 +69,13 @@ function eventBadge(status) {
     </div>
 
     <!-- cards -->
-    <ul class="m-0 flex list-none flex-col gap-3.75 p-0 max-md:contents">
+    <ul class="m-0 flex list-none flex-col gap-3.75 p-0 max-md:flex-row max-md:gap-3">
       <li
         v-for="evt in props.events"
         :key="evt.id"
         :ref="setCardRef(evt.id)"
-        class="border-border-default bg-bg-surface shadow-card hover:shadow-card relative flex h-40 w-60 flex-none cursor-pointer snap-center flex-col justify-between overflow-hidden rounded-2xl border transition hover:-translate-y-0.5 md:h-auto md:w-full md:rounded-xl"
-        :class="
-          String(props.selectedId) === String(evt.id)
-            ? 'border-brand-primary bg-bg-base border-2'
-            : ''
-        "
+        class="c-card-item"
+        :class="{ 'c-card-item--active': String(props.selectedId) === String(evt.id) }"
         @click="emit('select', evt)"
       >
         <div class="p-3 md:p-3.75">
