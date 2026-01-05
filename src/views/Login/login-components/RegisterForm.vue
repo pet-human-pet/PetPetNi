@@ -9,6 +9,8 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const showPassword = ref(false)
+const passwordError = ref('')
+const confirmPasswordError = ref('')
 
 const togglePassword = () => {
   showPassword.value = !showPassword.value
@@ -20,13 +22,19 @@ const isValidPassword = (pwd) => {
 }
 
 const handleRegister = () => {
+  // 清空之前的錯誤訊息
+  passwordError.value = ''
+  confirmPasswordError.value = ''
+
+  // 驗證密碼格式
   if (!isValidPassword(password.value)) {
-    alert('密碼僅限英文字母、數字和符號，不可使用重音符號。')
+    passwordError.value = '密碼僅限英文字母、數字和符號，不可使用重音符號。'
     return
   }
 
+  // 驗證兩次密碼是否一致
   if (password.value !== confirmPassword.value) {
-    alert('兩次密碼輸入不一致')
+    confirmPasswordError.value = '兩次密碼輸入不一致'
     return
   }
 
@@ -68,7 +76,12 @@ const handleRegister = () => {
       <div class="space-y-2">
         <label class="text-sm font-medium text-gray-600">密碼</label>
         <div class="relative">
-          <BaseInput v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="Password" />
+          <BaseInput
+            v-model="password"
+            :type="showPassword ? 'text' : 'password'"
+            :error="passwordError"
+            placeholder="Password"
+          />
           <button
             type="button"
             class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -99,6 +112,7 @@ const handleRegister = () => {
         <BaseInput
           v-model="confirmPassword"
           :type="showPassword ? 'text' : 'password'"
+          :error="confirmPasswordError"
           placeholder="Confirm Password"
         />
       </div>
