@@ -47,13 +47,10 @@ onUnmounted(() => {
 
 <template>
   <Transition name="fade">
-    <div
-      v-if="isOpen"
-      class="`z-999` fixed inset-0 flex items-center justify-center p-4 backdrop-blur-md"
-    >
+    <div v-if="isOpen" class="[z-999] fixed inset-0 flex items-center justify-center p-4 backdrop-blur-md">
       <!-- Backdrop with Login Gradient -->
       <div
-        class="`bg-gradient-to-br` absolute inset-0 from-red-400/80 to-pink-400/80 transition-opacity"
+        class="absolute inset-0 bg-gradient-to-br from-red-400/80 to-pink-400/80 transition-opacity"
         @click="closeOnBackdrop ? handleClose() : null"
       ></div>
 
@@ -73,12 +70,7 @@ onUnmounted(() => {
           @click="handleClose"
         >
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
       </div>
