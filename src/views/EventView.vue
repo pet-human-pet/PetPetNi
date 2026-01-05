@@ -208,11 +208,11 @@ onMounted(() => {
     <main
       class="relative mx-auto block h-[calc(100vh-64px)] w-full max-w-300 overflow-hidden p-0 md:flex md:gap-6 md:px-5 md:pt-6 md:pb-10"
     >
-      <!-- Sidebar (Mobile: Fixed Bottom | Desktop: Sticky) -->
+      <!-- Sidebar (Mobile: Fixed Top | Desktop: Sticky) -->
       <!-- Refactored max-[800px] to md: (Mobile First approach sort of, using md for desktop switch) -->
-      <!-- Logic: By default (mobile), it's fixed bottom. On md+, it becomes sticky side. -->
+      <!-- Logic: By default (mobile), it's fixed top (under header). On md+, it becomes sticky side. -->
       <aside
-        class="pointer-events-none fixed bottom-7.5 left-0 z-10 flex w-full flex-col gap-5 overflow-auto bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:w-85 md:shrink-0 md:bg-transparent md:px-0"
+        class="pointer-events-none fixed top-[70px] left-0 z-10 flex h-[calc(100vh-90px)] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0"
         :class="{ hidden: isMobileOverlayOpen && vw < 768 }"
       >
         <!-- Tabs -->
@@ -245,8 +245,7 @@ onMounted(() => {
           </button>
         </nav>
 
-        <div class="hidden md:block">
-          <!-- Content only visible on desktop here, mobile uses overlay or logic below? 
+        <!-- Content only visible on desktop here, mobile uses overlay or logic below? 
                 Wait, in original code, sidebar content was inside aside. 
                 On mobile, sidebar content (EventSidebar) should be hidden? 
                 Original: max-[800px]:fixed ... bottom-7.5
@@ -270,7 +269,7 @@ onMounted(() => {
                 If I look at typical mobile designs, usually map is full screen, and you have bottom sheet.
                 Let's assume for now we just want the Tabs to be visible.
            -->
-          <!-- Restoring original behavior but cleaner: On mobile, only Tabs are easily accessible or it acts as a drawer?
+        <!-- Restoring original behavior but cleaner: On mobile, only Tabs are easily accessible or it acts as a drawer?
                 The previous code had `mb-130` on nav in mobile. This is huge.
                 It might be pushing the sidebar content out of view?
                 Or maybe the sidebar content is only for desktop?
@@ -278,48 +277,23 @@ onMounted(() => {
                 On mobile, maybe we don't show the list of events? We show the map.
                 Let's keep the structure but ensure Tabs are visible.
            -->
-          <EventSideBar
-            v-show="tab === 'event'"
-            ref="eventSidebarRef"
-            :events="visibleEvents"
-            :selected-id="selectedEventId"
-            @select="selectEvent"
-            @open-form="showEventForm"
-            @open-comments="openEventComments"
-          />
+        <EventSideBar
+          v-show="tab === 'event'"
+          ref="eventSidebarRef"
+          :events="visibleEvents"
+          :selected-id="selectedEventId"
+          @select="selectEvent"
+          @open-form="showEventForm"
+          @open-comments="openEventComments"
+        />
 
-          <GroupBuySidebar
-            v-show="tab === 'groupbuy'"
-            :items="approvedGroupBuys"
-            :selected-id="selectedGbId"
-            @select="showGroupBuyDetail"
-            @open-form="showGroupBuyForm"
-          />
-        </div>
-
-        <!-- Mobile Sidebar Content (If we need it distinct or same) -->
-        <!-- For now, simplifying: The lists are hidden on mobile by default to show map? 
-             The user complaint was "switch button didn't show up". 
-             So ensuring Nav is visible is priority. 
-        -->
-        <div
-          v-if="!isMobileOverlayOpen"
-          class="max-h-[60vh] overflow-y-auto rounded-t-xl bg-white shadow-lg md:hidden"
-        >
-          <!-- Optional: Show list on mobile if needed, or maybe just nav. 
-                 If I hide the list, users can't pick events from list, only map pins.
-                 Let's include them but maybe collapsible? 
-                 For now, let's just make sure the TABS are there. 
-                 The lists in the original code were likely pushed down or hidden.
-            -->
-          <!-- Render sidebar content for mobile if specific interactions needed, 
-                  but usually map apps just show map and bottom bar.
-                  I will hide the list on mobile for now to keep map view clean, 
-                  unless user specifically asks for list.
-                  Wait, "switch button didn't show up".
-                  I will just render the nav.
-             -->
-        </div>
+        <GroupBuySidebar
+          v-show="tab === 'groupbuy'"
+          :items="approvedGroupBuys"
+          :selected-id="selectedGbId"
+          @select="showGroupBuyDetail"
+          @open-form="showGroupBuyForm"
+        />
       </aside>
 
       <!-- Right content (Map / Details) -->

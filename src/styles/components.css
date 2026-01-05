@@ -4,6 +4,11 @@
   /* =========================
    * 文字元件基底
    * ========================= */
+  /* 輸入框通用樣式 */
+  .c-input {
+    @apply border-border-default bg-bg-surface text-fg-primary placeholder:text-fg-muted focus:border-brand-primary rounded-lg border p-2.5 text-sm transition-colors outline-none;
+  }
+
   .c-title {
     @apply text-xl;
   }
@@ -20,6 +25,22 @@
    * ========================= */
   .c-btn {
     @apply rounded-btn inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* =========================
+   * 主要按鈕（黃底深咖字）
+   * 用途：主要 CTA（Submit, Confirm）
+   * ========================= */
+  .c-btn--primary {
+    @apply rounded-btn bg-btn-primary text-fg-primary inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* =========================
+   * 次要按鈕（灰底灰咖字）
+   * 用途：次要操作（Cancel, Back）
+   * ========================= */
+  .c-btn--secondary {
+    @apply rounded-btn text-fg-secondary inline-flex items-center justify-center gap-2 bg-gray-100 px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   /* =========================
