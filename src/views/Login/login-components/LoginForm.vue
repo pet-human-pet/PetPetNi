@@ -54,7 +54,7 @@ const handleLogin = () => {
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="Password"
-            class="pr-12"
+            input-class="pr-12"
           />
           <button
             type="button"
