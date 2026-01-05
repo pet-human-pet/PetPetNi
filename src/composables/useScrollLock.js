@@ -22,9 +22,34 @@ export function useScrollLock(shouldLock) {
 
     // 實際操作 DOM
     if (lockCount.value > 0) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+
+      // Body padding
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`
+      }
       document.body.classList.add('u-lock-scroll')
+
+      // fix header padding
+      if (scrollbarWidth > 0) {
+        document.querySelectorAll('header').forEach((el) => {
+          if (window.getComputedStyle(el).position === 'fixed') {
+            el.style.paddingRight = `${scrollbarWidth}px`
+            el.dataset.scrollLock = 'true'
+          }
+        })
+      }
     } else {
       document.body.classList.remove('u-lock-scroll')
+      document.body.style.paddingRight = ''
+
+      // Clear header padding
+      document.querySelectorAll('header').forEach((el) => {
+        if (el.dataset.scrollLock === 'true') {
+          el.style.paddingRight = ''
+          delete el.dataset.scrollLock
+        }
+      })
     }
   }
 
