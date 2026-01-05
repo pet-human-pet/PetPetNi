@@ -5,7 +5,7 @@ import LoginForm from '@/views/Login/login-components/LoginForm.vue'
 import RegisterForm from '@/views/Login/login-components/RegisterForm.vue'
 import ForgetPasswordForm from '@/views/Login/login-components/ForgetPasswordForm.vue'
 import OtpVerification from '@/views/Login/login-components/OtpVerification.vue'
-import SocialBindPhone from '@/views/Login/login-components/SocialBindPhone.vue'
+import SocialBindEmail from '@/views/Login/login-components/SocialBindEmail.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
 import SuccessView from '@/views/Login/login-components/SuccessView.vue'
@@ -128,7 +128,7 @@ const handleComplete = () => {
             key="social_bind"
             class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
           >
-            <SocialBindPhone @success="handleSocialBindSuccess" />
+            <SocialBindEmail @success="handleSocialBindSuccess" />
           </div>
           <div
             v-else-if="authMode === 'role'"
