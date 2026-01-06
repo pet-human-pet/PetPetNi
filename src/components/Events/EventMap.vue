@@ -68,7 +68,7 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
 </script>
 
 <template>
-  <div class="relative h-full w-full overflow-hidden bg-[#fdfbf7]">
+  <div class="bg-bg-base relative h-full w-full overflow-hidden">
     <div ref="mapBox" class="relative h-full w-full">
       <div
         ref="mapLayer"
@@ -95,7 +95,7 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
           @click.stop="emit('pin-click', evt)"
         >
           <div
-            class="h-2.5 w-2.5 rounded-full bg-[#ff9f43] opacity-60 shadow-[0_2px_6px_rgba(0,0,0,0.18)] max-[800px]:h-3 max-[800px]:w-3"
+            class="bg-status-warning h-2.5 w-2.5 rounded-full opacity-60 shadow-[0_2px_6px_rgba(0,0,0,0.18)] max-[800px]:h-3 max-[800px]:w-3"
             :class="sameId(props.selectedId, evt.id) ? 'opacity-0' : ''"
           ></div>
         </div>
@@ -108,7 +108,7 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
           @click.stop="emit('pin-click', selectedEvt)"
         >
           <div
-            class="flex h-full w-full -rotate-45 items-center justify-center rounded-[50%_50%_50%_0] border-[3px] border-white bg-[#ff9f43] shadow-[0_3px_6px_rgba(0,0,0,0.2)]"
+            class="bg-status-warning flex h-full w-full -rotate-45 items-center justify-center rounded-[50%_50%_50%_0] border-[3px] border-white shadow-[0_3px_6px_rgba(0,0,0,0.2)]"
           >
             <i class="fa-solid fa-paw rotate-45 text-[18px] text-white max-[800px]:text-[24px]"></i>
           </div>
