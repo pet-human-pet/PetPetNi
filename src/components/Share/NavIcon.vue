@@ -4,10 +4,12 @@ import { computed } from 'vue'
 const props = defineProps({
   labelZh: { type: String, required: true },
   labelEn: { type: String, required: true },
-  iconName: String,
-  to: String,
+  iconName: { type: String, default: '' },
+  to: { type: String, default: '' },
   variant: { type: String, default: 'grid' },
-  iconSizeClass: { type: String, default: '' } // Allow overriding icon size
+  iconSizeClass: { type: String, default: '' }, // Allow overriding icon size
+  animationDelay: { type: String, default: '0s' },
+  animationDuration: { type: String, default: '3s' }
 })
 
 const isList = computed(() => props.variant === 'list')
@@ -33,7 +35,7 @@ const getIconUrl = (name) => {
     <div :class="[isList ? 'flex flex-1 items-center' : 'contents']">
       <!-- Icon Container -->
       <div
-        class="relative flex items-center justify-center"
+        class="jump-object relative flex items-center justify-center"
         :class="[
           iconSizeClass
             ? iconSizeClass
@@ -41,6 +43,10 @@ const getIconUrl = (name) => {
               ? 'mr-4 h-10 w-10'
               : 'mb-2 h-24 w-24 sm:h-28 sm:w-28'
         ]"
+        :style="{
+          animationDelay: animationDelay,
+          animationDuration: animationDuration
+        }"
       >
         <slot name="icon">
           <div
@@ -94,3 +100,23 @@ const getIconUrl = (name) => {
     </div>
   </component>
 </template>
+
+<style scoped>
+.jump-object {
+  animation: jump 3s ease-in-out infinite;
+}
+
+@keyframes jump {
+  0%,
+  86.67%,
+  100% {
+    transform: translate(0, 0);
+  }
+  6.67% {
+    transform: translate(0, -20%);
+  }
+  13.33% {
+    transform: translate(0, 0);
+  }
+}
+</style>
