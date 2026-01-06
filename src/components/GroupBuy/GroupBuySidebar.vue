@@ -48,6 +48,16 @@ const emit = defineEmits(['select', 'open-form'])
           </div>
 
           <div class="text-brand-primary text-[13px] font-bold">$ {{ gb.price }} / 份</div>
+
+          <div v-if="gb.initiator" class="text-fg-muted mt-2 text-xs">
+            發起人：
+            <span
+              class="text-brand-primary decoration-brand-primary/30 hover:decoration-brand-primary cursor-pointer font-bold underline underline-offset-2"
+              @click.stop="() => {} /* Placeholder for profile navigation */"
+            >
+              {{ gb.initiator.name }}
+            </span>
+          </div>
         </div>
       </li>
     </ul>

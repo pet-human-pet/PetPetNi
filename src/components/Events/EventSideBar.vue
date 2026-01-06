@@ -97,6 +97,16 @@ function eventBadge(status) {
           >
             {{ evt.desc }}
           </div>
+
+          <div v-if="evt.initiator" class="text-fg-muted mt-2 text-xs">
+            發起人：
+            <span
+              class="text-brand-primary decoration-brand-primary/30 hover:decoration-brand-primary cursor-pointer font-bold underline underline-offset-2"
+              @click.stop="() => {} /* Placeholder for profile navigation */"
+            >
+              {{ evt.initiator.name }}
+            </span>
+          </div>
         </div>
 
         <div class="flex gap-2.5 px-3 pb-3.75 md:px-3.75">
