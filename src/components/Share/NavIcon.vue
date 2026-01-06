@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  labelJp: { type: String, required: true },
+  labelZh: { type: String, required: true },
   labelEn: { type: String, required: true },
   iconName: String,
   to: String,
@@ -64,7 +64,7 @@ const getIconUrl = (name) => {
             isList ? 'text-base leading-tight' : 'text-sm leading-none tracking-wide sm:text-xl'
           ]"
         >
-          {{ labelJp }}
+          {{ labelZh }}
         </h2>
       </div>
     </div>
