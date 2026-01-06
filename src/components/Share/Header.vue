@@ -1,9 +1,19 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useFavoritesStore } from '@/stores/favorites'
+import { computed, onBeforeUnmount, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
+import MenuButton from '@/components/Button/MenuButton.vue'
+import ImageCropper from '@/components/Form/ImageCropper.vue'
 
+// Props
+const props = defineProps({
+  transparent: {
+    type: Boolean,
+    default: false
+  }
+})
+
+// Router & Store
 const router = useRouter()
 const fav = useFavoritesStore()
 const uiStore = useUIStore()
