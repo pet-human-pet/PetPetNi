@@ -9,25 +9,33 @@ const items = [
     labelEn: 'ACTIVITY',
     labelZh: '活動',
     iconName: 'icon-about.svg',
-    gridClass: 'col-start-1 row-start-1'
+    gridClass: 'col-start-1 row-start-1',
+    animationDelay: '0.7s',
+    animationDuration: '3.2s'
   },
   {
     labelEn: 'DATING',
     labelZh: '交友',
     iconName: 'icon-job.svg',
-    gridClass: 'col-start-2 row-start-1 md:col-start-3 md:row-start-1'
+    gridClass: 'col-start-2 row-start-1 md:col-start-3 md:row-start-1',
+    animationDelay: '1.4s',
+    animationDuration: '2.8s'
   },
   {
     labelEn: 'CHAT',
     labelZh: '聊天',
     iconName: 'icon-bases.svg',
-    gridClass: 'col-start-1 row-start-3 md:col-start-1 md:row-start-3'
+    gridClass: 'col-start-1 row-start-3 md:col-start-1 md:row-start-3',
+    animationDelay: '0.2s',
+    animationDuration: '3.5s'
   },
   {
     labelEn: 'SOCIAL',
     labelZh: '社群',
     iconName: 'icon-interview.svg',
-    gridClass: 'col-start-2 row-start-3 md:col-start-3 md:row-start-3'
+    gridClass: 'col-start-2 row-start-3 md:col-start-3 md:row-start-3',
+    animationDelay: '2.1s',
+    animationDuration: '3.0s'
   }
 ]
 </script>
@@ -70,7 +78,11 @@ const items = [
           :key="item.labelEn"
           :class="[item.gridClass, 'pointer-events-auto flex flex-col items-center justify-center']"
         >
-          <NavIcon v-bind="item" />
+          <NavIcon
+            v-bind="item"
+            :animation-delay="item.animationDelay"
+            :animation-duration="item.animationDuration"
+          />
         </div>
       </div>
     </div>
