@@ -11,14 +11,15 @@ const route = useRoute()
 // 如果是內頁 -> false (隱藏跑馬燈)
 const isHomePage = computed(() => route.name === 'home' || route.path === '/')
 
-const marqueeTextWhite = 'THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 2027'
-const marqueeTextRed = 'THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 2027'
+// 跑馬燈文字內容
+const marqueeTextLight = '繁體。中文字。測試'
+const marqueeTextDark = '繁體。中文字。測試'
 </script>
 
 <template>
   <footer class="pointer-events-auto z-20 flex w-full flex-col">
     <div
-      class="flex w-full items-end justify-between p-4 text-[10px] font-medium tracking-wide text-black md:px-8 md:pb-4 md:text-xs"
+      class="flex w-full items-end justify-between px-[50px] py-4 text-[10px] font-medium tracking-wide text-black md:pb-4 md:text-xs"
     >
       <div class="opacity-80">&copy; MAYEKAWA MFG. CO., LTD.</div>
 
@@ -51,20 +52,20 @@ const marqueeTextRed = 'THE COOLEST COMPANY IN THE WORLD. MAYEKAWA RECRUITING 20
 
     <div v-if="isHomePage" class="border-mayekawa/20 flex w-full items-center border-t bg-white">
       <MarqueeBorder
-        :text="marqueeTextWhite"
+        :text="marqueeTextLight"
         bg-color="bg-white"
         text-color="text-mayekawa"
-        :speed="40"
+        :duration="45"
       />
     </div>
 
     <div v-if="isHomePage" class="bg-mayekawa w-full">
       <MarqueeBorder
-        :text="marqueeTextRed"
+        :text="marqueeTextDark"
         bg-color="bg-mayekawa"
         text-color="text-white"
         :reverse="true"
-        :speed="40"
+        :duration="45"
       />
     </div>
   </footer>
