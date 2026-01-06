@@ -16,21 +16,24 @@ export const useEventMapStore = defineStore('event', () => {
       locId: 1,
       title: '101 狗狗散步團',
       desc: '在 101 大樓下方的草地集合，享受週末陽光。',
-      status: 'open'
+      status: 'open',
+      initiator: { id: 'u1', name: '王小明', avatar: '' }
     },
     {
       id: 2,
       locId: 2,
       title: '國父紀念館飛盤賽',
       desc: '歡迎各路飛盤好狗前來挑戰！',
-      status: 'active'
+      status: 'active',
+      initiator: { id: 'u2', name: '李大華', avatar: '' }
     },
     {
       id: 3,
       locId: 3,
       title: '松山菸廠攝影競賽',
       desc: '歡迎拍攝好手，一起來參加攝影比賽!',
-      status: 'ended'
+      status: 'ended',
+      initiator: { id: 'u3', name: '張攝手', avatar: '' }
     }
   ])
 
@@ -40,6 +43,7 @@ export const useEventMapStore = defineStore('event', () => {
     const newEvt = {
       id: Date.now(),
       status: 'pending',
+      initiator: { id: 'me', name: '我', avatar: '' },
       ...payload
     }
     events.value.push(newEvt)
