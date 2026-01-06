@@ -1,50 +1,48 @@
 <script setup>
-import MarqueeBorder from "./MarqueeBorder.vue";
-import AppFooter from "../Share/AppFooter.vue";
-
-const marqueeTextRed = "MAYEKAWA NEW GRADUATE RECRUITING";
+import MarqueeBorder from './MarqueeBorder.vue'
+import AppFooter from '../Share/AppFooter.vue'
 
 defineProps({
   // Allows overriding the spacer height if needed, default matches standard header
   topSpacerHeight: {
     type: String,
-    default: "120px",
-  },
-});
+    default: '120px'
+  }
+})
 </script>
 
 <template>
   <div
-    class="h-dvh w-full bg-[#EBE7D9] overflow-hidden relative grid grid-cols-[30px_1fr_30px] md:grid-cols-[40px_1fr_40px] grid-rows-[auto_1fr_auto]"
+    class="relative grid h-dvh w-full grid-cols-[30px_1fr_30px] grid-rows-[auto_1fr_auto] overflow-hidden bg-[#EBE7D9] md:grid-cols-[40px_1fr_40px]"
   >
     <!-- Background Slot (Spans fully, lowest z-index) -->
-    <div class="col-span-full row-span-full z-0 pointer-events-none">
+    <div class="pointer-events-none z-0 col-span-full row-span-full">
       <slot name="background"></slot>
     </div>
 
     <!-- 1. Top Marquee (Row 1, Full Width) -->
-    <div class="col-span-full row-start-1 bg-mayekawa z-20">
+    <div class="bg-mayekawa z-20 col-span-full row-start-1">
       <MarqueeBorder
-        :text="marqueeTextRed"
+        text="PAWS·PAWS"
         bg-color="bg-mayekawa"
         text-color="text-white"
-        :speed="40"
+        :duration="50"
       />
     </div>
 
     <!-- 2. Left Marquee (Col 1, Full Height, Highest Z-Index) -->
     <div
-      class="col-start-1 row-span-full h-full bg-mayekawa z-30 relative overflow-hidden pointer-events-none"
+      class="bg-mayekawa pointer-events-none relative z-30 col-start-1 row-span-full h-full overflow-hidden"
     >
       <!-- Rotated Marquee Wrapper -->
       <div
-        class="absolute top-1/2 left-1/2 origin-center -translate-x-1/2 -translate-y-1/2 -rotate-90 whitespace-nowrap w-[200vh] flex justify-center"
+        class="absolute top-1/2 left-1/2 flex w-[200vh] origin-center -translate-x-1/2 -translate-y-1/2 -rotate-90 justify-center whitespace-nowrap"
       >
         <MarqueeBorder
-          :text="marqueeTextRed"
+          text="PAWS·PAWS"
           bg-color="transparent"
           text-color="text-white"
-          :speed="40"
+          :duration="50"
         />
       </div>
     </div>
@@ -58,22 +56,22 @@ defineProps({
 
     <!-- 4. Right Marquee (Col 3, Full Height, Highest Z-Index) -->
     <div
-      class="col-start-3 row-span-full h-full bg-mayekawa z-30 relative overflow-hidden pointer-events-none"
+      class="bg-mayekawa pointer-events-none relative z-30 col-start-3 row-span-full h-full overflow-hidden"
     >
       <!-- Rotated Marquee Wrapper -->
       <div
-        class="absolute top-1/2 left-1/2 origin-center -translate-x-1/2 -translate-y-1/2 rotate-90 whitespace-nowrap w-[200vh] flex justify-center"
+        class="absolute top-1/2 left-1/2 flex w-[200vh] origin-center -translate-x-1/2 -translate-y-1/2 rotate-90 justify-center whitespace-nowrap"
       >
         <MarqueeBorder
-          :text="marqueeTextRed"
+          text="PAWS·PAWS"
           bg-color="transparent"
           text-color="text-white"
-          :speed="40"
+          :duration="50"
         />
       </div>
     </div>
 
     <!-- 5. App Footer (Bottom Marquees) -->
-    <AppFooter class="col-span-full row-start-3 w-full z-20" />
+    <AppFooter class="z-20 col-span-full row-start-3 w-full" />
   </div>
 </template>
