@@ -6,26 +6,26 @@ import MainFrame from '../components/Share/MainFrame.vue'
 // Grid Configuration: Mobile (2x3 Corners) / Desktop (3x3 Corners)
 const items = [
   {
-    labelEn: 'ABOUT US',
-    labelJp: 'マエカワについて',
+    labelEn: 'ACTIVITY',
+    labelZh: '活動',
     iconName: 'icon-about.svg',
     gridClass: 'col-start-1 row-start-1'
   },
   {
-    labelEn: 'JOB',
-    labelJp: 'マエカワの仕事',
+    labelEn: 'DATING',
+    labelZh: '交友',
     iconName: 'icon-job.svg',
     gridClass: 'col-start-2 row-start-1 md:col-start-3 md:row-start-1'
   },
   {
-    labelEn: 'BASES',
-    labelJp: '拠点地域一覧',
+    labelEn: 'CHAT',
+    labelZh: '聊天',
     iconName: 'icon-bases.svg',
     gridClass: 'col-start-1 row-start-3 md:col-start-1 md:row-start-3'
   },
   {
-    labelEn: 'INTERVIEW',
-    labelJp: '社員インタビュー',
+    labelEn: 'SOCIAL',
+    labelZh: '社群',
     iconName: 'icon-interview.svg',
     gridClass: 'col-start-2 row-start-3 md:col-start-3 md:row-start-3'
   }
@@ -40,9 +40,9 @@ const items = [
       </div>
     </template>
 
-    <div class="pointer-events-none relative flex h-full w-full items-center justify-center">
+    <div class="pointer-events-none relative flex h-full items-center justify-center">
       <div
-        class="`aspect-4/3` relative flex h-auto max-h-full w-auto max-w-full items-center justify-center"
+        class="relative flex aspect-[4/3] h-auto max-h-full w-auto max-w-full items-center justify-center"
       >
         <div class="absolute inset-0 flex h-full w-full items-center justify-center">
           <img
