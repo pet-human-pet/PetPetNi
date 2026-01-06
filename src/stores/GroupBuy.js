@@ -10,7 +10,8 @@ export const useGroupBuyStore = defineStore('groupBuy', () => {
       target: 30,
       img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80',
       desc: '這款雨衣透氣又防水,適合台灣潮濕的天氣。湊滿30件廠商給批發價!',
-      status: 'recruiting'
+      status: 'recruiting',
+      initiator: { id: 'u4', name: '陳小美', avatar: '' }
     },
     {
       id: 202,
@@ -19,7 +20,8 @@ export const useGroupBuyStore = defineStore('groupBuy', () => {
       target: 50,
       img: 'https://images.unsplash.com/photo-1582798358481-d199fb7347bb?auto=format&fit=crop&w=800&q=80',
       desc: '無添加防腐劑,自家烘焙,每包100g。需要冷藏保存。',
-      status: 'recruiting'
+      status: 'recruiting',
+      initiator: { id: 'u5', name: '林烘焙', avatar: '' }
     }
   ])
 
@@ -38,7 +40,8 @@ export const useGroupBuyStore = defineStore('groupBuy', () => {
     const newGb = {
       ...payload,
       status: payload.status ?? 'pending',
-      createdAt: payload.createdAt ?? Date.now()
+      createdAt: payload.createdAt ?? Date.now(),
+      initiator: { id: 'me', name: '我', avatar: '' }
     }
     groupBuys.value.unshift(newGb)
     return newGb
