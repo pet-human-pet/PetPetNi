@@ -9,7 +9,8 @@ const router = createRouter({
       component: () => import('@/views/HomeView.vue'),
       meta: {
         hideFooter: true,
-        headerType: 'landing'
+        headerType: 'app', // 使用 Header.vue
+        transparentHeader: true // Header 使用透明背景
       }
     },
 

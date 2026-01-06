@@ -20,7 +20,13 @@ const showFooter = computed(() => !route.meta.hideFooter)
     <ReportDialog />
     <MenuOverlay />
     <AppHeader v-if="route.meta.headerType === 'landing'" />
-    <MainHeader v-if="route.meta.headerType === 'app'" />
+
+    <!-- Main App Header (Event, Social, Profile, Home) -->
+    <!-- Home 頁面的 Header z-index 需設為 15，在 Marquee (z-20/30) 下方但在內容 (z-10) 上方 -->
+    <MainHeader
+      v-if="route.meta.headerType === 'app'"
+      :transparent="route.meta.transparentHeader"
+    />
 
     <main class="w-full flex-1">
       <RouterView />
