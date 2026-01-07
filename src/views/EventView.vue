@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useScrollLock, useWindowSize, useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useGroupBuyStore } from '@/stores/GroupBuy'
 // import { useEventCommentStore } from '@/stores/EventComment'
@@ -23,7 +24,6 @@ const { groupBuys, approvedGroupBuys, pendingGroupBuys } = storeToRefs(groupBuyS
 // 評論 Store 直接使用 actions/getters
 
 // 滾動鎖定邏輯
-import { useScrollLock } from '@vueuse/core'
 
 const isLocked = useScrollLock(document.body)
 
@@ -42,16 +42,17 @@ const MAP_PROFILE = {
   mobile: { scale: 1, dx: 0, dy: 0 }
 }
 
-const vw = ref(window.innerWidth)
-const onResize = () => (vw.value = window.innerWidth)
-onMounted(() => window.addEventListener('resize', onResize))
-onBeforeUnmount(() => window.removeEventListener('resize', onResize))
+const { width: vw } = useWindowSize()
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isMobile = breakpoints.smaller('md')
+const isTablet = breakpoints.between('md', 'lg')
 
 const locations = computed(() => {
-  // 使用 'lg' (1024px) 作為平板邊界，'md' (768px) 作為手機邊界
-  const profile = vw.value < 768 ? 'mobile' : vw.value < 1024 ? 'tablet' : 'desktop'
-  const { scale, dx, dy } = MAP_PROFILE[profile]
+  let profile = 'desktop'
+  if (isMobile.value) profile = 'mobile'
+  else if (isTablet.value) profile = 'tablet'
 
+  const { scale, dx, dy } = MAP_PROFILE[profile]
   const out = {}
   for (const [id, loc] of Object.entries(eventStore.baseLocations)) {
     out[id] = {
@@ -189,8 +190,8 @@ onMounted(() => {
       <!-- 將 max-[800px] 重構為 md: (類 Mobile First 方法，使用 md 作為桌機切換點) -->
       <!-- 邏輯：預設 (手機) 為固定頂部 (header 下方)。在 md+ 變為黏性側邊欄。 -->
       <aside
-        class="pointer-events-none fixed top-[70px] left-0 z-10 flex h-[calc(100vh-90px)] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0"
-        :class="{ hidden: isMobileOverlayOpen && vw < 768 }"
+        class="pointer-events-none fixed top-17.5 left-0 z-10 flex h-[calc(100vh-90px)] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0"
+        :class="{ hidden: isMobileOverlayOpen && isMobile }"
       >
         <!-- 頁籤 -->
         <nav
@@ -222,38 +223,6 @@ onMounted(() => {
           </button>
         </nav>
 
-        <!-- 內容僅在桌機顯示，手機使用覆蓋層或下方邏輯？ 
-                等等，原始代碼中，側邊欄內容在 aside 內部。
-                在手機上，側邊欄內容 (EventSidebar) 應該隱藏？
-                原始：max-[800px]:fixed ... bottom-7.5
-                側邊欄內容 (列表) - 在手機上去哪了？
-                原始代碼似乎沒有在手機上明確隱藏 EventSideBar，
-                但 aside 高度可能很小或者是只有 tabs？
-                事實上，原始代碼有：max-[800px]:mb-130 給 tabs。
-                而且 aside 本身是固定底部。
-                列表似乎在那裡但也許被隱藏在螢幕外？
-                再看一次原始代碼。
-                aside -> 固定底部。
-                nav -> mb-130。
-                所以列表項目可能在 nav 下方或上方？
-                如果 nav 有 mb-130，它會把內容往下推？不，nav 的 margin-bottom 會把兄弟元素往下推。
-                實際上檢查原始代碼，aside 是一個 flex-col。
-                nav 是第一個子元素。
-                如果 aside 是固定底部，flex-col 意味著 nav 在 aside 容器頂部，然後 Sidebar 項目在它下方。
-                如果 aside 是 bottom-7.5，且 nav 有 mb-130... 這個佈局很怪。
-                也許使用者的意圖是只在手機底部顯示 Tabs，列表顯示在其他地方？
-                但 EventSidebar 在 aside 裡面。
-                如果我看典型的行動設計，通常地圖是全螢幕，並且有一個底部工作表 (bottom sheet)。
-                暫時假設我們只想讓 Tabs 可見。
-           -->
-        <!-- 恢復原始行為但更乾淨：在手機上，只有 Tabs 容易存取或者它充當抽屜？
-                之前的代碼在手機 nav 上有 `mb-130`。這很大。
-                它可能把側邊欄內容推到視圖外？
-                或者側邊欄內容僅供桌機？
-                "EventSideBar v-show=tab==='event'"
-                在手機上，也許我們不顯示活動列表？我們顯示地圖。
-                讓我們保持結構但確保 Tabs 可見。
-           -->
         <EventSideBar
           v-show="tab === 'event'"
           ref="eventSidebarRef"
