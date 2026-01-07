@@ -194,11 +194,7 @@ watch(
 
           <div
             class="rounded-xl border-2 p-5"
-            :class="
-              hasApplied
-                ? 'border-status-success-border bg-status-success-bg'
-                : 'border-brand-primary bg-bg-base'
-            "
+            :class="hasApplied ? 'c-status-block--success' : 'border-brand-primary bg-bg-base'"
           >
             <div class="flex items-center justify-between">
               <div>
