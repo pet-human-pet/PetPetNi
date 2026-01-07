@@ -1,6 +1,6 @@
 <script setup>
 import ActionBar from './PostCard/ActionBar.vue'
-import { ref, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import AudiencePicker from './AudiencePicker.vue'
 import { useRouter } from 'vue-router'
 import CommentSection from './CommentSection.vue'
@@ -88,11 +88,13 @@ const onImgLoad = (e, key) => {
   }
   fitMap.value[key] = 'cover'
 }
+
+const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}`)
 </script>
 
 <template>
   <div
-    class="c-card w-full min-w-0 p-5 transition-colors duration-500 md:p-6"
+    class="c-card relative w-full min-w-0 p-5 transition-colors duration-500 md:p-6"
     :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
   >
     <div class="flex items-start justify-between">
@@ -209,6 +211,9 @@ const onImgLoad = (e, key) => {
       :like-count="post.likeCount"
       :is-liked="post.isLiked"
       :is-bookmarked="post.isBookmarked"
+      :share-url="shareUrl"
+      :share-title="`來看看${post.author}的貼文`"
+      :share-text="post.content"
       @like="$emit('like', $event)"
       @open-comments="$emit('open-comments', $event)"
       @share="$emit('share', $event)"

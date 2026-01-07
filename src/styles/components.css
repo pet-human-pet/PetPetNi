@@ -87,6 +87,16 @@
 
   /* Social */
 
+  /* ActionBar */
+  .action-icon {
+    transition: transform 150ms ease;
+    transform-origin: center;
+  }
+
+  .action-btn:hover .action-icon {
+    transform: scale(1.1);
+  }
+
   /* 卡片元件基底 */
   .c-card {
     @apply bg-bg-surface shadow-card rounded-card p-4;
