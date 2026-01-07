@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useScrollLock, useWindowSize, useBreakpoints, breakpointsTailwind } from '@vueuse/core'
+import { useScrollLock, useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useGroupBuyStore } from '@/stores/GroupBuy'
 // import { useEventCommentStore } from '@/stores/EventComment'
@@ -42,7 +42,6 @@ const MAP_PROFILE = {
   mobile: { scale: 1, dx: 0, dy: 0 }
 }
 
-const { width: vw } = useWindowSize()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('md')
 const isTablet = breakpoints.between('md', 'lg')
