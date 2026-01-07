@@ -23,27 +23,17 @@ const { groupBuys, approvedGroupBuys, pendingGroupBuys } = storeToRefs(groupBuyS
 // 評論 Store 直接使用 actions/getters
 
 // 滾動鎖定邏輯
-let _prevOverflow = ''
-let _prevPaddingRight = ''
+import { useScrollLock } from '@vueuse/core'
 
-function lockBodyScroll() {
-  const body = document.body
-  _prevOverflow = body.style.overflow
-  _prevPaddingRight = body.style.paddingRight
+const isLocked = useScrollLock(document.body)
 
-  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-  body.style.overflow = 'hidden'
-  if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
-}
+onMounted(() => {
+  isLocked.value = true
+})
 
-function unlockBodyScroll() {
-  const body = document.body
-  body.style.overflow = _prevOverflow
-  body.style.paddingRight = _prevPaddingRight
-}
-
-onMounted(lockBodyScroll)
-onBeforeUnmount(unlockBodyScroll)
+onBeforeUnmount(() => {
+  isLocked.value = false
+})
 
 // 地圖設定邏輯
 const MAP_PROFILE = {
