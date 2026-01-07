@@ -141,10 +141,23 @@
   /* Shadow */
   --shadow-card: 0 2px 5px rgba(0, 0, 0, 0.08);
   --shadow-dialog: 0 5px 10px rgba(0, 0, 0, 0.1);
+
+  /* Header 高度定義 */
+  --header-height-desktop: 72px; /* h-18 */
+  --header-height-mobile: 60px;  /* h-15 */
 }
 
 /* 全站預設，讓大家不用每個地方都重複寫 */
-@layer base {
+@layer base {  
+  :root {
+  --header-h: var(--header-height-mobile);
+  }
+  @media (min-width: 768px) {
+    :root {
+      --header-h: var(--header-height-desktop);
+    }
+  }
+
   html {
     font-family: var(--font-sans);
   }
