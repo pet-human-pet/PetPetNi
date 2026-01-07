@@ -145,5 +145,15 @@
   .c-select {
     @apply border-border-default bg-bg-surface text-fg-primary placeholder:text-fg-muted focus:border-brand-primary disabled:text-fg-muted h-11 w-full rounded-lg border px-3 py-2 text-sm transition-colors outline-none disabled:bg-gray-100;
   }
+  /* 狀態區塊（背景色 + 邊框色） */
+  .c-status-block--success {
+    background-color: #f6fffb;
+    border-color: #d1fae5;
+  }
+
+  .c-status-block--warning {
+    background-color: #fffcf7;
+  }
+
   /* UI (modal/dropdown/toast) */
 }
