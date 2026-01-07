@@ -29,8 +29,8 @@ const emit = defineEmits(['select', 'open-form'])
       <li
         v-for="gb in props.items"
         :key="gb.id"
-        class="c-card-item"
-        :class="{ 'c-card-item--active': props.selectedId === gb.id }"
+        class="c-event-card"
+        :class="{ 'c-event-card--active': props.selectedId === gb.id }"
         @click="emit('select', gb)"
       >
         <div class="p-3 md:p-3.75">

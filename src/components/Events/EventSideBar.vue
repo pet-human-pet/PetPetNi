@@ -74,8 +74,8 @@ function eventBadge(status) {
         v-for="evt in props.events"
         :key="evt.id"
         :ref="setCardRef(evt.id)"
-        class="c-card-item"
-        :class="{ 'c-card-item--active': String(props.selectedId) === String(evt.id) }"
+        class="c-event-card"
+        :class="{ 'c-event-card--active': String(props.selectedId) === String(evt.id) }"
         @click="emit('select', evt)"
       >
         <div class="p-3 md:p-3.75">

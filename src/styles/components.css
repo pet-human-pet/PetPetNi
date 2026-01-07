@@ -4,10 +4,6 @@
   /* =========================
    * 文字元件基底
    * ========================= */
-  /* 輸入框通用樣式 */
-  .c-input {
-    @apply border-border-default bg-bg-surface text-fg-primary placeholder:text-fg-muted focus:border-brand-primary rounded-lg border p-2.5 text-sm transition-colors outline-none;
-  }
 
   .c-title {
     @apply text-xl;
@@ -121,11 +117,11 @@
   /* Profile */
 
   /* Event / GroupBuy 側邊欄卡片項目 */
-  .c-card-item {
+  .c-event-card {
     @apply border-border-default bg-bg-surface shadow-card hover:shadow-card relative flex h-40 w-60 flex-none cursor-pointer snap-center flex-col justify-between overflow-hidden rounded-2xl border transition hover:-translate-y-0.5 md:h-auto md:w-full md:rounded-xl;
   }
 
-  .c-card-item--active {
+  .c-event-card--active {
     @apply border-brand-primary bg-bg-base border-2;
   }
 
@@ -144,9 +140,10 @@
     }
   }
 
+  /* 輸入框與下拉選單 */
   .c-input,
   .c-select {
-    @apply border-border-default focus:border-brand-primary disabled:text-fg-muted h-11 w-full rounded-lg border bg-white px-3 py-2 outline-none disabled:bg-gray-100;
+    @apply border-border-default bg-bg-surface text-fg-primary placeholder:text-fg-muted focus:border-brand-primary disabled:text-fg-muted h-11 w-full rounded-lg border px-3 py-2 text-sm transition-colors outline-none disabled:bg-gray-100;
   }
   /* UI (modal/dropdown/toast) */
 }
