@@ -10,11 +10,13 @@ export const useScreen = () => {
   })
 
   const isMobile = breakpoints.smaller('md')
+  const isTablet = breakpoints.between('md', 'lg')
   const isDesktop = breakpoints.greaterOrEqual('md')
 
   return {
     isMobile,
     isDesktop,
+    isTablet,
     breakpoints
   }
 }
