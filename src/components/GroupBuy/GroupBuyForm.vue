@@ -70,11 +70,22 @@ function backToForm() {
 
     <!-- 表單 -->
     <section v-else class="mx-auto max-w-150">
-      <div class="mb-6">
-        <h2 class="text-fg-primary text-[24px] font-bold">
-          <i class="fa-solid fa-shop mr-2"></i>發起團購
-        </h2>
-        <p class="text-fg-secondary">填寫完整資訊並送審，通過後才會公開顯示。</p>
+      <div class="mb-6 flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-fg-primary text-[24px] font-bold">
+            <i class="fa-solid fa-shop mr-2"></i>發起團購
+          </h2>
+          <p class="text-fg-secondary">填寫完整資訊並送審，通過後才會公開顯示。</p>
+        </div>
+
+        <button
+          class="text-fg-muted hover:bg-bg-base hover:text-brand-accent flex h-8.5 w-8.5 items-center justify-center rounded-[10px] bg-gray-100 transition"
+          type="button"
+          aria-label="關閉"
+          @click="emit('cancel')"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
 
       <div class="flex flex-col gap-5">
