@@ -12,6 +12,7 @@ const emit = defineEmits(['apply', 'overlay'])
 // UI state
 const formOpen = ref(false)
 const hasApplied = ref(false)
+const isDescOpen = ref(false)
 
 // form state
 const form = reactive({
@@ -72,7 +73,7 @@ watch(
 
 <template>
   <div
-    class="bg-bg-surface fixed top-15 left-0 z-50 h-[calc(100vh-60px)] w-full overflow-y-auto p-10 pb-20 md:static md:z-auto md:h-full md:w-auto md:bg-transparent md:pb-10"
+    class="bg-bg-surface fixed top-15 left-0 z-50 h-[calc(100vh-60px)] w-full overflow-y-auto px-6 pt-14 pb-64 md:static md:z-auto md:h-full md:w-auto md:bg-transparent md:p-10 md:pb-10"
   >
     <template v-if="props.item">
       <!-- ===== Header ===== -->
@@ -152,7 +153,7 @@ watch(
                 v-model.trim="form.note"
                 rows="4"
                 placeholder="例如：希望平日晚上面交 / 有問題可用 LINE 聯絡我…"
-                class="c-input border-border-default focus:border-brand-primary w-full resize-none rounded-xl px-4 py-3 text-[14px] leading-6 outline-none"
+                class="c-input border-border-default focus:border-brand-primary h-32 w-full resize-none rounded-xl px-4 py-3 text-[14px] leading-6 outline-none"
               />
             </label>
           </div>
@@ -188,7 +189,7 @@ watch(
           <img
             :src="props.item.img"
             :alt="props.item.title"
-            class="mb-5 max-h-75 w-full rounded-xl object-cover md:max-h-60"
+            class="mb-3 h-48 w-full rounded-xl object-cover md:mb-5 md:h-auto md:max-h-60"
           />
 
           <div
@@ -230,9 +231,32 @@ watch(
             </p>
           </div>
 
-          <h3 class="text-fg-primary my-5 text-[18px] font-bold">商品詳情</h3>
-          <div class="text-fg-primary leading-7">
-            {{ props.item.desc }}
+          <div
+            class="mt-5 flex cursor-pointer items-center justify-between md:cursor-default"
+            @click="isDescOpen = !isDescOpen"
+          >
+            <h3 class="text-fg-primary text-[18px] font-bold">商品詳情</h3>
+            <span class="md:hidden">
+              <i
+                class="fa-solid text-fg-secondary transition-transform duration-300"
+                :class="isDescOpen ? 'fa-chevron-up rotate-0' : 'fa-chevron-down'"
+              ></i>
+            </span>
+          </div>
+
+          <div
+            class="grid transition-[grid-template-rows] duration-300 ease-out md:grid-rows-[1fr] md:opacity-100"
+            :class="
+              isDescOpen
+                ? 'grid-rows-[1fr] opacity-100'
+                : 'grid-rows-[0fr] opacity-0 md:grid-rows-[1fr] md:opacity-100'
+            "
+          >
+            <div class="overflow-hidden">
+              <div class="text-fg-primary mt-2 leading-7 whitespace-pre-wrap">
+                {{ props.item.desc }}
+              </div>
+            </div>
           </div>
         </div>
       </template>
