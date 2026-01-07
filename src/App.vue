@@ -16,14 +16,10 @@ const showFooter = computed(() => !route.meta.hideFooter)
 <template>
   <div class="relative flex min-h-screen w-full flex-col">
     <MenuOverlay />
-
-    <!-- Landing Page Header (Home) -->
     <AppHeader v-if="route.meta.headerType === 'landing'" />
-
-    <!-- Main App Header (Event, Social, Profile) -->
     <MainHeader v-if="route.meta.headerType === 'app'" />
 
-    <main class="w-full flex-1" :class="{ 'pt-17.5': route.meta.headerType === 'app' }">
+    <main class="w-full flex-1">
       <RouterView />
     </main>
 
