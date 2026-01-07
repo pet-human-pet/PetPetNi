@@ -235,7 +235,7 @@ function backToForm() {
           type="button"
           @click="submit"
         >
-          送審團購
+          送出審核
         </button>
 
         <button class="c-btn--secondary" type="button" @click="emit('cancel')">取消</button>
