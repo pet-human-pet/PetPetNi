@@ -151,8 +151,15 @@ const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = 
 
 /** 其他功能：先留接口 */
 // const openEdit = (postId) => console.log('edit', postId)
-const sharePost = () => {
-  /* share */
+const sharePost = async (payload) => {
+  if (payload?.url) {
+    try {
+      await navigator.clipboard.writeText(payload.url)
+      showToast('連結已複製')
+    } catch {
+      showToast('複製失敗')
+    }
+  }
 }
 </script>
 
