@@ -1,9 +1,14 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import PostComposer from '@/components/Social/PostComposer.vue'
 import { useScreen } from '@/composables/useScreen'
 import { useActiveItem } from '@/composables/useActiveItem'
+import { usePostStore } from '@/stores/usePostStore'
+import { useToast } from '@/composables/useToast'
+
+const postStore = usePostStore()
+const { success } = useToast()
 
 const rawPosts = ref([
   {
@@ -56,6 +61,10 @@ const rawPosts = ref([
   }
 ])
 
+onMounted(() => {
+  postStore.fetchPosts()
+})
+
 /** 桌機雙欄用 */
 const leftPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 === 0))
 const rightPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 !== 0))
@@ -76,13 +85,12 @@ const onClosePreview = () => {
 
 /** 按讚 */
 const toggleLike = (postId) => {
-  const post = rawPosts.value.find((p) => p.id === postId)
+  // 目前僅做樂觀更新，未來可串接 API
+  const post = postStore.posts.find((p) => p.id === postId)
   if (!post) return
 
   post.isLiked = !post.isLiked
   post.likeCount += post.isLiked ? 1 : -1
-
-  showToast(post.isLiked ? '已按讚' : '已取消按讚')
 }
 
 /** 留言管理 (State) */
@@ -102,71 +110,52 @@ const openComments = (postId) => {
 
 /** 收藏 */
 const toggleBookmark = (postId) => {
-  const post = rawPosts.value.find((p) => p.id === postId)
+  const post = postStore.posts.find((p) => p.id === postId)
   if (!post) return
 
   post.isBookmarked = !post.isBookmarked
-  showToast(post.isBookmarked ? '已收藏' : '已取消收藏')
 }
 
 /** 編輯：PostCard emit update 後，這裡更新內容 */
 const handleUpdate = (payload) => {
-  const post = rawPosts.value.find((p) => p.id === payload.id)
+  const post = postStore.posts.find((p) => p.id === payload.id)
   if (!post) return
 
   if (payload.content !== undefined) post.content = payload.content
   if (payload.audience !== undefined) post.audience = payload.audience
   if (payload.commentCount !== undefined) post.commentCount = payload.commentCount
+  
+  // 提示已更新
+  success('貼文已更新')
+}
 
-  // 只有真的有更新內容或權限時才顯示提示，單純更新留言數不用提示
-  if (payload.content !== undefined || payload.audience !== undefined) {
-    showToast('貼文已更新')
+/** 發文：呼叫 Store */
+const handleSubmit = async (payload) => {
+  try {
+    await postStore.createPost(payload.content, payload.images)
+    
+    // 同步更新本地假資料，讓畫面上能立刻看到新貼文
+    rawPosts.value.unshift({
+      id: Date.now(),
+      audience: payload.audience || 'public',
+      author: 'test',
+      isMine: true,
+      content: payload.content,
+      tags: [],
+      images: payload.images,
+      isNew: true,
+      likeCount: 0,
+      isLiked: false,
+      commentCount: 0,
+      isBookmarked: false
+    })
+
+    success('貼文已發布')
+  } catch (err) {
+    console.error(err)
   }
 }
 
-/** 發文：把新貼文塞到最前面 */
-const handleSubmit = (payload) => {
-  const text = (payload.content ?? '').trim()
-  const images = payload.images ?? []
-  const newPostId = Date.now()
-
-  rawPosts.value.unshift({
-    id: newPostId,
-    audience: payload.audience ?? 'public',
-    author: 'test',
-    content: text,
-    isMine: true,
-    tags: payload.tags ?? [],
-    images,
-    isNew: true,
-    likeCount: 0,
-    commentCount: 0,
-    isLiked: false,
-    isBookmarked: false
-  })
-
-  setTimeout(() => {
-    const post = rawPosts.value.find((p) => p.id === newPostId)
-    if (post) post.isNew = false
-  }, 2000)
-
-  showToast('貼文已發布')
-  return true
-}
-
-// Toast 提示
-const toast = ref({ open: false, message: '' })
-let toastTimer = null
-const showToast = (message) => {
-  toast.value.open = true
-  toast.value.message = message
-
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => {
-    toast.value.open = false
-    toast.value.message = ''
-  }, 1600)
-}
 /** 其他功能：先留接口 */
 // const openEdit = (postId) => console.log('edit', postId)
 const sharePost = () => {
@@ -179,7 +168,7 @@ const sharePost = () => {
     <div class="mx-10 min-h-screen">
       <main class="mx-auto w-full max-w-260 px-4 pb-16">
         <div class="pt-5 md:pt-8">
-          <PostComposer username="" @submit="handleSubmit" @toast="showToast" />
+          <PostComposer username="" @submit="handleSubmit" />
         </div>
         <!-- 手機/平板：單欄 -->
         <section v-if="!isDesktop" class="mt-4 flex flex-col gap-4">
@@ -263,14 +252,6 @@ const sharePost = () => {
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- toast -->
-      <div
-        v-if="toast.open"
-        class="fixed bottom-20 left-1/2 z-100 -translate-x-1/2 rounded-3xl bg-zinc-900/50 px-4 py-2 text-sm text-white shadow"
-      >
-        {{ toast.message }}
       </div>
     </div>
   </div>
