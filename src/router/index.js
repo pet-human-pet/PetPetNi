@@ -31,9 +31,9 @@ const router = createRouter({
     },
 
     {
-      path: '/auth/:provider/callback',
-      name: 'oauth-callback',
-      component: () => import('@/views/OAuthCallback.vue'),
+      path: '/auth/callback',
+      name: 'auth-callback',
+      component: () => import('@/views/Login/AuthCallback.vue'),
       meta: {
         requiresAuth: false,
         hideHeader: true,
@@ -84,12 +84,16 @@ const router = createRouter({
       path: '/profile',
       name: 'Profile',
       component: () => import('@/views/ProfileView.vue'),
+      meta: { headerType: 'app' }
+    },
+    {
+      path: '/match',
+      name: 'match',
+      component: () => import('@/views/DailyMatchView.vue'),
       meta: {
+        headerType: 'app',
         requiresAuth: true,
-        hideHeader: false,
-        hideNavbar: false,
-        hideFooter: true,
-        title: '個人資料 | PetPetNi'
+        title: '每日配對 | PetPetNi'
       }
     }
   ],
