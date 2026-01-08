@@ -160,32 +160,22 @@ const editAudience = ref('public')
       </a>
     </div>
 
-    <!-- 單張圖片 -->
-    <div
-      v-if="post.images?.length === 1"
-      class="mt-3 aspect-3/4 w-3/5 overflow-hidden rounded-xl bg-zinc-200 sm:aspect-3/4"
-    >
-      <img
-        :src="post.images[0]"
-        alt=""
-        class="h-full w-full cursor-pointer object-cover"
-        @click="$emit('preview-image', post.images[0])"
-      />
-    </div>
-
-    <!-- 兩張圖片 -->
-    <div v-else-if="post.images?.length === 2" class="mt-3 grid grid-cols-2 gap-3">
+    <div v-if="post.images?.length" class="mt-3 min-w-0">
       <div
-        v-for="(img, i) in post.images"
-        :key="i"
-        class="aspect-3/4 w-full overflow-hidden rounded-xl bg-zinc-200"
+        class="flex w-full min-w-0 snap-x snap-mandatory items-start gap-4 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch]"
       >
-        <img
-          :src="img"
-          alt=""
-          class="h-full w-full cursor-pointer object-cover"
-          @click="$emit('preview-image', img)"
-        />
+        <div
+          v-for="(img, i) in post.images"
+          :key="img + i"
+          class="aspect-square w-4/5 shrink-0 snap-center overflow-hidden rounded-xl border border-gray-100 bg-zinc-200 transition-all duration-300"
+        >
+          <img
+            :src="img"
+            alt=""
+            class="h-full w-full cursor-pointer object-cover"
+            @click="$emit('preview-image', { images: post.images, index: i })"
+          />
+        </div>
       </div>
     </div>
 
