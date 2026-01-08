@@ -4,9 +4,9 @@ import axios from 'axios'
 // 建立一個專屬的api物件
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 10000, //告訴 Axios請求發出去過10秒還沒回來，就直接報錯 (Error: timeout)」
+  timeout: 10000, 
   headers: {
-    'Content-Type': 'application/json' // 告訴後端傳過去的資料格式
+    'Content-Type': 'application/json' 
   }
 })
 
