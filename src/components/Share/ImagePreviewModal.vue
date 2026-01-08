@@ -63,7 +63,7 @@ onBeforeUnmount(() => {
         <img
           :src="src"
           alt=""
-          class="max-h-[70vh] min-h-70 max-w-[70vw] min-w-70 rounded-2xl object-cover sm:min-h-100 sm:min-w-100 md:rounded-2xl"
+          class="aspect-square w-[70vmin] rounded-2xl object-cover"
           draggable="false"
         />
 
@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
         <!-- 關閉 -->
         <button
           type="button"
-          class="absolute top-2 right-2 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/40 shadow hover:bg-white/70"
+          class="absolute top-2 right-2 grid h-6 w-6 cursor-pointer place-items-center rounded-full bg-white/40 shadow hover:bg-white/70 md:h-8 md:w-8"
           aria-label="Close"
           @click.stop="$emit('close')"
         >
