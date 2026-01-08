@@ -96,6 +96,9 @@ export function useGroupBuyForm() {
     if (!form.desc.trim()) {
       errors.desc = '請填寫詳細說明（特色、規格、注意事項等）'
       isValid = false
+    } else if (form.desc.length > 150) {
+      errors.desc = '詳細說明不可超過 150 個字'
+      isValid = false
     }
 
     return isValid

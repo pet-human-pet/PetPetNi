@@ -224,6 +224,7 @@ function backToForm() {
             v-model="form.desc"
             placeholder="商品特色、規格、注意事項、成團規則、截止時間…"
             class="c-input h-40 resize-none leading-relaxed"
+            maxlength="150"
           ></textarea>
           <p v-if="errors.desc" class="text-func-danger text-[12px]">{{ errors.desc }}</p>
         </div>
