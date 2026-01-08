@@ -508,9 +508,10 @@ const openDetail = (item) => {
                   <p class="text-fg-muted text-xs lg:text-sm">{{ event.location }}</p>
                 </div>
                 <span
-                  class="rounded-full border border-orange-100 bg-orange-50 px-3 py-0.5 text-[10px] font-bold text-[#f48e31] lg:px-4 lg:py-1 lg:text-xs"
-                  >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
+                  class="bg-brand-accent/20 text-fg-secondary border-brand-accent/30 inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium"
                 >
+                  {{ event.status }}
+                </span>
               </div>
             </div>
           </div>
