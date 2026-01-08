@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useScrollLock, useBreakpoints, breakpointsTailwind } from '@vueuse/core'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useGroupBuyStore } from '@/stores/GroupBuy'
 // import { useEventCommentStore } from '@/stores/EventComment'
@@ -24,16 +23,27 @@ const { groupBuys, approvedGroupBuys, pendingGroupBuys } = storeToRefs(groupBuyS
 // 評論 Store 直接使用 actions/getters
 
 // 滾動鎖定邏輯
+let _prevOverflow = ''
+let _prevPaddingRight = ''
 
-const isLocked = useScrollLock(document.body)
+function lockBodyScroll() {
+  const body = document.body
+  _prevOverflow = body.style.overflow
+  _prevPaddingRight = body.style.paddingRight
 
-onMounted(() => {
-  isLocked.value = true
-})
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+  body.style.overflow = 'hidden'
+  if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
+}
 
-onBeforeUnmount(() => {
-  isLocked.value = false
-})
+function unlockBodyScroll() {
+  const body = document.body
+  body.style.overflow = _prevOverflow
+  body.style.paddingRight = _prevPaddingRight
+}
+
+onMounted(lockBodyScroll)
+onBeforeUnmount(unlockBodyScroll)
 
 // 地圖設定邏輯
 const MAP_PROFILE = {
@@ -42,16 +52,16 @@ const MAP_PROFILE = {
   mobile: { scale: 1, dx: 0, dy: 0 }
 }
 
-const breakpoints = useBreakpoints(breakpointsTailwind)
-const isMobile = breakpoints.smaller('md')
-const isTablet = breakpoints.between('md', 'lg')
+const vw = ref(window.innerWidth)
+const onResize = () => (vw.value = window.innerWidth)
+onMounted(() => window.addEventListener('resize', onResize))
+onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 
 const locations = computed(() => {
-  let profile = 'desktop'
-  if (isMobile.value) profile = 'mobile'
-  else if (isTablet.value) profile = 'tablet'
-
+  // 使用 'lg' (1024px) 作為平板邊界，'md' (768px) 作為手機邊界
+  const profile = vw.value < 768 ? 'mobile' : vw.value < 1024 ? 'tablet' : 'desktop'
   const { scale, dx, dy } = MAP_PROFILE[profile]
+
   const out = {}
   for (const [id, loc] of Object.entries(eventStore.baseLocations)) {
     out[id] = {
@@ -190,7 +200,7 @@ onMounted(() => {
       <!-- 邏輯：預設 (手機) 為固定頂部 (header 下方)。在 md+ 變為黏性側邊欄。 -->
       <aside
         class="pointer-events-none fixed top-17.5 left-0 z-10 flex h-[calc(100vh-90px)] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0"
-        :class="{ hidden: isMobileOverlayOpen && isMobile }"
+        :class="{ hidden: isMobileOverlayOpen && vw < 768 }"
       >
         <!-- 頁籤 -->
         <nav
