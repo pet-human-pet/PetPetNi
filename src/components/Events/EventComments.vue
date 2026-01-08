@@ -34,13 +34,10 @@ const myComments = computed(() => {
   if (!props.event) return []
   return commentStore.getComments(props.event.id)
 })
-
-// 顯示邏輯：左上新增 + 最多顯示 15 張評論卡
-const displayComments = computed(() => myComments.value.slice(0, 15))
 </script>
 
 <template>
-  <div class="bg-bg-base custom-scrollbar h-full w-full overflow-y-auto p-4">
+  <div class="bg-bg-base h-full w-full overflow-y-auto p-4">
     <!-- 上方標題列 + 返回地圖 -->
     <div class="mb-4 flex items-center gap-2">
       <button
@@ -89,7 +86,7 @@ const displayComments = computed(() => myComments.value.slice(0, 15))
 
       <!-- 其餘 3 張評論卡 -->
       <div
-        v-for="c in displayComments"
+        v-for="c in myComments"
         :key="c.id"
         class="border-border-default bg-bg-surface shadow-card rounded-2xl border p-4"
       >
