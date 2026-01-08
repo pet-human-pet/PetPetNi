@@ -1,16 +1,54 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import BaseInput from '@/components/Form/BaseInput.vue'
 
 const emit = defineEmits(['success'])
+const route = useRoute()
 
 const email = ref('')
+const tempToken = ref('')
 
-const handleBind = () => {
-  // 模擬綁定
-  console.log('綁定 Email:', email.value)
-  // 綁定成功後觸發成功事件
-  emit('success')
+onMounted(() => {
+  // 從 URL 取得臨時 Token
+  tempToken.value = route.query.temp_token || ''
+})
+
+// TODO: 串接後端 API - 綁定 Email
+const handleBind = async () => {
+  if (!email.value) {
+    alert('請輸入有效的 Email')
+    return
+  }
+
+  if (!tempToken.value) {
+    alert('無效的綁定請求，請重新登入')
+    return
+  }
+
+  try {
+    const response = await fetch('/api/auth/bind-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tempToken: tempToken.value,
+        email: email.value
+      })
+    })
+
+    if (!response.ok) throw new Error('Email binding failed')
+
+    const data = await response.json()
+
+    // 儲存 JWT Token
+    localStorage.setItem('token', data.token)
+
+    // 通知父元件綁定成功
+    emit('success')
+  } catch (error) {
+    console.error('Email binding error:', error)
+    alert('Email 綁定失敗，請重試')
+  }
 }
 </script>
 
