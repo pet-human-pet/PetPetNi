@@ -9,7 +9,7 @@ export const useGroupBuyStore = defineStore('groupBuy', () => {
       price: 450,
       target: 30,
       img: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80',
-      desc: '這款雨衣透氣又防水,適合台灣潮濕的天氣。湊滿30件廠商給批發價!',
+      desc: '這款雨衣透氣又防水,適合台灣潮濕的天氣，真的很推薦!湊滿30件廠商給批發價!',
       status: 'recruiting',
       initiator: { id: 'u4', name: '陳小美', avatar: '' }
     },

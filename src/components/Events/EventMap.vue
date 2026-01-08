@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-
+import { useScreen } from '@/composables/useScreen.js'
 const props = defineProps({
   events: { type: Array, required: true },
   locations: { type: Object, required: true },
@@ -9,7 +9,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['pin-click'])
-
+const { isMobile } = useScreen()
 const sameId = (a, b) => String(a) === String(b)
 const getLoc = (locId) => props.locations?.[locId] ?? props.locations?.[String(locId)] ?? null
 
@@ -33,7 +33,7 @@ function computeTransformByLoc(loc) {
   let moveX = boxWidth / 2 - loc.x
   let moveY = boxHeight / 2 - loc.y
 
-  if (window.innerWidth <= 800) moveY += 80
+  if (isMobile.value) moveY += 80
 
   if (mapWidth > boxWidth) {
     const minX = boxWidth - mapWidth
@@ -95,7 +95,7 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
           @click.stop="emit('pin-click', evt)"
         >
           <div
-            class="bg-status-warning h-2.5 w-2.5 rounded-full opacity-60 shadow-[0_2px_6px_rgba(0,0,0,0.18)] max-[800px]:h-3 max-[800px]:w-3"
+            class="bg-status-warning h-3 w-3 rounded-full opacity-60 shadow-[0_2px_6px_rgba(0,0,0,0.18)] md:h-2.5 md:w-2.5"
             :class="sameId(props.selectedId, evt.id) ? 'opacity-0' : ''"
           ></div>
         </div>
@@ -103,14 +103,14 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
         <!-- 被選取的活動：只顯示這一個貓掌 -->
         <div
           v-if="selectedEvt && selectedLoc"
-          class="pointer-events-auto absolute z-20 h-10 w-10 -translate-x-1/2 -translate-y-full scale-[1.2] transition max-[800px]:h-12.5 max-[800px]:w-12.5"
+          class="pointer-events-auto absolute z-20 h-12.5 w-12.5 -translate-x-1/2 -translate-y-full scale-[1.2] transition md:h-10 md:w-10"
           :style="{ left: selectedLoc.x + 'px', top: selectedLoc.y + 'px' }"
           @click.stop="emit('pin-click', selectedEvt)"
         >
           <div
             class="bg-status-warning flex h-full w-full -rotate-45 items-center justify-center rounded-[50%_50%_50%_0] border-[3px] border-white shadow-[0_3px_6px_rgba(0,0,0,0.2)]"
           >
-            <i class="fa-solid fa-paw rotate-45 text-[18px] text-white max-[800px]:text-[24px]"></i>
+            <i class="fa-solid fa-paw rotate-45 text-[24px] text-white md:text-[18px]"></i>
           </div>
         </div>
       </div>
