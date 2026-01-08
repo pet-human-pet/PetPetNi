@@ -96,14 +96,14 @@
   }
 
   .c-toast--success {
-    @apply bg-green-600;
+    @apply bg-[#6fb68c]
   }
 
   .c-toast--error {
-    @apply bg-red-600;
+    @apply bg-[#ed0808c5]
   }
 
   .c-toast--info {
-    @apply bg-blue-600;
+    @apply bg-[#2b96f395]
   }
 }
