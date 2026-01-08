@@ -278,8 +278,9 @@ onUnmounted(() => {
                 >
                   {{ profile.name }}
                 </h1>
-                <div
-                  class="group relative flex flex-1 cursor-pointer items-center justify-center py-1 lg:py-4"
+                <button
+                  type="button"
+                  class="group relative flex flex-1 cursor-pointer items-center justify-center py-1 text-left lg:py-4"
                   @click="handleAvatarClick"
                 >
                   <div
@@ -287,12 +288,15 @@ onUnmounted(() => {
                   >
                     <img :src="profile.avatar" class="h-full w-full object-cover" />
                   </div>
+
                   <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
+
                   <span
                     class="absolute right-[-4px] bottom-[10px] z-10 rounded-full border bg-white px-2 py-0.5 text-[10px] font-bold shadow-sm lg:right-2 lg:bottom-4 lg:px-3 lg:py-1 lg:text-xs"
-                    >已驗證</span
                   >
-                </div>
+                    已驗證
+                  </span>
+                </button>
                 <div class="flex h-6 w-full items-end justify-center gap-1 pb-1 lg:h-auto lg:gap-2">
                   <span
                     class="text-fg-muted max-w-[80px] truncate text-xs lg:max-w-none lg:text-lg"
