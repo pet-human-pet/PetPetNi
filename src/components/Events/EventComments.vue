@@ -35,12 +35,12 @@ const myComments = computed(() => {
   return commentStore.getComments(props.event.id)
 })
 
-// 四張卡顯示邏輯：左上新增 + 其餘最多顯示 3 張評論卡
-const displayComments = computed(() => myComments.value.slice(0, 3))
+// 顯示邏輯：左上新增 + 最多顯示 15 張評論卡
+const displayComments = computed(() => myComments.value.slice(0, 15))
 </script>
 
 <template>
-  <div class="bg-bg-base h-full w-full p-4">
+  <div class="bg-bg-base custom-scrollbar h-full w-full overflow-y-auto p-4">
     <!-- 上方標題列 + 返回地圖 -->
     <div class="mb-4 flex items-center gap-2">
       <button
@@ -102,13 +102,6 @@ const displayComments = computed(() => myComments.value.slice(0, 3))
       </div>
 
       <!-- 如果不足 3 則補空卡，維持 2x2 視覺 -->
-      <div
-        v-for="n in Math.max(0, 3 - displayComments.length)"
-        :key="'empty-' + n"
-        class="border-border-default text-fg-muted flex items-center justify-center rounded-2xl border bg-white/60 p-4 text-[13px]"
-      >
-        尚無更多評論
-      </div>
     </div>
   </div>
 </template>
