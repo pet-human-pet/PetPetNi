@@ -1,5 +1,6 @@
 <script setup>
-import { ref, reactive } from 'vue'
+// 1. 引入 onUnmounted 以處理生命週期清理
+import { ref, reactive, onUnmounted } from 'vue'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 
@@ -12,6 +13,7 @@ const selectedItem = ref(null)
 const fileInput = ref(null)
 const isAboutVisible = ref(true)
 
+// 保留完整的標籤清單
 const predefinedTags = [
   '#布偶貓',
   '#藍眼',
@@ -85,7 +87,7 @@ const selectTag = (tag) => {
 }
 const removeTag = (index) => profile.hashtags.splice(index, 1)
 
-// --- 資料清單 ---
+// --- 資料清單 (保留原本資料) ---
 const myPosts = [
   {
     id: 1,
@@ -209,10 +211,20 @@ const historyEvents = [
 ]
 
 const handleAvatarClick = () => fileInput.value.click()
+
+// 【修改重點 1】優化圖片上傳的記憶體管理 (Fix Memory Leak)
 const handleFileChange = (e) => {
   const file = e.target.files[0]
-  if (file) profile.avatar = URL.createObjectURL(file)
+  if (file) {
+    // 如果已有暫存的 blob 網址，先銷毀它，釋放記憶體
+    if (profile.avatar && profile.avatar.startsWith('blob:')) {
+      URL.revokeObjectURL(profile.avatar)
+    }
+    // 建立新的暫存網址
+    profile.avatar = URL.createObjectURL(file)
+  }
 }
+
 const handleTabChange = (tab) => {
   activeTab.value = tab
   activeSubTab.value = tab === 'posts' ? 'my' : 'create'
@@ -226,6 +238,14 @@ const openDetail = (item) => {
   selectedItem.value = item
   showDetail.value = true
 }
+
+// 【修改重點 2】加入 onUnmounted 生命週期鉤子 (依據 Guide.md 放最底部)
+// 當使用者離開頁面時，確保銷毀最後一張暫存圖片，防止記憶體洩漏
+onUnmounted(() => {
+  if (profile.avatar && profile.avatar.startsWith('blob:')) {
+    URL.revokeObjectURL(profile.avatar)
+  }
+})
 </script>
 
 <template>
@@ -507,6 +527,7 @@ const openDetail = (item) => {
                   <h4 class="text-fg-primary text-base font-bold lg:text-lg">{{ event.name }}</h4>
                   <p class="text-fg-muted text-xs lg:text-sm">{{ event.location }}</p>
                 </div>
+
                 <span
                   class="bg-brand-accent/20 text-fg-secondary border-brand-accent/30 inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium"
                 >
