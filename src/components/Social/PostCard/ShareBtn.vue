@@ -20,8 +20,8 @@ const handleShare = async () => {
     try {
       await navigator.share(data)
       return
-    } catch {
-      void 0
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error(err)
     }
   }
   emit('share', { postId: props.postId, url })
