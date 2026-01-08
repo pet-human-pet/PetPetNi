@@ -14,16 +14,20 @@ const { toasts } = useToast()
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        class="c-toast"
-        :class="`c-toast--${toast.type}`"
+        class="pointer-events-auto relative flex w-auto max-w-80 items-center gap-3 overflow-hidden rounded-lg px-4 py-3 shadow-lg transition-all"
+        :class="{
+          'bg-green-600 text-white': toast.type === 'success',
+          'bg-red-600 text-white': toast.type === 'error',
+          'bg-blue-600 text-white': toast.type === 'info'
+        }"
       >
         <!-- Icon -->
-        <span class="text-lg font-bold">
+        <span class="text-lg font-bold shrink-0">
           {{ toast.type === 'success' ? '✓' : toast.type === 'error' ? '✕' : 'ℹ️' }}
         </span>
         
         <!-- Message -->
-        <span class="text-sm font-medium">{{ toast.message }}</span>
+        <span class="text-sm font-medium break-words leading-tight">{{ toast.message }}</span>
         
         <!-- Progress Bar -->
         <div 
