@@ -175,9 +175,11 @@ onUnmounted(() => {
     class="flex min-h-screen items-center justify-center p-4 lg:p-8"
     style="background-color: #ffd9ad"
   >
-    <div class="grid w-full max-w-5xl grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16">
-      <!-- Branding Section (Left/Top) - 固定顯示 -->
-      <div class="flex flex-col items-center justify-center space-y-4 lg:items-center">
+    <!-- TODO: Replace with CSS variable var(--app-bg) -->
+
+    <div class="grid w-full max-w-5xl grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
+      <!-- Branding Section (Left/Top) - 垂直居中固定 -->
+      <div class="flex flex-col items-center justify-center space-y-4 lg:self-center">
         <!-- Paw Icon -->
         <div class="h-24 w-24 lg:h-32 lg:w-32">
           <img
