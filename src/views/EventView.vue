@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useScrollLock } from '@vueuse/core'
+import { useScreen } from '@/composables/useScreen.js'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useGroupBuyStore } from '@/stores/GroupBuy'
 // import { useEventCommentStore } from '@/stores/EventComment'
@@ -14,7 +16,6 @@ import GroupBuyForm from '@/components/GroupBuy/GroupBuyForm.vue'
 import GroupBuyDetail from '@/components/GroupBuy/GroupBuyDetail.vue'
 import mapImg from '@/assets/EventMapFinal.jpg'
 
-// Store 設定
 const eventStore = useEventMapStore()
 const groupBuyStore = useGroupBuyStore()
 
@@ -23,27 +24,17 @@ const { groupBuys, approvedGroupBuys, pendingGroupBuys } = storeToRefs(groupBuyS
 // 評論 Store 直接使用 actions/getters
 
 // 滾動鎖定邏輯
-let _prevOverflow = ''
-let _prevPaddingRight = ''
+const isLocked = useScrollLock(document.body)
+onMounted(() => {
+  isLocked.value = true // 鎖定
+})
 
-function lockBodyScroll() {
-  const body = document.body
-  _prevOverflow = body.style.overflow
-  _prevPaddingRight = body.style.paddingRight
+onBeforeUnmount(() => {
+  isLocked.value = false // 解鎖
+})
 
-  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
-  body.style.overflow = 'hidden'
-  if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
-}
-
-function unlockBodyScroll() {
-  const body = document.body
-  body.style.overflow = _prevOverflow
-  body.style.paddingRight = _prevPaddingRight
-}
-
-onMounted(lockBodyScroll)
-onBeforeUnmount(unlockBodyScroll)
+// 視窗斷點
+const { isMobile, isTablet } = useScreen()
 
 // 地圖設定邏輯
 const MAP_PROFILE = {
@@ -52,14 +43,10 @@ const MAP_PROFILE = {
   mobile: { scale: 1, dx: 0, dy: 0 }
 }
 
-const vw = ref(window.innerWidth)
-const onResize = () => (vw.value = window.innerWidth)
-onMounted(() => window.addEventListener('resize', onResize))
-onBeforeUnmount(() => window.removeEventListener('resize', onResize))
-
 const locations = computed(() => {
-  // 使用 'lg' (1024px) 作為平板邊界，'md' (768px) 作為手機邊界
-  const profile = vw.value < 768 ? 'mobile' : vw.value < 1024 ? 'tablet' : 'desktop'
+  let profile = 'desktop'
+  if (isMobile.value) profile = 'mobile'
+  else if (isTablet.value) profile = 'tablet'
   const { scale, dx, dy } = MAP_PROFILE[profile]
 
   const out = {}
@@ -190,17 +177,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-bg-base text-fg-primary h-screen overflow-hidden">
+  <div class="bg-bg-base text-fg-primary h-full overflow-hidden">
     <!-- 主要佈局 -->
     <main
-      class="relative mx-auto block h-[calc(100vh-64px)] w-full max-w-300 overflow-hidden p-0 md:flex md:gap-6 md:px-5 md:pt-6 md:pb-10"
+      class="relative mx-auto block h-[calc(100vh_-_var(--header-h))] w-full max-w-300 overflow-hidden p-0 md:flex md:gap-6 md:px-5 md:pt-6 md:pb-10"
     >
-      <!-- 側邊欄 (手機: 固定頂部 | 桌機: 黏性定位) -->
-      <!-- 將 max-[800px] 重構為 md: (類 Mobile First 方法，使用 md 作為桌機切換點) -->
-      <!-- 邏輯：預設 (手機) 為固定頂部 (header 下方)。在 md+ 變為黏性側邊欄。 -->
       <aside
-        class="pointer-events-none fixed top-17.5 left-0 z-10 flex h-[calc(100vh-90px)] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0"
-        :class="{ hidden: isMobileOverlayOpen && vw < 768 }"
+        class="pointer-events-none fixed top-(--header-h) left-0 z-10 flex h-[calc(100vh_-_var(--header-h))] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 pb-5 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0 md:pb-0"
+        :class="{ hidden: isMobileOverlayOpen && isMobile }"
       >
         <!-- 頁籤 -->
         <nav
