@@ -58,7 +58,6 @@
     .u-lock-scroll {
       overflow: hidden;
       overscroll-behavior: none;
-      touch-action: none;
     }
   }
 
@@ -167,29 +166,37 @@
 
   /* UI (modal/dropdown/toast) */
   .c-toast {
-    @apply pointer-events-auto relative flex min-w-62.5 items-center gap-3 overflow-hidden rounded-lg px-4 py-3 shadow-lg transition-all text-white;
+    @apply pointer-events-auto relative flex min-w-62.5 items-center gap-3 overflow-hidden rounded-lg px-4 py-3 text-white shadow-lg transition-all;
   }
 
   .c-toast--success {
-    @apply bg-[#6fb68c]
+    @apply bg-[#6fb68c];
   }
 
   .c-toast--error {
-    @apply bg-[#ed0808c5]
+    @apply bg-[#ed0808c5];
   }
 
   .c-toast--info {
-    @apply bg-[#2b96f395]
+    @apply bg-[#2b96f395];
   }
 
   /* Toast Progress Animation */
   @keyframes toast-progress {
-    from { width: 100%; }
-    to { width: 0%; }
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
   }
-
   .c-toast-progress {
     @apply absolute bottom-0 left-0 h-1 bg-white/30;
     animation: toast-progress linear forwards;
+  }
+  .notification-list {
+    background-color: #fffcf7;
+    @apply ring-[#ffe2c4];
+    @apply hover:bg-[#fff3e6];
   }
 }

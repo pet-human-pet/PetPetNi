@@ -31,7 +31,7 @@ export const useNotificationStore = defineStore('notification', () => {
     notifications.value.unshift({
       id: Date.now(),
       read: false,
-      time: '剛剛', // 實際專案可能需要處理時間格式
+      time: '剛剛',
       ...notification
     })
   }
