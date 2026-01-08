@@ -67,28 +67,6 @@ const saveEdit = () => {
 
 const editAudience = ref('public')
 
-// 圖片大小設定
-const fitMap = ref({})
-const aspectMap = ref({})
-
-const getImgKey = (postId, index) => `${postId}-${index}`
-const hasLandscape = ref(false)
-
-const onImgLoad = (e, key) => {
-  const img = e.target
-  if (!img) return
-  if (img.naturalWidth > img.naturalHeight) {
-    hasLandscape.value = true
-  }
-  const isLandscape = img.naturalWidth > img.naturalHeight
-  if (isLandscape) {
-    aspectMap.value[key] = 'aspect-square'
-  } else {
-    aspectMap.value[key] = 'aspect-3/4'
-  }
-  fitMap.value[key] = 'cover'
-}
-
 const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}`)
 </script>
 
@@ -191,14 +169,12 @@ const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}
         <div
           v-for="(img, i) in post.images"
           :key="img + i"
-          class="trnsition-all w-4/5 shrink-0 snap-start overflow-hidden rounded-xl border border-gray-100 bg-zinc-200 duration-300 md:w-4/5"
-          :class="hasLandscape ? 'aspect-square' : 'aspect-3/4'"
+          class="aspect-square w-4/5 shrink-0 snap-center overflow-hidden rounded-xl border border-gray-100 bg-zinc-200 transition-all duration-300"
         >
           <img
             :src="img"
             alt=""
             class="h-full w-full cursor-pointer object-cover"
-            @load="onImgLoad"
             @click="$emit('preview-image', { images: post.images, index: i })"
           />
         </div>
