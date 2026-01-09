@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import LoginForm from '@/views/Login/login-components/LoginForm.vue'
-import RegisterForm from '@/views/Login/login-components/RegisterForm.vue'
-import ForgetPasswordForm from '@/views/Login/login-components/ForgetPasswordForm.vue'
-import OtpVerification from '@/views/Login/login-components/OtpVerification.vue'
-import SocialBindEmail from '@/views/Login/login-components/SocialBindEmail.vue'
+import LoginForm from '@/components/login/LoginForm.vue'
+import RegisterForm from '@/components/login/RegisterForm.vue'
+import ForgetPasswordForm from '@/components/login/ForgetPasswordForm.vue'
+import OtpVerification from '@/components/login/OtpVerification.vue'
+import SocialBindEmail from '@/components/login/SocialBindEmail.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
 
