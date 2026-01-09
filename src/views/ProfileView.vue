@@ -284,7 +284,9 @@ onUnmounted(() => {
                     >已驗證</span
                   >
                 </div>
-                <div class="flex h-6 w-full items-end justify-center gap-1 pb-1 lg:h-auto lg:gap-2">
+                <div
+                  class="hidden h-6 w-full items-end justify-center gap-1 pb-1 lg:flex lg:h-auto lg:gap-2"
+                >
                   <span class="text-fg-muted max-w-20 truncate text-xs lg:max-w-none lg:text-lg">{{
                     profile.username
                   }}</span>
@@ -304,6 +306,19 @@ onUnmounted(() => {
               <div
                 class="flex w-full min-w-0 flex-1 flex-col justify-between lg:block lg:w-auto lg:gap-0"
               >
+                <div class="flex items-center justify-center gap-2 pb-2 text-center lg:hidden">
+                  <span class="text-fg-muted text-xs">{{ profile.username }}</span>
+                  <button class="group shrink-0 cursor-pointer" @click="isEditing = true">
+                    <svg
+                      class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31]"
+                      viewBox="0 0 512 512"
+                    >
+                      <path
+                        d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6l-44.3 119.5c-3.2 8.7-11.8 14.3-21.2 13.9l-58.4-2.8c-14.5 11.5-30.8 20.6-48.5 27.2l-10.3 57.7c-1.6 9.1-9.3 15.8-18.6 16.1l-127.3 3.6c-9.4 .3-17.7-5.5-20.1-14.5l-15.5-56.5c-16.9-7.9-32.3-18.6-45.7-31.5l-54.3 22.1c-8.7 3.6-18.8 .1-23.7-8.2L5.4 349.5c-4.9-8.3-3.6-18.9 3.2-25.7l40.1-40.6c-1.1-8.3-1.7-16.7-1.7-25.2s.6-16.9 1.7-25.2L8.6 192.1c-6.8-6.8-8.2-17.4-3.2-25.7L49.7 57.9c4.9-8.3 15-11.8 23.7-8.2l54.3 22.1c13.4-12.9 28.8-23.6 45.7-31.5l15.5-56.5c2.4-9 10.7-14.8 20.1-14.5l127.3 3.6c9.3 .3 17 7 18.6 16.1l10.3 57.7c17.7 6.6 34 15.7 48.5 27.2l58.4-2.8c9.4-.5 17.9 5.2 21.2 13.9l44.3 119.5zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"
+                      />
+                    </svg>
+                  </button>
+                </div>
                 <div
                   class="flex items-start justify-between pt-0.5 text-center lg:mb-6 lg:flex-nowrap lg:justify-center lg:gap-10"
                 >
