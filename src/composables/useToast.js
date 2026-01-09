@@ -3,7 +3,7 @@ import { ref } from 'vue'
 const toasts = ref([])
 let toastId = 0
 
-/* Toast通知系統 用於臨時反饋（3秒自動消失）*/
+// Toast通知系統 3秒自動消失
 export const useToast = () => {
   const showToast = (message, type = 'success', duration = 3000) => {
     const id = ++toastId
