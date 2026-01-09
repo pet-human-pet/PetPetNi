@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import SocialButton from '@/views/Login/login-components/SocialButton.vue'
+import SocialButton from '@/components/login/SocialButton.vue'
 import BaseInput from '@/components/Form/BaseInput.vue'
 
 const emit = defineEmits(['switch', 'success'])
@@ -88,7 +88,13 @@ const handleRegister = () => {
             class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             @click="togglePassword"
           >
-            <svg v-if="!showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              v-if="!showPassword"
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -130,7 +136,12 @@ const handleRegister = () => {
 
     <p class="mt-8 text-center text-sm text-gray-500">
       已經有帳號？
-      <button class="font-medium hover:underline" style="color: #ffa75f" type="button" @click="$emit('switch')">
+      <button
+        class="font-medium hover:underline"
+        style="color: #ffa75f"
+        type="button"
+        @click="$emit('switch')"
+      >
         <!-- TODO: Replace with CSS variable var(--app-primary) -->
         登入
       </button>
