@@ -97,8 +97,6 @@ const myComments = computed(() => {
           {{ c.createdAt }}
         </div>
       </div>
-
-      <!-- 如果不足 3 則補空卡，維持 2x2 視覺 -->
     </div>
   </div>
 </template>
