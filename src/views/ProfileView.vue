@@ -354,18 +354,23 @@ onUnmounted(() => {
                     <p class="text-fg-muted text-[10px] font-medium lg:text-sm">追蹤中</p>
                   </div>
                 </div>
-                <div class="my-1 flex w-full flex-1 items-center lg:my-0 lg:block lg:flex-none">
+                <Transition name="fade">
                   <div
-                    class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden lg:h-auto lg:gap-2"
+                    v-if="isAboutVisible"
+                    class="my-1 flex w-full flex-1 items-center lg:my-0 lg:block lg:flex-none"
                   >
-                    <span
-                      v-for="(tag, index) in profile.hashtags"
-                      :key="index"
-                      class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-[9px] font-medium tracking-tighter lg:px-2 lg:py-1 lg:text-[11px]"
-                      >{{ tag }}</span
+                    <div
+                      class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden lg:h-auto lg:gap-2"
                     >
+                      <span
+                        v-for="(tag, index) in profile.hashtags"
+                        :key="index"
+                        class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-[9px] font-medium tracking-tighter lg:px-2 lg:py-1 lg:text-[11px]"
+                        >{{ tag }}</span
+                      >
+                    </div>
                   </div>
-                </div>
+                </Transition>
                 <Transition name="fade">
                   <div
                     v-if="isAboutVisible"
