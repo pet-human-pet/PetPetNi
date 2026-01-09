@@ -8,7 +8,7 @@ import { usePostStore } from '@/stores/usePostStore'
 import { useToast } from '@/composables/useToast'
 
 const postStore = usePostStore()
-const { success } = useToast()
+const { success, error } = useToast()
 
 const rawPosts = ref([
   {
@@ -65,11 +65,11 @@ onMounted(() => {
   postStore.fetchPosts()
 })
 
-/** 桌機雙欄用 */
+// 桌機雙欄用
 const leftPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 === 0))
 const rightPosts = computed(() => rawPosts.value.filter((_, i) => i % 2 !== 0))
 
-/** 圖片預覽彈窗 */
+// 圖片預覽彈窗
 const previewOpen = ref(false)
 const previewSrc = ref('')
 
@@ -83,9 +83,9 @@ const onClosePreview = () => {
   previewSrc.value = ''
 }
 
-/** 按讚 */
+// 按讚
 const toggleLike = (postId) => {
-  // 目前僅做樂觀更新，未來可串接 API
+  // TODO: 資料源不一 (顯示用 rawPosts，但這裡找 postStore)。未來需統一資料源。目前僅做樂觀更新，未來可串接 API
   const post = postStore.posts.find((p) => p.id === postId)
   if (!post) return
 
@@ -93,7 +93,7 @@ const toggleLike = (postId) => {
   post.likeCount += post.isLiked ? 1 : -1
 }
 
-/** 留言管理 (State) */
+// 留言管理
 const { isDesktop } = useScreen()
 
 const commentManager = useActiveItem({
@@ -108,52 +108,54 @@ const openComments = (postId) => {
   }
 }
 
-/** 收藏 */
+// 收藏
 const toggleBookmark = (postId) => {
+  // TODO: 資料源不一致，未來需統一
   const post = postStore.posts.find((p) => p.id === postId)
   if (!post) return
 
   post.isBookmarked = !post.isBookmarked
 }
 
-/** 編輯：PostCard emit update 後，這裡更新內容 */
+// 編輯：PostCard emit update 後，這裡更新內容
 const handleUpdate = (payload) => {
+  // TODO: 資料源不一致，未來需統一
   const post = postStore.posts.find((p) => p.id === payload.id)
   if (!post) return
 
   if (payload.content !== undefined) post.content = payload.content
   if (payload.audience !== undefined) post.audience = payload.audience
   if (payload.commentCount !== undefined) post.commentCount = payload.commentCount
-  
-  // 提示已更新
+
   success('貼文已更新')
 }
 
-/** 發文：呼叫 Store */
+// 發文
 const handleSubmit = async (payload) => {
   try {
+    // 嘗試呼叫 API (即使失敗也繼續更新本地假資料以便測試)
     await postStore.createPost(payload.content, payload.images)
-    
-    // 同步更新本地假資料，讓畫面上能立刻看到新貼文
-    rawPosts.value.unshift({
-      id: Date.now(),
-      audience: payload.audience || 'public',
-      author: 'test',
-      isMine: true,
-      content: payload.content,
-      tags: [],
-      images: payload.images,
-      isNew: true,
-      likeCount: 0,
-      isLiked: false,
-      commentCount: 0,
-      isBookmarked: false
-    })
-
-    success('貼文已發布')
-  } catch (err) {
-    console.error(err)
+  } catch {
+    error('發布伺服器失敗，貼文僅暫存於本地')
   }
+
+  // 無論 API 成功與否，都同步更新本地假資料
+  rawPosts.value.unshift({
+    id: Date.now(),
+    audience: payload.audience || 'public',
+    author: 'test',
+    isMine: true,
+    content: payload.content,
+    tags: [],
+    images: payload.images,
+    isNew: true,
+    likeCount: 0,
+    isLiked: false,
+    commentCount: 0,
+    isBookmarked: false
+  })
+
+  success('貼文已發布')
 }
 
 /** 其他功能：先留接口 */
