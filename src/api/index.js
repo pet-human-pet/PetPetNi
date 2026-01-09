@@ -23,7 +23,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn('Token expired or unauthorized')
       // TODO: 之後這裡可以加導向登入頁或是哪裡的邏輯
     }
     return Promise.reject(error)
