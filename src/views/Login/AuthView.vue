@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import LoginForm from '@/components/login/LoginForm.vue'
 import RegisterForm from '@/components/login/RegisterForm.vue'
 import ForgetPasswordForm from '@/components/login/ForgetPasswordForm.vue'
-import OtpVerification from '@/components/login/OtpVerification.vue'
 import SocialBindEmail from '@/components/login/SocialBindEmail.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import OwnerInfo from '@/components/Onboarding/OwnerInfo.vue'
@@ -12,7 +11,7 @@ import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
 
 const route = useRoute()
 const router = useRouter()
-// 認證模式: 'login' | 'register' | 'forget' | 'otp' | 'social_bind' | 'role' | 'owner_info' | 'pet' | 'success'
+// 認證模式: 'login' | 'register' | 'forget' | 'reset-password' | 'social_bind' | 'role' | 'owner_info' | 'pet' | 'success'
 
 const authMode = ref('login')
 const userRole = ref('owner') // 用於成功頁面顯示不同訊息
@@ -51,8 +50,7 @@ const handleViewChange = (view) => {
   const viewMap = {
     LOGIN: 'login',
     REGISTER: 'register',
-    FORGET: 'forget',
-    OTP_VERIFY: 'otp'
+    FORGET: 'forget'
   }
   authMode.value = viewMap[view] || 'login'
 }
@@ -68,9 +66,9 @@ const handleSocialBindSuccess = () => {
   authMode.value = 'role'
 }
 
-const handleOtpSuccess = () => {
-  // OTP 驗證成功，回到登入或跳轉首頁
-  router.push('/')
+const handleResetPasswordSuccess = () => {
+  // 密碼重設成功，回到登入頁
+  authMode.value = 'login'
 }
 
 const handleRoleSelect = (role) => {
@@ -215,11 +213,11 @@ onUnmounted(() => {
             <ForgetPasswordForm @change-view="handleViewChange" />
           </div>
           <div
-            v-else-if="authMode === 'otp'"
-            key="otp"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
+            v-else-if="authMode === 'reset-password'"
+            key="reset-password"
+            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
           >
-            <OtpVerification @success="handleOtpSuccess" @change-view="handleViewChange" />
+            <ResetPasswordForm @success="handleResetPasswordSuccess" />
           </div>
           <div
             v-else-if="authMode === 'social_bind'"
