@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import AudiencePicker from './AudiencePicker.vue'
 import ImageCropper from '@/components/Share/ImageCropper.vue'
-import { useImageUpload } from '@/composables/useImageUpload'
+import { usePostComposerImages } from '@/composables/usePostComposerImages'
 import { useToast } from '@/composables/useToast'
 
 // 發布貼文流程
@@ -12,25 +12,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['submit', 'toast'])
-const { compressImage, uploadToCloudinary } = useImageUpload()
-const { success, error, info } = useToast()
+const { error, info } = useToast()
+
+// 引入圖片處理邏輯
+const { images, isCropping, currentCropSrc, handleFileChange, onCropConfirm,onCropCancel, reCropImage, removeImage, uploadAllImages, clearImages} = usePostComposerImages(4)
 
 const open = ref(false)
 const content = ref('')
 const textareaRef = ref(null)
 const fileInputRef = ref(null)
-
 const isSubmitting = ref(false)
-
-// 存放最終已裁切的圖片：{ id, url, file (Blob), originalFile, status }
-const images = ref([])
-
-// 裁切佇列系統
-const cropQueue = ref([]) 
-const currentCropSrc = ref('')
-const isCropping = ref(false)
-const isReCropping = ref(false)
-const reCropTargetId = ref(null)
 
 const countText = computed(() => `${content.value.length}/${props.maxLength}`)
 
@@ -62,102 +53,6 @@ const triggerImageUpload = () => {
   fileInputRef.value?.click()
 }
 
-// 處理下一張裁切
-const processNextCrop = () => {
-  if (cropQueue.value.length === 0) {
-    isCropping.value = false
-    currentCropSrc.value = ''
-    return
-  }
-
-  const nextFile = cropQueue.value[0]
-  currentCropSrc.value = URL.createObjectURL(nextFile)
-  isCropping.value = true
-}
-
-// 處理檔案選擇
-const handleFileChange = (event) => {
-  const files = Array.from(event.target.files || [])
-  if (files.length === 0) return
-
-  if (images.value.length + cropQueue.value.length + files.length > 4) {
-    error('最多只能上傳 4 張圖片')
-    event.target.value = ''
-    return
-  }
-
-  const validFiles = files.filter(f => f.type.startsWith('image/'))
-  if (validFiles.length > 0) {
-    isReCropping.value = false
-    cropQueue.value.push(...validFiles)
-    processNextCrop()
-  }
-
-  event.target.value = ''
-}
-
-// 處理下一張裁切
-const processNextCrop = () => {
-  if (cropQueue.value.length === 0) {
-    isCropping.value = false
-    isReCropping.value = false
-    currentCropSrc.value = ''
-    reCropTargetId.value = null
-    return
-  }
-
-  const nextFile = cropQueue.value[0]
-  currentCropSrc.value = URL.createObjectURL(nextFile)
-  isCropping.value = true
-}
-
-// 確認裁切
-const onCropConfirm = (blob) => {
-  const previewUrl = URL.createObjectURL(blob)
-  
-  if (isReCropping.value && reCropTargetId.value) {
-    const index = images.value.findIndex(img => img.id === reCropTargetId.value)
-    if (index !== -1) {
-      URL.revokeObjectURL(images.value[index].url)
-      images.value[index].url = previewUrl
-      images.value[index].file = blob
-    }
-  } else {
-    images.value.push({
-      id: Date.now() + Math.random().toString(36).slice(2, 9),
-      url: previewUrl,
-      file: blob,
-      originalFile: cropQueue.value[0],
-      status: 'idle'
-    })
-  }
-
-  cropQueue.value.shift()
-  URL.revokeObjectURL(currentCropSrc.value)
-  processNextCrop()
-}
-
-// 取消裁切
-const onCropCancel = () => {
-  cropQueue.value.shift()
-  URL.revokeObjectURL(currentCropSrc.value)
-  processNextCrop()
-}
-
-// 重新裁切
-const reCropImage = (img) => {
-  isReCropping.value = true
-  reCropTargetId.value = img.id
-  cropQueue.value = [img.originalFile]
-  processNextCrop()
-}
-
-const removeImage = (index) => {
-  URL.revokeObjectURL(images.value[index].url)
-  images.value.splice(index, 1)
-}
-
-// 發布
 const submit = async () => {
   if (!canSubmit.value) return
 
@@ -170,26 +65,9 @@ const submit = async () => {
   }
 
   isSubmitting.value = true
-  const uploadedUrls = []
 
   try {
-    if (hasImages) {
-      images.value.forEach(img => img.status = 'uploading')
-      
-      const uploadPromises = images.value.map(async (img) => {
-        try {
-          const { blob: compressedBlob } = await compressImage(new File([img.file], 'image.jpg', { type: 'image/jpeg' }))
-          const result = await uploadToCloudinary(compressedBlob)
-          img.status = 'success'
-          return result.url
-        } catch (err) {
-          img.status = 'error'
-          throw err
-        }
-      })
-
-      uploadedUrls.push(...await Promise.all(uploadPromises))
-    }
+    const uploadedUrls = await uploadAllImages()
 
     emit('submit', {
       content: content.value,
@@ -198,10 +76,10 @@ const submit = async () => {
       audience: audience.value
     })
 
-    success('貼文已發布！')
+    info('貼文發布中！')
+
     content.value = ''
-    images.value.forEach((img) => URL.revokeObjectURL(img.url))
-    images.value = []
+    clearImages()
     open.value = false
 
   } catch {
@@ -213,8 +91,7 @@ const submit = async () => {
 
 const close = () => {
   if (isCropping.value) {
-    cropQueue.value = []
-    isCropping.value = false
+    clearImages()
   }
   open.value = false
 }
@@ -225,15 +102,13 @@ const audience = ref('public')
 
 <template>
   <div>
-    <!-- 裁切彈窗 -->
     <ImageCropper
       v-if="isCropping"
       :image-src="currentCropSrc"
       @confirm="onCropConfirm"
       @cancel="onCropCancel"
     />
-
-    <!-- 隱藏的檔案輸入框 -->
+    
     <input
       ref="fileInputRef"
       type="file"
@@ -282,7 +157,7 @@ const audience = ref('public')
               </div>
 
               <!-- 成功勾勾 -->
-              <div v-if="img.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-green-500/40 z-20">
+              <div v-if="img.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-gray-700/40 z-20">
                 <span class="text-white text-xl font-bold">✓</span>
               </div>
 
@@ -388,7 +263,7 @@ const audience = ref('public')
               </div>
 
               <!-- 成功勾勾 -->
-              <div v-if="img.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-green-500/40 z-20">
+              <div v-if="img.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-gray-700/40 z-20">
                 <span class="text-white text-xl font-bold">✓</span>
               </div>
 
