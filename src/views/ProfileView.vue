@@ -252,7 +252,7 @@ onUnmounted(() => {
         class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm lg:grid lg:grid-cols-[1.2fr_2fr] lg:gap-10 lg:overflow-hidden lg:rounded-none lg:border-none lg:bg-transparent lg:shadow-none"
       >
         <aside
-          class="lg:c-card flex h-auto shrink-0 flex-col border-b border-gray-100 bg-transparent lg:h-full lg:overflow-hidden lg:border-none lg:bg-white lg:p-0 lg:shadow-none"
+          class="lg:c-card flex h-auto shrink-0 flex-col bg-transparent lg:h-full lg:overflow-hidden lg:border-none lg:bg-white lg:p-0 lg:shadow-none"
         >
           <div
             class="custom-scrollbar flex h-auto flex-col p-4 lg:h-full lg:overflow-y-auto lg:p-8"
@@ -419,7 +419,7 @@ onUnmounted(() => {
           class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:bg-white"
         >
           <div
-            class="sticky top-10 z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-[70px] md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:px-0"
+            class="sticky top-10 z-40 -mx-2 flex-none border-b border-gray-100 bg-transparent px-2 min-[800px]:top-[70px] md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:bg-white lg:px-0"
           >
             <div class="mt-2 h-px w-full bg-gray-100 lg:hidden"></div>
 
