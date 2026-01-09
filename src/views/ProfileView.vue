@@ -246,7 +246,7 @@ onUnmounted(() => {
     <BackgroundGrid />
 
     <div
-      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible px-2 pt-[68px] pb-6 min-[800px]:pt-[78px] md:px-4 md:pb-24 lg:overflow-hidden lg:pt-10"
+      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible px-2 pt-10 pb-6 min-[800px]:pt-[70px] md:px-4 md:pb-24 lg:overflow-hidden lg:pt-10"
     >
       <div
         class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm lg:grid lg:grid-cols-[1.2fr_2fr] lg:gap-10 lg:overflow-hidden lg:rounded-none lg:border-none lg:bg-transparent lg:shadow-none"
@@ -399,7 +399,7 @@ onUnmounted(() => {
           class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:bg-white"
         >
           <div
-            class="sticky top-[60px] z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-[70px] md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:px-0"
+            class="sticky top-10 z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-[70px] md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:px-0"
           >
             <div class="mt-2 h-px w-full bg-gray-100 lg:hidden"></div>
 
