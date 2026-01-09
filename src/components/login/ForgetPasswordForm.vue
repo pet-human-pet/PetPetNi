@@ -7,9 +7,9 @@ const emit = defineEmits(['change-view'])
 const email = ref('')
 
 const handleSubmit = () => {
-  // 模擬發送驗證碼
-  console.log('發送驗證碼至:', email.value)
-  emit('change-view', 'OTP_VERIFY')
+  // TODO: 未來實作 API - 發送重設密碼連結至 Email
+  // 暫時直接導回登入頁，正式版應顯示「已發送」訊息
+  emit('change-view', 'LOGIN')
 }
 </script>
 
@@ -19,7 +19,7 @@ const handleSubmit = () => {
     <p class="mb-8 text-center text-sm text-gray-500">
       請輸入您註冊的 Email，
       <br />
-      我們將發送驗證碼給您。
+      我們將發送重設密碼連結給您。
     </p>
 
     <form @submit.prevent="handleSubmit">
@@ -32,7 +32,7 @@ const handleSubmit = () => {
         type="submit"
         class="mb-4 w-full rounded-xl bg-gray-900 py-3 font-medium text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
       >
-        發送驗證碼
+        發送重設連結
       </button>
 
       <button
