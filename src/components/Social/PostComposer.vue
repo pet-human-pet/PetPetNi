@@ -15,7 +15,7 @@ const emit = defineEmits(['submit', 'toast'])
 const { error, info } = useToast()
 
 // 引入圖片處理邏輯
-const { images, isCropping, currentCropSrc, handleFileChange, onCropConfirm,onCropCancel, reCropImage, removeImage, uploadAllImages, clearImages} = usePostComposerImages(4)
+const { images, isCropping, currentCropSrc, handleFileChange, onCropConfirm, onCropCancel, reCropImage, removeImage, uploadAllImages, clearImages} = usePostComposerImages(4)
 
 const open = ref(false)
 const content = ref('')
