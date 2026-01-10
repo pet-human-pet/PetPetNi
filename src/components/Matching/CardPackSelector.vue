@@ -248,6 +248,7 @@ onUnmounted(() => {
   position: absolute;
   width: 140px;
   height: 210px;
+  /* TODO: 改用 CSS 變數（等顏色變數匯入後再做修改） */
   background: linear-gradient(145deg, #2e6256, #1e4a3f);
   border-radius: var(--radius-card);
   display: flex;
