@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import AppHeader from './components/Share/AppHeader.vue'
 import MainHeader from './components/Share/Header.vue'
 import AppFooter from './components/Share/AppFooter.vue'
 import MenuOverlay from './components/Share/MenuOverlay.vue'
@@ -10,6 +9,10 @@ import ReportDialog from './components/Share/ReportDialog.vue'
 import SimpleToast from './components/Share/SimpleToast.vue'
 
 const route = useRoute()
+
+// 計算是否顯示 Header
+const showHeader = computed(() => !route.meta.hideHeader)
+// 計算是否顯示 Footer
 const showFooter = computed(() => !route.meta.hideFooter)
 </script>
 
@@ -19,14 +22,9 @@ const showFooter = computed(() => !route.meta.hideFooter)
     <ConfirmDialog />
     <ReportDialog />
     <MenuOverlay />
-    <AppHeader v-if="route.meta.headerType === 'landing'" />
 
-    <!-- Main App Header (Event, Social, Profile, Home) -->
-    <!-- Home 頁面的 Header z-index 需設為 15，在 Marquee (z-20/30) 下方但在內容 (z-10) 上方 -->
-    <MainHeader
-      v-if="route.meta.headerType === 'app'"
-      :transparent="route.meta.transparentHeader"
-    />
+    <!-- Main App Header -->
+    <MainHeader v-if="showHeader" :transparent="route.meta.transparentHeaderBg" />
 
     <main class="w-full flex-1">
       <RouterView />
