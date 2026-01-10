@@ -20,7 +20,7 @@ const handleLogin = () => {
 </script>
 
 <template>
-  <div class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12">
+  <div class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12">
     <h2 class="mb-8 text-center text-3xl font-bold" style="color: #ffa75f">
       <!-- TODO: Replace with CSS variable var(--app-primary) -->
       歡迎回來
@@ -89,6 +89,7 @@ const handleLogin = () => {
 
       <div class="flex items-center justify-between">
         <label class="flex cursor-pointer items-center">
+          <!-- TODO: Replace with CSS variable var(--app-primary) -->
           <input
             type="checkbox"
             class="h-4 w-4 rounded border-gray-300 text-[#ffa75f] focus:ring-[#ffa75f]"
