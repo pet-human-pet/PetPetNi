@@ -216,7 +216,7 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'reset-password'"
             key="reset-password"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <ResetPasswordForm @success="handleResetPasswordSuccess" />
           </div>
@@ -237,7 +237,7 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'owner_info'"
             key="owner_info"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <OwnerInfo
               :email="userEmail"
@@ -261,7 +261,7 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'add_more_pets'"
             key="add_more_pets"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <div class="text-center">
               <div class="mb-4 flex justify-center">
