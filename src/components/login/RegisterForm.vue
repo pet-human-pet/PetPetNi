@@ -46,7 +46,7 @@ const handleRegister = () => {
 </script>
 
 <template>
-  <div class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12">
+  <div class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12">
     <h2 class="mb-8 text-center text-3xl font-bold" style="color: #ffa75f">
       <!-- TODO: Replace with CSS variable var(--app-primary) -->
       建立帳號
