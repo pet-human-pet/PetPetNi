@@ -8,9 +8,12 @@ const router = createRouter({
       name: 'home',
       component: () => import('@/views/HomeView.vue'),
       meta: {
+        requiresAuth: false,
+        hideHeader: false,
+        hideNavbar: true,
         hideFooter: true,
-        headerType: 'app', // 使用 Header.vue
-        transparentHeader: true // Header 使用透明背景
+        title: '首頁 | PetPetNi',
+        transparentHeaderBg: true // Header 使用透明背景
       }
     },
 
@@ -18,23 +21,38 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('@/views/Login/AuthView.vue'),
-      meta: { headerType: 'none' }
+      meta: {
+        requiresAuth: false,
+        hideHeader: true,
+        hideNavbar: true,
+        hideFooter: true,
+        title: '登入 | PetPetNi'
+      }
     },
 
     {
       path: '/auth/callback',
       name: 'auth-callback',
       component: () => import('@/views/Login/AuthCallback.vue'),
-      meta: { headerType: 'none' }
+      meta: {
+        requiresAuth: false,
+        hideHeader: true,
+        hideNavbar: true,
+        hideFooter: true,
+        title: 'OAuth 驗證中 | PetPetNi'
+      }
     },
 
     {
       path: '/chat-test',
       name: 'chat-test',
       component: () => import('@/views/ChatRoomView.vue'),
-      meta: { 
-        headerType: 'none',
-        hideFooter: true
+      meta: {
+        requiresAuth: true,
+        hideHeader: true,
+        hideNavbar: false,
+        hideFooter: true,
+        title: '聊天室 | PetPetNi'
       }
     },
 
@@ -42,19 +60,37 @@ const router = createRouter({
       path: '/event',
       name: 'Event',
       component: () => import('@/views/EventView.vue'),
-      meta: { headerType: 'app' }
+      meta: {
+        requiresAuth: true,
+        hideHeader: false,
+        hideNavbar: false,
+        hideFooter: true,
+        title: '活動 | PetPetNi'
+      }
     },
     {
       path: '/social',
       name: 'Social',
       component: () => import('@/views/SocialView.vue'),
-      meta: { headerType: 'app' }
+      meta: {
+        requiresAuth: true,
+        hideHeader: false,
+        hideNavbar: false,
+        hideFooter: true,
+        title: '社群 | PetPetNi'
+      }
     },
     {
       path: '/profile',
       name: 'Profile',
       component: () => import('@/views/ProfileView.vue'),
-      meta: { headerType: 'app' }
+      meta: {
+        requiresAuth: true,
+        hideHeader: false,
+        hideNavbar: false,
+        hideFooter: true,
+        title: '個人資料 | PetPetNi'
+      }
     }
   ],
 
