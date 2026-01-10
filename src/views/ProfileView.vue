@@ -249,7 +249,7 @@ onUnmounted(() => {
           class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:bg-white lg:rounded-2xl"
         >
           <div
-            class="sticky top-10 z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-17.5 md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
+            class="sticky top-[60px] z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-17.5 md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 lg:px-6">
               <button
