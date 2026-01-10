@@ -103,13 +103,9 @@ function calculateTimeUntilReset() {
 }
 
 // Methods
-async function handleCardSelect(selectedCard) {
-  console.log('🎯 Card selected:', selectedCard)
-  console.log('✅ Can match:', canMatch.value)
-
+async function handleCardSelect() {
   // 檢查是否可以配對（今日已配對過）
   if (!canMatch.value) {
-    console.log('❌ Already matched today')
     stage.value = 'cooldown'
     calculateTimeUntilReset()
     return
@@ -117,16 +113,16 @@ async function handleCardSelect(selectedCard) {
 
   // 🚀 優化：立即顯示展示卡片，在背景執行配對
   stage.value = 'display'
-  console.log('🎴 Stage changed to: display (instant)')
 
   try {
-    console.log('🔄 Starting match process in background...')
     // 執行配對（背景處理）
     const result = await performMatch(mockPets)
     matchResult.value = result
-    console.log('✨ Match result:', result)
+    // eslint-disable-next-line no-console
+    console.log('✨ Match result:', result) // 保留：後端開發需要檢查 API 回傳
   } catch (err) {
     // 處理配對錯誤
+    // eslint-disable-next-line no-console
     console.error('❌ Match error:', err)
     stage.value = 'selection'
     // TODO: 使用 Toast 顯示錯誤訊息
@@ -139,7 +135,6 @@ function viewLastMatch() {
   if (lastMatch) {
     matchResult.value = lastMatch
     stage.value = 'result'
-    console.log('📊 Showing last match result')
   } else {
     alert('沒有配對記錄')
   }
@@ -369,6 +364,7 @@ onMounted(() => {
 .displayed-card {
   width: 240px;
   height: 360px;
+  /* TODO: 改用 CSS 變數（等顏色變數匯入後再做修改） */
   background: linear-gradient(145deg, #2e6256, #1e4a3f);
   border-radius: 1.5rem;
   display: flex;
