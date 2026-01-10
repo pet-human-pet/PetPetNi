@@ -423,7 +423,7 @@ onUnmounted(() => {
           >
             <div class="mt-2 h-px w-full bg-gray-100 lg:hidden"></div>
 
-            <div class="flex shrink-0 justify-around px-4 pt-4 lg:px-6 lg:pt-8">
+            <div class="flex shrink-0 justify-around px-4 pt-2 lg:px-6 lg:pt-4">
               <button
                 v-for="tab in [
                   { id: 'posts', n: '貼文' },
