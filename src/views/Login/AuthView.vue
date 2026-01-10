@@ -117,23 +117,36 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center p-4 lg:p-8" style="background-color: #ffd9ad">
-    <!-- TODO: Replace with CSS variable var(--app-bg) -->
-
+  <!-- TODO: Replace with CSS variable var(--app-bg) -->
+  <div
+    class="flex min-h-screen items-center justify-center p-4 lg:p-8"
+    style="background-color: #ffd9ad"
+  >
     <div class="grid w-full max-w-5xl grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-16">
       <!-- Branding Section (Left/Top) - 固定顯示 -->
       <div class="flex flex-col items-center justify-center space-y-4 lg:items-center">
         <!-- Paw Icon -->
         <div class="h-24 w-24 lg:h-32 lg:w-32">
-          <img src="@/assets/icons/icon-paw.svg" alt="PetPetNi Logo" class="h-full w-full object-contain opacity-90" />
+          <img
+            src="@/assets/icons/icon-paw.svg"
+            alt="PetPetNi Logo"
+            class="h-full w-full object-contain opacity-90"
+          />
         </div>
-        <h1 class="text-center text-4xl font-bold tracking-wider text-white lg:text-5xl">PetPetNi</h1>
+        <h1 class="text-center text-4xl font-bold tracking-wider text-white lg:text-5xl">
+          PetPetNi
+        </h1>
       </div>
 
       <!-- Form Section (Right/Bottom) - 條件渲染 -->
       <div class="flex justify-center">
         <Transition name="auth-form" mode="out-in">
-          <LoginForm v-if="authMode === 'login'" key="login" @switch="switchToRegister" @forgot="switchToForget" />
+          <LoginForm
+            v-if="authMode === 'login'"
+            key="login"
+            @switch="switchToRegister"
+            @forgot="switchToForget"
+          />
           <RegisterForm
             v-else-if="authMode === 'register'"
             key="register"
@@ -143,35 +156,35 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'forget'"
             key="forget"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <ForgetPasswordForm @change-view="handleViewChange" />
           </div>
           <div
             v-else-if="authMode === 'otp'"
             key="otp"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <OtpVerification @success="handleOtpSuccess" @change-view="handleViewChange" />
           </div>
           <div
             v-else-if="authMode === 'social_bind'"
             key="social_bind"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <SocialBindEmail @success="handleSocialBindSuccess" />
           </div>
           <div
             v-else-if="authMode === 'role'"
             key="role"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <RoleSelection @select="handleRoleSelect" />
           </div>
           <div
             v-else-if="authMode === 'pet'"
             key="pet"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <PetBasicInfo @submit="handlePetSubmit" />
           </div>
@@ -179,25 +192,35 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'success'"
             key="success"
-            class="w-full max-w-md rounded-[2.5rem] border-none bg-white p-8 shadow-xl md:p-12"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <!-- 完成圖示 -->
             <div class="mb-6 flex justify-center">
-              <div class="animate-scale-in flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+              <div
+                class="animate-scale-in flex h-24 w-24 items-center justify-center rounded-full bg-green-100"
+              >
                 <svg
                   class="animate-check h-12 w-12 text-green-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  ></path>
                 </svg>
               </div>
             </div>
 
             <!-- 標題 -->
             <h2 class="mb-2 text-center text-3xl font-bold text-gray-800">註冊完成！</h2>
-            <p class="mb-2 text-center text-xl font-medium" style="color: #ffa75f">歡迎來到 PetPetNi</p>
+            <!-- TODO: Replace with CSS variable var(--app-primary) -->
+            <p class="mb-2 text-center text-xl font-medium" style="color: #ffa75f">
+              歡迎來到 PetPetNi
+            </p>
 
             <!-- 訊息 -->
             <p class="mb-8 text-center text-sm text-gray-500">
@@ -207,12 +230,14 @@ onUnmounted(() => {
             <!-- 倒數計時 -->
             <div class="mb-6 text-center">
               <p class="text-sm text-gray-400">
+                <!-- TODO: Replace with CSS variable var(--app-primary) -->
                 <span class="text-2xl font-bold" style="color: #ffa75f">{{ countdown }}</span>
                 秒後自動進入
               </p>
             </div>
 
             <!-- 立即進入按鈕 -->
+            <!-- TODO: Replace with CSS variable var(--app-primary) -->
             <button
               type="button"
               class="w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"

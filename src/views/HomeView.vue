@@ -1,7 +1,7 @@
 <script setup>
-import NavIcon from '../components/Share/NavIcon.vue'
-import BackgroundGrid from '../components/Share/BackgroundGrid.vue'
-import MainFrame from '../components/Share/MainFrame.vue'
+import NavIcon from '@/components/Share/NavIcon.vue'
+import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
+import MainFrame from '@/components/Share/MainFrame.vue'
 
 // Grid Configuration: Mobile (2x3 Corners) / Desktop (3x3 Corners)
 const items = [
@@ -50,7 +50,7 @@ const items = [
 
     <div class="pointer-events-none relative flex h-full items-center justify-center">
       <div
-        class="relative flex aspect-[4/3] h-auto max-h-full w-auto max-w-full items-center justify-center"
+        class="relative flex aspect-4/3 h-auto max-h-full w-auto max-w-full items-center justify-center"
       >
         <div class="absolute inset-0 flex h-full w-full items-center justify-center">
           <img
