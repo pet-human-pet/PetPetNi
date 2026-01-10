@@ -46,7 +46,9 @@ const handleBind = async () => {
     // 通知父元件綁定成功
     emit('success')
   } catch (error) {
-    console.error('Email binding error:', error)
+    if (import.meta.env.DEV) {
+      console.error('Email binding error:', error)
+    }
     alert('Email 綁定失敗，請重試')
   }
 }
