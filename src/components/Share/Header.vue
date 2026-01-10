@@ -1,26 +1,19 @@
 <script setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
 import MenuButton from '@/components/Button/MenuButton.vue'
 import ImageCropper from '@/components/Form/ImageCropper.vue'
 
 // Props
 const props = defineProps({
-  transparent: {
-    type: Boolean,
-    default: false
-  }
+  avatarUrl: { type: String, default: '' }
 })
 
 // Router & Store
 const router = useRouter()
 const fav = useFavoritesStore()
 const uiStore = useUIStore()
-
-const props = defineProps({
-  avatarUrl: { type: String, default: '' }
-})
 
 const defaultAvatar =
   'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=100&q=60'
@@ -210,8 +203,7 @@ function toggleMenu() {
             @click="goChat"
           >
             <i class="fa-regular fa-comment-dots"></i>
-
-            <!-- badge：使用品牌強調色，避免使用未定義 token 的紅色 -->
+            <!-- badge：使用品牌強調色 -->
             <span
               class="border-bg-surface bg-brand-accent absolute top-2 right-2 h-2 w-2 rounded-full border"
             ></span>

@@ -11,7 +11,9 @@ onMounted(async () => {
 
   // 處理 OAuth 錯誤（使用者拒絕授權）
   if (error) {
-    console.error('OAuth Error:', error)
+    if (import.meta.env.DEV) {
+      console.error('OAuth Error:', error)
+    }
     alert('授權失敗，請重試')
     router.push('/login')
     return
@@ -48,7 +50,9 @@ onMounted(async () => {
       router.push('/')
     }
   } catch (error) {
-    console.error('OAuth callback error:', error)
+    if (import.meta.env.DEV) {
+      console.error('OAuth callback error:', error)
+    }
     alert('登入失敗，請重試')
     router.push('/login')
   }
@@ -56,10 +60,12 @@ onMounted(async () => {
 </script>
 
 <template>
+  <!-- TODO: Replace with CSS variable var(--app-bg) -->
   <div class="flex min-h-screen items-center justify-center" style="background-color: #ffd9ad">
     <!-- TODO: Replace with CSS variable var(--app-bg) -->
     <div class="text-center">
       <!-- Loading Spinner -->
+      <!-- TODO: Replace with CSS variable var(--app-primary) -->
       <div
         class="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-gray-300 border-t-[#ffa75f]"
       ></div>
