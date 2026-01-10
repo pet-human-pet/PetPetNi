@@ -217,7 +217,7 @@ function toggleMenu() {
             ></span>
           </button>
 
-          <!-- 通知（暫留） -->
+          <!-- TODO: Replace with CSS variable var(--app-primary) -->
           <button
             class="c-icon-btn"
             title="通知"
