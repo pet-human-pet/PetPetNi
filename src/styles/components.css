@@ -115,6 +115,29 @@
       transform: scale(1) translateY(0);
     }
   }
+
+  /* 底部滑入動畫 */
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* 右側滑入動畫 */
+  .animate-slide-right {
+    animation: slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes slideRight {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
   /* 自定義Scrollbar */
   .scrollbar {
     scrollbar-width: thin;
@@ -122,6 +145,162 @@
   }
 
   /* Chat */
+
+  /* 聊天室專用顏色變數 */
+  @theme {
+    --color-status-match: #f97316;
+    --color-status-knock: #9333ea;
+    --color-status-error: #ef4444;
+    --color-bg-brand-light: #f9fbf2;
+    --color-status-friend: #ff9a8b;
+    --color-fg-terracotta: #cf7451;
+  }
+
+  .c-badge {
+    @apply bg-brand-accent absolute flex items-center justify-center rounded-full text-white font-bold
+    leading-none;
+  }
+  .c-badge--dot {
+    @apply h-2 w-2 border border-white;
+  }
+  .c-badge--num {
+    @apply min-w-3.5 h-3.5 px-1 text-[8px];
+  }        
+
+  .c-chat-bubble {
+    @apply relative flex cursor-pointer flex-col gap-1 break-all rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm transition-opacity hover:opacity-95;
+  }
+  .c-chat-bubble--me {
+    @apply bg-brand-primary text-white rounded-br-sm;
+  }
+  .c-chat-bubble--them {
+    @apply border-border-default bg-bg-surface text-fg-primary border rounded-bl-sm;
+  }
+
+  .c-chat-item {
+    @apply relative mb-1 flex cursor-pointer items-center rounded-xl px-4 py-3 transition-colors hover:bg-bg-base;
+  }
+
+  .c-chat-info {
+    @apply ml-3 min-w-0 flex-1;
+  }
+
+  .c-chat-title {
+    @apply mb-1 flex items-center justify-between;
+  }
+
+  .c-chat-name {
+    @apply text-fg-primary flex items-center gap-1 text-base font-bold;
+  }
+
+  .c-chat-desc {
+    @apply text-fg-secondary h-5 truncate text-sm;
+  }
+
+  .c-chat-avatar {
+    @apply h-12 w-12 rounded-xl border border-black/5 bg-gray-200 bg-cover bg-center shadow-sm transition-transform hover:scale-105;
+  }
+
+  .c-chat-label {
+    @apply rounded px-1 text-[10px] font-bold;
+  }
+
+  .c-chat-nav {
+    @apply relative flex h-full w-13 shrink-0 cursor-pointer flex-col items-center justify-center text-fg-muted transition-all duration-200 hover:bg-black/5 hover:text-brand-primary md:h-12 md:w-full md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-lg md:px-3;
+  }
+
+  .c-chat-nav-active {
+    @apply bg-brand-primary text-white shadow-lg shadow-brand-primary/30;
+    @apply hover:bg-brand-primary/90 hover:text-white;
+  }
+
+  .c-chat-section-label {
+    @apply rounded-md px-2 py-0.5 text-xs font-black tracking-wider;
+  }
+  .c-chat-section-label--accent {
+    @apply bg-brand-accent/10 text-brand-accent;
+  }
+  .c-chat-section-label--primary {
+    @apply bg-brand-primary/10 text-brand-primary;
+  }
+  .c-chat-section-label--muted {
+    @apply bg-fg-muted/10 text-fg-muted;
+  }
+
+  .c-chat-tab {
+    @apply flex-1 cursor-pointer rounded-full border py-1.5 text-sm font-bold transition-all duration-200 whitespace-nowrap;
+    @apply border-border-default text-fg-muted hover:bg-bg-base bg-transparent;
+  }
+
+  .c-chat-tab-active {
+    @apply bg-brand-primary border-transparent text-white shadow-sm hover:bg-brand-primary/90 hover:text-white;
+  }
+
+  .c-chat-menu {
+    @apply flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm font-bold transition-colors hover:bg-bg-base;
+  }
+  .c-chat-menu i {
+    @apply w-5 text-center;
+  }
+  
+  .c-chat-menu-danger {
+    @apply text-red-500 hover:bg-red-50;
+  }
+  .c-chat-pop {
+    @apply absolute z-50 flex items-center gap-1 rounded-lg border border-[#dce4d1] bg-[#ecf0e5] p-1 text-xs whitespace-nowrap text-[#2d3a12] shadow-lg;
+  }
+
+  .c-chat-opt {
+    @apply flex cursor-pointer items-center gap-1 rounded px-3 py-2 font-bold transition-opacity hover:opacity-70;
+  }
+
+  .c-chat-opt i {
+    @apply text-[#556b2f];
+  }
+
+  .c-chat-arrow {
+    @apply absolute h-0 w-0 border-x-[6px] border-x-transparent;
+  }
+
+  .c-icon-edit {
+    @apply text-fg-muted transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-brand-primary;
+  }
+
+  .c-ai-prompt-btn {
+    @apply border-border-default hover:bg-bg-base hover:border-brand-primary/50 
+           text-fg-primary flex items-center gap-2 rounded-xl border 
+           bg-white p-2.5 text-left text-sm transition-all;
+  }
+
+  .c-ai-prompt-btn__icon {
+    @apply bg-brand-primary/10 text-brand-primary flex h-6 w-6 
+           shrink-0 items-center justify-center rounded-full;
+  }
+
+  .c-chat-input-container {
+    @apply flex shrink-0 flex-col border-t border-border-default bg-bg-surface p-4 pb-7.5 md:pb-4;
+  }
+
+  .c-chat-reply-bar {
+    @apply mb-2 flex items-center justify-between border-l-4 border-brand-primary bg-zinc-50 px-3 py-2;
+  }
+
+  .c-chat-input-field {
+    @apply relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-transparent bg-bg-base transition-colors focus-within:border-brand-primary;
+  }
+
+  /* 個人資料標籤 (好友/我) */
+  .c-profile-tag {
+    @apply ml-24 pointer-events-auto text-[10px] px-2 py-0.5 rounded-md uppercase tracking-widest font-bold whitespace-nowrap;
+  }
+
+  .c-profile-tag--friend {
+    @apply bg-status-friend/20 text-status-friend;
+  }
+
+  .c-profile-tag--me {
+    @apply bg-brand-primary/20 text-brand-primary;
+  }
 
   /* Profile */
 
@@ -166,20 +345,39 @@
 
   /* UI (modal/dropdown/toast) */
   .c-toast {
-    @apply pointer-events-auto relative flex min-w-62.5 items-center gap-3 overflow-hidden rounded-lg px-4 py-3 text-white shadow-lg transition-all;
+    @apply pointer-events-auto relative flex w-[320px] items-center gap-3 overflow-hidden rounded-xl px-5 py-3.5 shadow-md border;
+    background-color: #ffffff; 
+    isolation: isolate;
+  }
+
+  .c-toast::before {
+    content: "";
+    @apply absolute inset-0 -z-10 opacity-100;
   }
 
   .c-toast--success {
-    @apply bg-[#6fb68c];
+    @apply border-brand-primary/20;
   }
+  .c-toast--success::before {
+    background-color: #f0f6f4;
+  }
+  .c-toast--success i { @apply text-brand-primary; }
 
   .c-toast--error {
-    @apply bg-[#ed0808c5];
+    @apply border-func-danger/20;
   }
+  .c-toast--error::before {
+    background-color: #fff4f4; 
+  }
+  .c-toast--error i { @apply text-func-danger; }
 
   .c-toast--info {
-    @apply bg-[#2b96f395];
+    @apply border-brand-accent/20;
   }
+  .c-toast--info::before {
+    background-color: #fefae9;
+  }
+  .c-toast--info i { @apply text-brand-accent; }
 
   /* Toast Progress Animation */
   @keyframes toast-progress {
@@ -191,7 +389,7 @@
     }
   }
   .c-toast-progress {
-    @apply absolute bottom-0 left-0 h-1 bg-white/30;
+    @apply absolute bottom-0 left-0 h-0.5 bg-black/5;
     animation: toast-progress linear forwards;
   }
   .notification-list {
