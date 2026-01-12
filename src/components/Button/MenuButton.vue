@@ -14,6 +14,7 @@ function handleClick() {
     type="button"
     @click="handleClick"
   >
+    <!-- TODO: #FFA75F 為品牌主色，待整合 CSS 變數 var(--color-brand-primary) -->
     <!-- 背景動畫層 -->
     <div
       class="absolute inset-0 origin-center scale-0 rounded-full bg-[#FFA75F] opacity-10 transition-transform duration-300 group-hover:scale-100"
