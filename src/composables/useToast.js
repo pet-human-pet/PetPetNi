@@ -3,9 +3,8 @@ import { ref } from 'vue'
 const toasts = ref([])
 let toastId = 0
 
-// Toast通知系統 3秒自動消失
 export const useToast = () => {
-  const showToast = (message, type = 'success', duration = 3000) => {
+  const showToast = (message, type = 'success', duration = 1500) => {
     const id = ++toastId
 
     toasts.value.push({
@@ -22,9 +21,9 @@ export const useToast = () => {
     return id
   }
 
-  const success = (message, duration = 3000) => showToast(message, 'success', duration)
-  const error = (message, duration = 3000) => showToast(message, 'error', duration)
-  const info = (message, duration = 3000) => showToast(message, 'info', duration)
+  const success = (message, duration = 1500) => showToast(message, 'success', duration)
+  const error = (message, duration = 1500) => showToast(message, 'error', duration)
+  const info = (message, duration = 1500) => showToast(message, 'info', duration)
 
   return { toasts, showToast, success, error, info }
 }
