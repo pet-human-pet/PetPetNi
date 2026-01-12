@@ -48,7 +48,6 @@
     <!-- 行動按鈕 -->
     <div class="action-buttons">
       <button class="btn-primary" @click="$emit('go-to-chat')">開始聊天 💬</button>
-      <button class="btn-secondary" @click="$emit('close')">明日再來 ✨</button>
     </div>
   </div>
 </template>
@@ -64,7 +63,7 @@ defineProps({
   }
 })
 
-defineEmits(['go-to-chat', 'close'])
+defineEmits(['go-to-chat'])
 
 // 3D Tilt State
 const petCard = ref(null)
@@ -290,16 +289,6 @@ onUnmounted(() => {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-dialog);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--color-brand-primary);
-  border: 1px solid var(--color-border-default);
-}
-
-.btn-secondary:hover {
-  background: rgba(46, 98, 86, 0.05);
 }
 
 /* ========== 3D Parallax Tilt 效果 ========== */
