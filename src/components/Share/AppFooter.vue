@@ -21,7 +21,7 @@ const marqueeTextDark = '繁體。中文字。測試'
     <div
       class="flex w-full items-end justify-between px-[50px] py-4 text-[10px] font-medium tracking-wide text-black md:pb-4 md:text-xs"
     >
-      <div class="opacity-80">&copy; MAYEKAWA MFG. CO., LTD.</div>
+      <div class="opacity-80">&copy; PETPETNI</div>
 
       <div class="flex items-center gap-6">
         <div class="flex gap-3">
