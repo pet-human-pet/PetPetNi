@@ -50,11 +50,7 @@
 
         <!-- 階段 3: 配對結果 -->
         <div v-if="stage === 'result' && matchResult" class="result-stage">
-          <MatchResultCard
-            :match-data="matchResult"
-            @go-to-chat="handleGoToChat"
-            @close="handleClose"
-          />
+          <MatchResultCard :match-data="matchResult" @go-to-chat="handleGoToChat" />
         </div>
       </main>
     </div>
@@ -63,7 +59,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useMatchingStore } from '@/stores/matching'
 import { useMatching } from '@/composables/useMatching'
 import Header from '@/components/Share/Header.vue'
@@ -74,8 +69,7 @@ import MatchResultCard from '@/components/Matching/MatchResultCard.vue'
 // Mock Data - TODO: 實際應從 API 取得
 import { mockPets } from '@/utils/matchingMock'
 
-// Router/Store 初始化
-const router = useRouter()
+// Store 初始化
 const matchingStore = useMatchingStore()
 const { matchResult, canMatch, performMatch, goToChat } = useMatching()
 
@@ -192,10 +186,6 @@ function resetTilt() {
 function handleGoToChat() {
   if (!matchResult.value) return
   goToChat(matchResult.value.pet.id)
-}
-
-function handleClose() {
-  router.push({ name: 'home' })
 }
 
 // Lifecycle
