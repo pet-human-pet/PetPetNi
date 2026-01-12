@@ -1,5 +1,4 @@
 <script setup>
-import { defineEmits } from 'vue'
 import { useChatStore } from '@/stores/chat.js'
 import {
   NAV_ITEMS,
@@ -36,20 +35,28 @@ const handleMoreItemClick = (item) => {
   handleAction(item)
   emit('update:isMoreMenuOpen', false)
 }
+
+const isNavActive = (item) => {
+  if (item.key === 'match') {
+    return ['match', 'community', 'event'].includes(store.currentCategory)
+  }
+  return store.currentCategory === item.key
+}
+
 </script>
 
 <template>
-  <!-- Left Nav (Desktop Sidebar) -->
+  <!-- Left Nav -->
   <aside
     class="border-border-default bg-bg-base hidden h-full w-56 shrink-0 flex-col justify-start gap-1 border-r px-3 pt-6 md:flex"
   >
     <div class="mt-2 mb-2 flex w-full justify-start px-3">
-      <span class="bg-brand-accent/10 text-brand-accent rounded-md px-2 py-0.5 text-sm font-black tracking-wider">好友</span>
+      <span class="c-chat-section-label c-chat-section-label--accent">好友</span>
     </div>
 
     <div
-      class="c-chat-nav-item"
-      :class="{ 'c-chat-nav-item--active': store.currentCategory === 'friendList' }"
+      class="c-chat-nav"
+      :class="{ 'c-chat-nav-active': store.currentCategory === 'friendList' }"
       @click="store.switchCategory('friendList')"
     >
       <div class="flex h-6 w-6 items-center justify-center"><i class="fa-solid fa-address-book text-base"></i></div>
@@ -59,14 +66,14 @@ const handleMoreItemClick = (item) => {
     <div class="border-border-strong mx-auto my-4 h-0 w-full border-t opacity-50"></div>
 
     <div class="mt-2 mb-2 w-full px-3">
-      <span class="bg-brand-primary/10 text-brand-primary rounded-md px-1.5 py-0.5 text-xs font-black tracking-wider">頻道</span>
+      <span class="c-chat-section-label c-chat-section-label--primary">頻道</span>
     </div>
 
     <div
       v-for="item in NAV_ITEMS"
       :key="item.key"
-      class="c-chat-nav-item relative"
-      :class="{ 'c-chat-nav-item--active': store.currentCategory === item.key }"
+      class="c-chat-nav relative"
+      :class="{ 'c-chat-nav-active': store.currentCategory === item.key }"
       @click="store.switchCategory(item.key)"
     >
       <div class="flex h-6 w-6 items-center justify-center"><i class="fa-solid text-base" :class="item.icon"></i></div>
@@ -79,13 +86,13 @@ const handleMoreItemClick = (item) => {
     <div class="border-border-strong mx-auto my-4 h-0 w-full border-t opacity-50"></div>
 
     <div class="mt-1 mb-2 w-full px-3">
-      <span class="bg-fg-muted/10 text-fg-muted rounded-md px-1.5 py-0.5 text-xs font-black tracking-wider">探索</span>
+      <span class="c-chat-section-label c-chat-section-label--muted">探索</span>
     </div>
 
     <div
       v-for="item in PAGE_NAV_ITEMS"
       :key="item.name"
-      class="c-chat-nav-item text-fg-secondary"
+      class="c-chat-nav text-fg-secondary"
       @click="handleAction(item)"
     >
       <div class="flex h-6 w-6 items-center justify-center">
@@ -103,9 +110,9 @@ const handleMoreItemClick = (item) => {
     <div
       v-for="item in MOBILE_BOTTOM_NAV"
       :key="item.key"
-      class="c-chat-nav-item"
+      class="c-chat-nav"
       :class="[
-        (item.key === 'match' && (store.currentCategory === 'match' || store.currentCategory === 'community' || store.currentCategory === 'event')) || store.currentCategory === item.key ? 'text-brand-primary' : 'text-fg-muted',
+        isNavActive(item) ? 'text-brand-primary' : 'text-fg-muted',
         item.isAction ? 'text-brand-accent scale-110' : ''
       ]"
       @click="handleNavClick(item)"
@@ -115,7 +122,7 @@ const handleMoreItemClick = (item) => {
         <div v-if="store.unreadCounts[item.key] > 0" class="c-badge c-badge--num -top-1 left-3 border border-white">N</div>
       </div>
       <div class="text-xs font-black tracking-tighter">{{ item.label }}</div>
-      <div v-if="((item.key === 'match' && (store.currentCategory === 'match' || store.currentCategory === 'community' || store.currentCategory === 'event')) || store.currentCategory === item.key) && !item.isAction" class="bg-brand-primary absolute -bottom-1.5 h-1 w-1 rounded-full"></div>
+      <div v-if="isNavActive(item) && !item.isAction" class="bg-brand-primary absolute -bottom-1.5 h-1 w-1 rounded-full"></div>
     </div>
   </nav>
 
