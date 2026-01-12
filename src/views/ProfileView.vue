@@ -76,7 +76,7 @@ onUnmounted(() => {
     <BackgroundGrid />
 
     <div
-      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible px-2 pt-10 pb-6 md:px-4 md:pb-24 lg:overflow-hidden"
+      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-10 pb-6 md:pb-24 lg:overflow-hidden"
     >
       <div
         class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm lg:grid lg:grid-cols-[1.2fr_2fr] lg:gap-10 lg:overflow-hidden lg:border-none lg:bg-transparent lg:shadow-none"
@@ -88,7 +88,7 @@ onUnmounted(() => {
             class="custom-scrollbar flex h-auto flex-col p-4 lg:h-full lg:overflow-y-auto lg:p-8"
           >
             <div
-              class="mb-6 flex flex-row items-stretch gap-2 pb-2 lg:mb-8 lg:flex-col lg:items-center lg:gap-0 lg:pb-0 lg:text-center"
+              class="flex flex-row items-stretch gap-2 border-b border-gray-100 pb-2 lg:mb-8 lg:flex-col lg:items-center lg:gap-0 lg:border-b-0 lg:pb-0"
             >
               <div
                 class="flex w-1/3 min-w-24 shrink-0 flex-col items-center justify-between lg:w-full"
@@ -249,7 +249,7 @@ onUnmounted(() => {
           class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:rounded-2xl lg:bg-white"
         >
           <div
-            class="sticky top-15 z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-17.5 md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
+            class="sticky top-15 z-40 flex-none border-b border-gray-100 bg-white min-[800px]:top-17.5 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 lg:px-6">
               <button
