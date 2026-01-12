@@ -12,11 +12,12 @@ const emit = defineEmits(['select'])
   >
     <button
       v-for="prompt in prompts"
-      :key="prompt"
-      class="whitespace-nowrap rounded-full border border-brand-primary bg-bg-surface px-3 py-1 text-xs text-brand-primary transition-colors hover:bg-brand-primary hover:text-white"
-      @click="emit('select', prompt)"
+      :key="typeof prompt === 'string' ? prompt : prompt.text"
+      class="whitespace-nowrap rounded-full border border-brand-primary bg-bg-surface px-3 py-1 text-xs text-brand-primary transition-colors hover:bg-brand-primary hover:text-white flex items-center gap-1.5"
+      @click="emit('select', typeof prompt === 'string' ? prompt : prompt.text)"
     >
-      {{ prompt }}
+      <i v-if="typeof prompt !== 'string' && prompt.icon" class="fa-solid" :class="prompt.icon"></i>
+      {{ typeof prompt === 'string' ? prompt : prompt.text }}
     </button>
   </div>
 </template>
