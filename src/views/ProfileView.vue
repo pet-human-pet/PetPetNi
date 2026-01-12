@@ -82,7 +82,7 @@ onUnmounted(() => {
         class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm lg:grid lg:grid-cols-[1.2fr_2fr] lg:gap-10 lg:overflow-hidden lg:border-none lg:bg-transparent lg:shadow-none"
       >
         <aside
-          class="lg:c-card flex h-auto shrink-0 flex-col bg-transparent lg:h-full lg:overflow-hidden lg:border-none lg:bg-white lg:p-0 lg:shadow-none lg:rounded-2xl"
+          class="lg:c-card flex h-auto shrink-0 flex-col bg-transparent lg:h-full lg:overflow-hidden lg:rounded-2xl lg:border-none lg:bg-white lg:p-0 lg:shadow-none"
         >
           <div
             class="custom-scrollbar flex h-auto flex-col p-4 lg:h-full lg:overflow-y-auto lg:p-8"
@@ -246,10 +246,10 @@ onUnmounted(() => {
         </aside>
 
         <main
-          class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:bg-white lg:rounded-2xl"
+          class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:rounded-2xl lg:bg-white"
         >
           <div
-            class="sticky top-[60px] z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-17.5 md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
+            class="sticky top-15 z-40 -mx-2 flex-none border-b border-gray-100 bg-white px-2 min-[800px]:top-17.5 md:-mx-4 md:px-4 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 lg:px-6">
               <button
