@@ -85,6 +85,7 @@ const getIconUrl = (name) => {
 
             <!-- 文字 (傾斜) -->
             <div :class="['absolute z-10 flex flex-col', item.textPosition, item.textRotate]">
+              <!-- TODO: text-[8px]/text-[10px] 為設計稿特殊字級需求，暫時保留 -->
               <h3
                 class="font-sans text-[8px] font-bold tracking-widest text-white uppercase opacity-90 drop-shadow-md sm:text-[10px]"
               >

@@ -61,9 +61,9 @@ function toggleMenu() {
     >
       <div class="mx-auto flex h-full max-w-300 items-center justify-between px-6 max-md:px-4">
         <router-link
-          :to="{ name: 'home' }"
-          class="flex items-center no-underline"
-          :class="{ 'pointer-events-none opacity-40': menuOpen }"
+          v-show="!uiStore.isMenuOpen"
+          :to="{ name: 'login' }"
+          class="flex items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-3 text-[11px] font-bold tracking-wider text-black transition-colors duration-300 hover:bg-gray-200"
         >
           <!-- Logo（先用文字：不使用 inline font；後續可改成圖片） -->
           <span class="text-brand-primary text-2xl font-semibold md:text-3xl">PetPetNi</span>

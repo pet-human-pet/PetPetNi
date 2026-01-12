@@ -19,7 +19,7 @@ const marqueeTextDark = '繁體。中文字。測試'
 <template>
   <footer class="pointer-events-auto z-20 flex w-full flex-col">
     <div
-      class="flex w-full items-end justify-between px-[50px] py-4 text-[10px] font-medium tracking-wide text-black md:pb-4 md:text-xs"
+      class="flex w-full items-end justify-between px-[50px] py-4 text-xs font-medium tracking-wide text-black md:pb-4"
     >
       <div class="opacity-80">&copy; PETPETNI</div>
 
@@ -40,11 +40,11 @@ const marqueeTextDark = '繁體。中文字。測試'
         </div>
         <div class="hidden gap-4 md:flex">
           <a href="#" class="flex items-center gap-1 hover:underline">
-            CORPORATE SITE <span class="text-[10px]">↗</span>
+            官方網站 <span class="text-xs">↗</span>
           </a>
           <a href="#" class="flex items-center gap-1 hover:underline">
-            採用活動におけるプライバシーポリシー
-            <span class="text-[10px]">↗</span>
+            隱私權政策
+            <span class="text-xs">↗</span>
           </a>
         </div>
       </div>
