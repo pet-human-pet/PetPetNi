@@ -1,74 +1,82 @@
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
+import { useChatStore } from '@/stores/chat' // Import store
+import IconChat from '@/components/icons/IconChat.vue'
+import IconProfile from '@/components/icons/IconProfile.vue'
 
-const props = defineProps({
-  friend: {
-    type: Object,
-    required: true
-  }
-})
+const store = useChatStore()
+const friend = computed(() => store.selectedFriend)
+const isSelf = computed(() => friend.value?.id === store.currentUserId)
 
 const emit = defineEmits(['chat', 'profile', 'delete', 'close'])
 
-// 狀態編輯
 const isEditing = ref(false)
 const editValue = ref('')
 const statusInput = ref(null)
 
 const startEdit = async () => {
-  editValue.value = props.friend.statusMsg || ''
+  if (!isSelf.value) return // 非本人不可編輯
+  editValue.value = friend.value?.statusMsg || ''
   isEditing.value = true
   await nextTick()
   statusInput.value?.focus()
 }
 
 const saveStatus = () => {
-  props.friend.statusMsg = editValue.value
+  if (isSelf.value) {
+    store.updateMyProfile({ statusMsg: editValue.value })
+  }
   isEditing.value = false
 }
 </script>
 
 <template>
-  <!-- 滿版背景圖容器 -->
-  <div class="flex flex-col h-full relative overflow-hidden bg-[#f9fbf2]">
-    <!-- 手繪風格平舖背景 -->
-    <div class="absolute inset-0 opacity-[0.08]" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');"></div>
-    
-    <!-- 輕微的漸層遮罩 -->
-    <div class="absolute inset-0 bg-gradient-to-b from-white/40 to-white/10"></div>
+  <div class="flex flex-col h-full relative overflow-hidden bg-bg-brand-light">
+    <div class="absolute inset-x-0 top-0 h-[40%] overflow-hidden pointer-events-none">
+      <img 
+        src="@/assets/images/background-Photoroom.png" 
+        class="w-full h-full object-cover opacity-20"
+        alt=""
+      />
+      <div class="absolute inset-0 bg-linear-to-b from-transparent via-bg-brand-light/10 to-bg-brand-light"></div>
+    </div>
+    <div class="absolute inset-0 bg-white/20 pointer-events-none"></div>
 
-    <!-- Top Toolbar -->
-    <div class="relative z-20 flex justify-between p-6">
-      <!-- 左邊：返回按鈕 -->
-      <button type="button" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 text-fg-secondary hover:bg-white transition-all shadow-sm" @click="emit('close')">
-        <i class="fa-solid fa-chevron-left text-xl"></i>
+    <div class="relative z-20 flex justify-between p-4">
+      <!-- 返回按鈕 -->
+      <button type="button" class="w-9 h-9 flex items-center justify-center rounded-full bg-white text-fg-secondary hover:bg-white transition-all shadow-md backdrop-blur-sm" @click="emit('close')">
+        <i class="fa-solid fa-chevron-left text-lg"></i>
       </button>
-      
-      <!-- 右邊：留空 -->
       <div class="w-10 h-10"></div>
     </div>
     
-    <!-- Main Content -->
     <div class="relative z-10 flex flex-col items-center justify-center flex-1 px-6 -mt-10">
-      <!-- Round Avatar -->
       <div class="relative mb-6">
         <div class="w-36 h-36 rounded-full border-4 border-white bg-cover bg-center shadow-2xl bg-gray-200" :style="{backgroundImage: `url(${friend.avatar})`}"></div>
-        <div v-if="friend.status === 'friend'" class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-sm"></div>
+        <div v-if="friend.status === 'friend' && !isSelf" class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white shadow-sm"></div>
       </div>
       
-      <!-- Name -->
-      <h2 class="text-2xl font-black text-fg-primary mb-3 flex items-center gap-2">
-        {{ friend.name }}
-        <span class="text-[10px] bg-[#FF9A8B]/20 text-[#FF9A8B] px-2 py-0.5 rounded-md uppercase tracking-widest font-bold">好友</span>
-      </h2>
+      <div class="flex items-center justify-center mb-3 h-10 w-full relative">
+        <h2 class="flex items-center justify-center text-2xl font-black text-fg-primary px-3 py-1">
+          {{ friend.name }}
+        </h2>
 
-      <!-- Status (Editable) -->
+        <div class="absolute left-1/2 -translate-y-1/2 top-1/2 pointer-events-none">
+           <span v-if="!isSelf" class="c-profile-tag c-profile-tag--friend">好友</span>
+           <span v-else class="c-profile-tag c-profile-tag--me">我</span>
+        </div>
+      </div>
+
       <div class="h-12 flex items-center justify-center mb-10 w-full max-w-xs">
-        <div v-if="!isEditing" class="group flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg hover:bg-black/5 transition-colors" @click="startEdit">
+        <div v-if="!isEditing" class="group flex items-center gap-2 px-4 py-2 rounded-lg transition-colors" :class="{ 'cursor-pointer hover:bg-black/5': isSelf }" @click="startEdit">
           <p class="text-sm text-fg-secondary text-center leading-relaxed italic opacity-80 line-clamp-2">
             "{{ friend.statusMsg || '這隻小夥伴還在發呆中...' }}"
           </p>
-          <i class="fa-solid fa-pencil text-xs text-[#FF9A8B] opacity-0 group-hover:opacity-100 transition-opacity"></i>
+          <div v-if="isSelf" class="w-3 h-3 ml-1 shrink-0 c-icon-edit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+          </div>
         </div>
         
         <input 
@@ -76,70 +84,64 @@ const saveStatus = () => {
           ref="statusInput"
           v-model="editValue"
           type="text"
-          class="w-full text-center text-sm bg-white border-b-2 border-[#FF9A8B] outline-none py-1 text-fg-primary"
+          class="w-full text-center text-sm bg-white border-b-2 border-status-friend outline-none py-1 text-fg-primary"
           @blur="saveStatus"
           @keydown.enter="saveStatus"
         />
       </div>
 
-      <!-- Paw Buttons Group -->
-      <div class="w-full max-w-sm flex flex-col items-center gap-8">
-        
-        <!-- Row 1: Chat & Profile (Large Paws) -->
-        <div class="flex gap-8 w-full justify-center px-4">
-          
-          <!-- 傳送訊息 (實心粉橘肉球) -->
+      <div v-if="!isSelf" class="w-full max-w-sm flex flex-col items-center mt-8">
+
+        <div v-if="friend.isBlocked" class="flex flex-col items-center gap-4 mb-8">
+          <div class="text-red-500 text-sm font-bold opacity-80">此用戶已被封鎖</div>
           <button 
-            class="group relative w-32 h-32 flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+            class="bg-zinc-100 text-zinc-600 hover:bg-zinc-200 px-8 py-3 rounded-full font-bold shadow-sm transition-all flex items-center gap-2"
+            @click="store.unblockChat(friend.id)"
+          >
+            <i class="fa-solid fa-unlock"></i> 解除封鎖
+          </button>
+        </div>
+
+        <div v-else class="flex gap-20 w-full justify-center px-4">
+
+          <button 
+            class="group relative flex h-16 w-16 md:h-20 md:w-20 flex-col items-center justify-center transition-transform hover:scale-110 active:scale-90"
             @click="emit('chat', friend.id)"
           >
-            <!-- 指頭 (3個圓潤橢圓) -->
-            <div class="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-1.5 w-full justify-center">
-              <div class="w-7 h-5 rounded-full bg-[#FF9A8B] -rotate-12 transform origin-bottom"></div>
-              <div class="w-8 h-6 rounded-full bg-[#FF9A8B] -mt-2"></div>
-              <div class="w-7 h-5 rounded-full bg-[#FF9A8B] rotate-12 transform origin-bottom"></div>
-            </div>
-            
-            <!-- 掌心 (大且圓潤) -->
-            <div class="w-32 h-24 rounded-[45%_45%_40%_40%/55%_55%_45%_45%] bg-[#FF9A8B] shadow-[inset_0_-4px_8px_rgba(0,0,0,0.1),0_8px_15px_rgba(255,154,139,0.3)] flex flex-col items-center justify-center relative z-10 text-white">
-              <i class="fa-solid fa-comment-dots text-2xl mb-1 drop-shadow-sm"></i>
-              <span class="text-xs font-black tracking-wide drop-shadow-sm">傳送訊息</span>
+            <IconChat 
+              class="h-10 w-10 md:h-14 md:w-14 transition-all duration-300 md:group-hover:scale-50 md:group-hover:opacity-0" 
+            />
+
+            <div 
+              class="mt-1 md:absolute md:inset-0 md:mt-0 flex items-center justify-center transition-all duration-300 md:opacity-0 md:scale-50 md:group-hover:scale-100 md:group-hover:opacity-100"
+            >
+              <span class="text-xs md:text-base font-black tracking-tighter text-fg-terracotta whitespace-nowrap">聊天</span>
             </div>
           </button>
 
-          <!-- 查看頁面 (白色描邊肉球) -->
           <button 
-            class="group relative w-32 h-32 flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+            class="group relative flex h-16 w-16 md:h-20 md:w-20 flex-col items-center justify-center transition-transform hover:scale-110 active:scale-90"
             @click="emit('profile', friend.id)"
           >
-            <!-- 指頭 -->
-            <div class="absolute -top-3 left-1/2 -translate-x-1/2 flex gap-1.5 w-full justify-center">
-              <div class="w-7 h-5 rounded-full border-[3px] border-[#FF9A8B] bg-white -rotate-12 transform origin-bottom"></div>
-              <div class="w-8 h-6 rounded-full border-[3px] border-[#FF9A8B] bg-white -mt-2"></div>
-              <div class="w-7 h-5 rounded-full border-[3px] border-[#FF9A8B] bg-white rotate-12 transform origin-bottom"></div>
-            </div>
-            
-            <!-- 掌心 -->
-            <div class="w-32 h-24 rounded-[45%_45%_40%_40%/55%_55%_45%_45%] bg-white border-[3px] border-[#FF9A8B] shadow-sm flex flex-col items-center justify-center relative z-10 text-[#FF9A8B] hover:bg-[#fff5f2] transition-colors">
-              <i class="fa-solid fa-user text-2xl mb-1"></i>
-              <span class="text-xs font-black tracking-wide">查看頁面</span>
+            <IconProfile 
+              class="h-10 w-10 md:h-14 md:w-14 transition-all duration-300 md:group-hover:scale-50 md:group-hover:opacity-0" 
+            />
+
+            <div 
+              class="mt-1 md:absolute md:inset-0 md:mt-0 flex items-center justify-center transition-all duration-300 md:opacity-0 md:scale-50 md:group-hover:scale-100 md:group-hover:opacity-100"
+            >
+              <span class="text-xs md:text-base font-black tracking-tighter text-fg-terracotta whitespace-nowrap">個人頁面</span>
             </div>
           </button>
         </div>
 
-        <!-- 刪除好友 -->
         <button 
-          class="px-6 py-2 text-xs font-bold text-red-400 bg-red-50 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors flex items-center gap-2"
+          class="mt-16 px-6 py-2 text-sm font-bold text-fg-secondary/30 hover:text-func-danger bg-transparent hover:bg-red-50 rounded-full transition-all flex items-center gap-2"
           @click="emit('delete', friend.id)"
         >
-          <i class="fa-solid fa-heart-crack"></i> 刪除好友
+          <i class="fa-solid fa-heart-crack opacity-50"></i> 刪除好友
         </button>
       </div>
-    </div>
-
-    <!-- Bottom Footer Text -->
-    <div class="relative z-10 p-8 text-center">
-      <div class="text-[9px] text-fg-muted/40 font-bold tracking-[0.3em] uppercase">PetPetNi Friend Card</div>
     </div>
   </div>
 </template>
