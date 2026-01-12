@@ -344,6 +344,38 @@
   }
 
   /* UI (modal/dropdown/toast) */
+  .c-dialog-overlay {
+    @apply fixed inset-0 z-100 flex items-center justify-center bg-black/50 px-4;
+  }
+
+  .c-dialog-box {
+    @apply w-full max-w-sm overflow-hidden rounded-2xl bg-bg-surface shadow-2xl transition-all;
+  }
+
+  /* 檢舉對話框專用 */
+  .c-report-reason {
+    @apply flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-bg-base transition-colors;
+  }
+
+  .c-report-reason--active {
+    @apply border-brand-primary bg-brand-primary/5;
+  }
+
+  .c-report-input {
+    @apply w-full mt-2 p-3 text-sm border border-border-default rounded-lg bg-bg-base outline-none focus:border-brand-primary;
+  }
+
+  /* Transition: Fade */
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.2s ease;
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+
   .c-toast {
     @apply pointer-events-auto relative flex w-[320px] items-center gap-3 overflow-hidden rounded-xl px-5 py-3.5 shadow-md border;
     background-color: #ffffff; 
