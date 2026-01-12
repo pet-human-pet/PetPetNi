@@ -34,7 +34,7 @@ const saveStatus = () => {
   <div class="flex flex-col h-full relative overflow-hidden bg-bg-brand-light">
     <div class="absolute inset-x-0 top-0 h-[40%] overflow-hidden pointer-events-none">
       <img 
-        src="@/assets/images/background-Photoroom.png" 
+        src="@/assets/images/background-profile.webp" 
         class="w-full h-full object-cover opacity-20"
         alt=""
       />
