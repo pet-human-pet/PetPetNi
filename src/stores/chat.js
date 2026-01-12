@@ -3,19 +3,20 @@ import { ref, computed } from 'vue'
 import { INITIAL_DB, INITIAL_AI_DB, AI_WELCOME_MESSAGES } from '@/utils/chatMockData'
 
 export const useChatStore = defineStore('chat', () => {
-  const currentCategory = ref('match') 
+  const currentCategory = ref('ai') 
   const activeChatId = ref(null)
   const currentUserId = ref('u_123456')
   
   // UI 協調狀態
+  const privateSubTab = ref('friend')
   const selectedFriendId = ref(null)
   const isFriendListExpanded = ref(true)
   const replyingMsg = ref(null)
+  const isAiDrawerOpen = ref(false)
 
   const db = ref(INITIAL_DB)
   const aiDb = ref(INITIAL_AI_DB)
 
-  // Getters
   const unreadCounts = computed(() => {
     const counts = { match: 0, community: 0, event: 0, ai: 0 }
     ;['match', 'community', 'event', 'stranger'].forEach(cat => {
@@ -101,10 +102,13 @@ export const useChatStore = defineStore('chat', () => {
   function switchCategory(cat) {
     currentCategory.value = cat
     activeChatId.value = null
+    selectedFriendId.value = null
   }
 
   function openChat(id) {
     activeChatId.value = id
+    selectedFriendId.value = null
+    replyingMsg.value = null
     const chat = activeChat.value
     if (chat && chat.msgs.length > 0) {
       chat.msgs.forEach(m => {
@@ -147,7 +151,6 @@ export const useChatStore = defineStore('chat', () => {
       return { success: false, error: `已達到 ${limit} 句互動上限，請升級為好友繼續聊天！` }
     }
 
-    // 限制 (字數 & 敏感詞 & 輪流發言)
     if (mode === 'PET_MODE' && !isImage) {
       const lastMsg = activeChat.value.msgs[activeChat.value.msgs.length - 1]
       if (lastMsg && lastMsg.sender === 'me') {
@@ -217,6 +220,24 @@ export const useChatStore = defineStore('chat', () => {
     const title = featureText.split('：')[0]
     const welcomeMsg = AI_WELCOME_MESSAGES[title] || '你好！我是波波，有什麼我可以幫你的嗎？'
 
+    // 檢查是否可以重用當前對話 (若是空的)
+    if (activeChatId.value && currentCategory.value === 'ai') {
+      const currentChat = aiDb.value.history.find(c => c.id === activeChatId.value)
+      if (currentChat && currentChat.msgs.length === 0) {
+        currentChat.title = title
+        currentChat.timestamp = Date.now()
+        currentChat.msgs.push({
+          id: Date.now(),
+          sender: 'them',
+          text: welcomeMsg,
+          time: new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit' }),
+          timestamp: Date.now(),
+          read: 0
+        })
+        return // 結束函式，不再建立新對話
+      }
+    }
+
     const newChatId = 'ai_' + Date.now()
     const newChat = {
       id: newChatId,
@@ -244,7 +265,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function acceptStranger(chatId) {
-    // 實務上這會 call API，成功後移動資料位置，這裡用模擬的直接把該 chat 的 status 改掉
+    // TODO:實務上這會 call API，成功後移動資料位置，這裡用模擬的
     const chat = db.value.stranger.find(c => c.id === chatId)
     if (chat) {
       chat.status = 'trial' 
@@ -266,6 +287,7 @@ export const useChatStore = defineStore('chat', () => {
       chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
       db.value.match.push(chat)
       db.value.stranger.splice(strangerIndex, 1)
+      privateSubTab.value = 'friend'
       return
     }
 
@@ -273,6 +295,7 @@ export const useChatStore = defineStore('chat', () => {
     if (chat) {
       chat.status = 'friend'
       chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
+      privateSubTab.value = 'friend'
     }
   }
 
@@ -327,9 +350,28 @@ export const useChatStore = defineStore('chat', () => {
   function blockChat(chatId) {
     for (const cat in db.value) {
       if (Array.isArray(db.value[cat])) {
+        const list = db.value[cat]
+        const index = list.findIndex((c) => c.id === chatId)
+        if (index !== -1) {
+          const chat = list[index]
+          if (chat.status === 'friend') {
+            chat.isBlocked = true
+          } else {
+            list.splice(index, 1)
+            if (activeChatId.value === chatId) activeChatId.value = null
+          }
+          return
+        }
+      }
+    }
+  }
+
+  function unblockChat(chatId) {
+    for (const cat in db.value) {
+      if (Array.isArray(db.value[cat])) {
         const chat = db.value[cat].find((c) => c.id === chatId)
         if (chat) {
-          chat.isBlocked = true
+          chat.isBlocked = false
           return
         }
       }
@@ -358,9 +400,11 @@ export const useChatStore = defineStore('chat', () => {
     currentCategory,
     activeChatId,
     currentUserId,
+    privateSubTab,
     selectedFriendId,
     isFriendListExpanded,
     replyingMsg,
+    isAiDrawerOpen,
     db,
     aiDb,
     currentChatList,
@@ -383,6 +427,7 @@ export const useChatStore = defineStore('chat', () => {
     togglePin,
     removeFriend,
     updateMyProfile,
-    clearNotice
+    clearNotice,
+    unblockChat
   }
 })
