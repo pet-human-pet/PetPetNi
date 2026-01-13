@@ -1,0 +1,400 @@
+{
+  "m1": [
+    {
+      "roomId": "m1",
+      "text": "hi~jacky",
+      "sender": "me",
+      "time": "14:38",
+      "read": 0,
+      "timestamp": "2026-01-09T06:38:51.563Z"
+    },
+    {
+      "roomId": "m1",
+      "text": "今天天氣很好欸",
+      "sender": "me",
+      "time": "14:39",
+      "read": 0,
+      "timestamp": "2026-01-09T06:39:12.274Z"
+    },
+    {
+      "roomId": "m1",
+      "text": "你沒出去玩嗎",
+      "sender": "me",
+      "time": "14:39",
+      "read": 0,
+      "timestamp": "2026-01-09T06:39:17.051Z"
+    },
+    {
+      "roomId": "m1",
+      "text": "早上好中國",
+      "sender": "me",
+      "time": "14:39",
+      "read": 0,
+      "timestamp": "2026-01-09T06:39:46.405Z"
+    },
+    {
+      "roomId": "m1",
+      "text": "豆皮呢",
+      "sender": "me",
+      "time": "14:40",
+      "read": 0,
+      "timestamp": "2026-01-09T06:40:20.512Z"
+    },
+    {
+      "roomId": "m1",
+      "text": "早上好中國",
+      "sender": "me",
+      "time": "14:44",
+      "read": 0,
+      "timestamp": "2026-01-09T06:44:17.817Z"
+    },
+    {
+      "id": 1767941129167,
+      "roomId": "m1",
+      "text": "欸欸你要回我了嗎",
+      "sender": "me",
+      "time": "14:45",
+      "read": 0,
+      "timestamp": "2026-01-09T06:45:29.182Z"
+    },
+    {
+      "id": 1767941171200,
+      "roomId": "m1",
+      "text": "為什麼畫面變這麼怪",
+      "sender": "me",
+      "time": "14:46",
+      "read": 0,
+      "timestamp": "2026-01-09T06:46:11.202Z"
+    },
+    {
+      "id": 1767941179982,
+      "roomId": "m1",
+      "text": "這樣真的會有人以獨嗎",
+      "sender": "me",
+      "time": "14:46",
+      "read": 0,
+      "timestamp": "2026-01-09T06:46:19.985Z"
+    },
+    {
+      "id": 1767941188062,
+      "roomId": "m1",
+      "text": "jacky我在叫你!!!!!!!",
+      "sender": "me",
+      "time": "14:46",
+      "read": 0,
+      "timestamp": "2026-01-09T06:46:28.064Z"
+    },
+    {
+      "id": 1767941219117,
+      "roomId": "m1",
+      "text": "給我確認好友!",
+      "sender": "me",
+      "time": "14:46",
+      "read": 0,
+      "timestamp": "2026-01-09T06:46:59.119Z"
+    },
+    {
+      "id": 1767941961330,
+      "roomId": "m1",
+      "text": "接受了可以繼續聊天嘛",
+      "sender": "me",
+      "time": "14:59",
+      "read": 0,
+      "timestamp": "2026-01-09T06:59:21.332Z"
+    },
+    {
+      "id": 1767945863337,
+      "roomId": "m1",
+      "text": "講話啊",
+      "sender": "me",
+      "time": "16:04",
+      "read": 0,
+      "timestamp": "2026-01-09T08:04:23.338Z"
+    },
+    {
+      "id": 1768148287582,
+      "roomId": "m1",
+      "text": "c8 x",
+      "sender": "me",
+      "time": "00:18",
+      "read": 0,
+      "timestamp": "2026-01-11T16:21:13.474Z"
+    },
+    {
+      "id": 1768148291513,
+      "roomId": "m1",
+      "text": "哈囉",
+      "sender": "me",
+      "time": "00:18",
+      "read": 0,
+      "timestamp": "2026-01-11T16:21:13.487Z"
+    },
+    {
+      "id": 1768148305117,
+      "roomId": "m1",
+      "text": "哈囉",
+      "sender": "me",
+      "time": "00:18",
+      "read": 0,
+      "timestamp": "2026-01-11T16:21:13.497Z"
+    }
+  ],
+  "m2": [
+    {
+      "id": 1767941241016,
+      "roomId": "m2",
+      "text": "嗨一咪咪",
+      "sender": "me",
+      "time": "14:47",
+      "read": 0,
+      "timestamp": "2026-01-09T06:47:21.030Z"
+    },
+    {
+      "id": 1767941244749,
+      "roomId": "m2",
+      "text": "我來炒你囉",
+      "sender": "me",
+      "time": "14:47",
+      "read": 0,
+      "timestamp": "2026-01-09T06:47:24.751Z"
+    },
+    {
+      "id": 1767941977303,
+      "roomId": "m2",
+      "text": "瞇瞇眼",
+      "sender": "me",
+      "time": "14:59",
+      "read": 0,
+      "timestamp": "2026-01-09T06:59:37.305Z"
+    },
+    {
+      "id": 1767941980191,
+      "roomId": "m2",
+      "text": "咪咪嘴",
+      "sender": "me",
+      "time": "14:59",
+      "read": 0,
+      "timestamp": "2026-01-09T06:59:40.193Z"
+    }
+  ],
+  "e1": [
+    {
+      "id": 1767941537426,
+      "roomId": "e1",
+      "text": "我要當第一個說話的",
+      "sender": "me",
+      "time": "14:52",
+      "read": 0,
+      "timestamp": "2026-01-09T06:52:17.430Z"
+    }
+  ],
+  "s1": [
+    {
+      "id": 1767941638598,
+      "roomId": "s1",
+      "text": "敲敲敲!敲你的阿門",
+      "sender": "me",
+      "time": "14:53",
+      "read": 0,
+      "timestamp": "2026-01-09T06:53:58.600Z"
+    }
+  ],
+  "c2": [
+    {
+      "id": 1767941730432,
+      "roomId": "c2",
+      "text": "大家好!午安!今天約幾點呢><",
+      "sender": "me",
+      "time": "14:55",
+      "read": 0,
+      "timestamp": "2026-01-09T06:55:30.434Z"
+    }
+  ],
+  "m4": [
+    {
+      "id": 1768290376680,
+      "roomId": "m4",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "mRXKjnNP3KkgMzVsAAAB",
+      "time": "15:46",
+      "timestamp": "2026-01-13T07:46:16.733Z",
+      "read": 0
+    },
+    {
+      "id": 1768290385831,
+      "roomId": "m4",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "mRXKjnNP3KkgMzVsAAAB",
+      "time": "15:46",
+      "timestamp": "2026-01-13T07:46:25.832Z",
+      "read": 0
+    },
+    {
+      "id": 1768291983135,
+      "roomId": "m4",
+      "content": "哈囉",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "Y2dEYWUx9EWchULgAAAD",
+      "time": "16:13",
+      "timestamp": "2026-01-13T08:13:03.188Z",
+      "read": 0
+    },
+    {
+      "id": 1768291990643,
+      "roomId": "m4",
+      "content": "你好啊",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "Y2dEYWUx9EWchULgAAAD",
+      "time": "16:13",
+      "timestamp": "2026-01-13T08:13:10.644Z",
+      "read": 0
+    },
+    {
+      "id": 1768292359033,
+      "roomId": "m4",
+      "content": "哈囉",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "gZDAzGzqVNh6IjFlAAAF",
+      "time": "16:19",
+      "timestamp": "2026-01-13T08:19:19.033Z",
+      "read": 0
+    },
+    {
+      "id": 1768292371341,
+      "roomId": "m4",
+      "content": "早上好",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "gZDAzGzqVNh6IjFlAAAF",
+      "time": "16:19",
+      "timestamp": "2026-01-13T08:19:31.342Z",
+      "read": 0
+    },
+    {
+      "id": 1768292379145,
+      "roomId": "m4",
+      "content": "嘿嘿嘿",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "Y2dEYWUx9EWchULgAAAD",
+      "time": "16:19",
+      "timestamp": "2026-01-13T08:19:39.146Z",
+      "read": 0
+    },
+    {
+      "id": 1768292532852,
+      "roomId": "m4",
+      "content": "我",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "Y2dEYWUx9EWchULgAAAD",
+      "time": "16:22",
+      "timestamp": "2026-01-13T08:22:12.853Z",
+      "read": 0
+    },
+    {
+      "id": 1768295348666,
+      "roomId": "m4",
+      "content": "為什麼我預設文字不見了",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "X9-nWM4zxkQjd_efAAAR",
+      "time": "17:09",
+      "timestamp": "2026-01-13T09:09:08.667Z",
+      "read": 0
+    },
+    {
+      "id": 1768295364513,
+      "roomId": "m4",
+      "content": "為什麼",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "lORdAphqkpd60Q7wAAAQ",
+      "time": "17:09",
+      "timestamp": "2026-01-13T09:09:24.514Z",
+      "read": 0
+    },
+    {
+      "id": 1768295377222,
+      "roomId": "m4",
+      "content": "那我這邊打得自呢",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "X9-nWM4zxkQjd_efAAAR",
+      "time": "17:09",
+      "timestamp": "2026-01-13T09:09:37.223Z",
+      "read": 0
+    },
+    {
+      "id": 1768295389753,
+      "roomId": "m4",
+      "content": "地一夯的字怎麼步見了",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "X9-nWM4zxkQjd_efAAAR",
+      "time": "17:09",
+      "timestamp": "2026-01-13T09:09:49.753Z",
+      "read": 0
+    },
+    {
+      "id": 1768295413406,
+      "roomId": "m4",
+      "content": "部隊ㄟ",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "lORdAphqkpd60Q7wAAAQ",
+      "time": "17:10",
+      "timestamp": "2026-01-13T09:10:13.407Z",
+      "read": 0
+    },
+    {
+      "id": 1768295420664,
+      "roomId": "m4",
+      "content": "照樣很像在對話",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "lORdAphqkpd60Q7wAAAQ",
+      "time": "17:10",
+      "timestamp": "2026-01-13T09:10:20.665Z",
+      "read": 0
+    },
+    {
+      "id": 1768295439282,
+      "roomId": "m4",
+      "content": "但這不是同一個對話框嗎",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "X9-nWM4zxkQjd_efAAAR",
+      "time": "17:10",
+      "timestamp": "2026-01-13T09:10:39.282Z",
+      "read": 0
+    },
+    {
+      "id": 1768295446459,
+      "roomId": "m4",
+      "content": "這樣很奇怪啊",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "lORdAphqkpd60Q7wAAAQ",
+      "time": "17:10",
+      "timestamp": "2026-01-13T09:10:46.459Z",
+      "read": 0
+    },
+    {
+      "id": 1768295458683,
+      "roomId": "m4",
+      "content": "我這邊打字",
+      "messageType": "text",
+      "sender": "other",
+      "senderId": "X9-nWM4zxkQjd_efAAAR",
+      "time": "17:10",
+      "timestamp": "2026-01-13T09:10:58.683Z",
+      "read": 0
+    }
+  ]
+}
