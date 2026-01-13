@@ -526,29 +526,23 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style>
-/* Global scrollbar styles originating from ProfileView */
-html::-webkit-scrollbar,
+<style scoped>
+/* 將原有的滾動條樣式修改為只作用於 .custom-scrollbar 類別，並確保其作用範圍在 ProfileView.vue 內部 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 12px;
   height: 12px;
 }
-html::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
-html::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #e5e7eb;
   border-radius: 10px;
 }
-html::-webkit-scrollbar-thumb:hover,
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
 }
-</style>
 
-<style scoped>
 @media (min-width: 1024px) {
   :global(body) {
     overflow: hidden;
