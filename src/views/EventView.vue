@@ -180,10 +180,10 @@ onMounted(() => {
   <div class="bg-bg-base text-fg-primary h-full overflow-hidden">
     <!-- 主要佈局 -->
     <main
-      class="relative mx-auto block h-[calc(100vh_-_var(--header-h))] w-full max-w-300 overflow-hidden p-0 md:flex md:gap-6 md:px-5 md:pt-6 md:pb-10"
+      class="relative mx-auto block h-[calc(100vh-var(--header-h))] w-full max-w-300 overflow-hidden p-0 md:flex md:gap-6 md:px-5 md:pt-6 md:pb-10"
     >
       <aside
-        class="pointer-events-none fixed top-(--header-h) left-0 z-10 flex h-[calc(100vh_-_var(--header-h))] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 pb-5 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0 md:pb-0"
+        class="pointer-events-none fixed top-(--header-h) left-0 z-10 flex h-[calc(100vh-var(--header-h))] w-full flex-col justify-between gap-5 overflow-hidden bg-transparent px-3 pb-5 transition-transform duration-300 ease-in-out md:pointer-events-auto md:static md:h-auto md:w-85 md:shrink-0 md:justify-start md:overflow-auto md:bg-transparent md:px-0 md:pb-0"
         :class="{ hidden: isMobileOverlayOpen && isMobile }"
       >
         <!-- 頁籤 -->
