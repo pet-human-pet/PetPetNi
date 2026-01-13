@@ -24,6 +24,14 @@ const io = new Server(httpServer, {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`)
 
+  // 從 handshake.auth 取得 userId，自動加入所有聊天室
+  const userId = socket.handshake.auth?.userId
+  if (userId) {
+    const userRooms = db.getUserRooms(userId)
+    userRooms.forEach((roomId) => socket.join(roomId))
+    console.log(`User ${userId} auto-joined rooms:`, userRooms)
+  }
+
   // 1. 加入聊天室
   socket.on('join_room', (roomId) => {
     socket.join(roomId)

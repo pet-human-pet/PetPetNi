@@ -17,19 +17,21 @@ export const useChatStore = defineStore('chat', () => {
     stopTyping
   } = useSocket()
 
-  // 系統啟動時初始化 Socket
-  initSocket()
+  // 系統啟動時初始化 Socket (帶 userId 讓後端自動加入所有房間)
+  initSocket('u_123456')
 
   // 監聽接收訊息 (Spec: new_message)
   onNewMessage((msg) => {
     const chat = findChat(msg.roomId)
     if (chat) {
-      // 確保格式一致 (Spec return content, we use content)
+      // 確保格式一致，避免重複加入
       if (!chat.msgs.find((m) => m.id === msg.id)) {
+        // 判斷是否為當前開啟的聊天室
+        const isActiveChat = activeChatId.value === msg.roomId
         chat.msgs.push({
           ...msg,
-          // 如果後端沒回傳 read 狀態，預設為 0
-          read: msg.read || 0
+          // 如果是當前聊天室，直接標記已讀；否則標記未讀
+          read: isActiveChat ? 1 : 0
         })
       }
     }
