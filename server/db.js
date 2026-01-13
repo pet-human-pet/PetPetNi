@@ -32,6 +32,14 @@ function writeDb(data) {
 }
 
 export const db = {
+  // 取得用戶參與的所有聊天室 ID
+  getUserRooms: (userId) => {
+    // 目前簡化版：回傳 DB 中所有房間 ID
+    // 未來接真實 DB 時，應查詢該 userId 有參與的聊天室
+    const data = readDb()
+    return Object.keys(data)
+  },
+
   // 取得某個房間的歷史訊息
   getMessages: (roomId) => {
     const data = readDb()

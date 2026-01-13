@@ -5,19 +5,33 @@ const socket = ref(null)
 const isConnected = ref(false)
 
 export function useSocket() {
-  const initSocket = () => {
-    if (socket.value) return socket.value
+  const initSocket = (userId) => {
+    console.log('[useSocket] initSocket called with userId:', userId)
 
-    socket.value = io('http://localhost:3000')
+    // 如果 socket 已存在且已連線，直接返回
+    if (socket.value?.connected) {
+      console.log('[useSocket] Socket already connected, reusing')
+      return socket.value
+    }
+
+    // 如果有舊 socket 但未連線，先清理
+    if (socket.value) {
+      socket.value.disconnect()
+      socket.value = null
+    }
+
+    socket.value = io('http://localhost:3000', {
+      auth: { userId } // 連線時帶上 userId，讓後端自動加入房間
+    })
 
     socket.value.on('connect', () => {
       isConnected.value = true
-      console.log('Socket connected:', socket.value.id)
+      console.log('[useSocket] Socket connected:', socket.value.id)
     })
 
     socket.value.on('disconnect', () => {
       isConnected.value = false
-      console.log('Socket disconnected')
+      console.log('[useSocket] Socket disconnected')
     })
 
     return socket.value
