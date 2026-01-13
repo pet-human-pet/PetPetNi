@@ -1,25 +1,60 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
+import { useFavoritesStore } from '@/stores/favorites'
 import MenuButton from '@/components/Button/MenuButton.vue'
-import ImageCropper from '@/components/Form/ImageCropper.vue'
 
 // Props
 const props = defineProps({
-  avatarUrl: { type: String, default: '' }
+  transparent: {
+    type: Boolean,
+    default: false
+  }
 })
 
 // Router & Store
 const router = useRouter()
-const fav = useFavoritesStore()
+const route = useRoute()
 const uiStore = useUIStore()
+const fav = useFavoritesStore()
 
+// 判斷是否為首頁（只有首頁使用 MainFrame 藍色框架）
+const isHomePage = computed(() => route.name === 'home')
+
+// TODO: 後續整合真實的 auth store (useAuthStore)
+const isLoggedIn = ref(true)
+
+// 常數與狀態
 const defaultAvatar =
   'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=100&q=60'
 
 const favOpen = ref(false)
 const menuOpen = computed(() => uiStore.isMenuOpen)
+
+// 計算屬性
+const headerClasses = computed(() => [
+  'fixed left-0 z-50 w-full',
+  props.transparent || uiStore.isMenuOpen
+    ? 'bg-transparent border-none shadow-none'
+    : // TODO: 將 border-[#eee] 改為 border-border-default，shadow 改為 tokens
+      'bg-white border-b border-[#eee] shadow-[0_2px_10px_rgba(0,0,0,0.03)]',
+  // TODO: top-[36px] 為跑馬燈高度，考慮抽成 CSS 變數 --marquee-h
+  isHomePage.value ? 'top-[36px]' : 'top-0',
+  uiStore.isMenuOpen ? 'pointer-events-none' : ''
+])
+
+const containerClasses = computed(() => [
+  'mx-auto flex h-17.5 items-center justify-between max-[800px]:h-15',
+  // TODO: px-[30px]/px-[50px] 為 MainFrame 對齊邊距，考慮抽成 CSS 變數
+  isHomePage.value ? 'w-full px-[30px] md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
+])
+
+// 方法
+function handleLogoClick() {
+  uiStore.closeMenu()
+  router.push({ name: 'home' })
+}
 
 function goProfile() {
   router.push({ name: 'Profile' })
@@ -46,46 +81,57 @@ function onSelectFavorite(evt) {
   router.push({ name: 'Event', query: { eventId: evt.id } })
   closeFavPanel()
 }
-
-function toggleMenu() {
-  // 開啟選單時順便關掉收藏面板，避免疊在一起
-  if (!menuOpen.value) closeFavPanel()
-  uiStore.toggleMenu()
-}
 </script>
 
 <template>
-  <div class="h-(--header-h) w-full">
-    <header
-      class="border-border-default bg-bg-surface fixed top-0 left-0 z-50 h-(--header-h) w-full border-b"
-    >
-      <div class="mx-auto flex h-full max-w-300 items-center justify-between px-6 max-md:px-4">
+  <header v-show="!uiStore.isMenuOpen" :class="headerClasses">
+    <div :class="containerClasses">
+      <!-- Logo -->
+      <button
+        class="flex cursor-pointer items-center border-none bg-transparent p-0 no-underline"
+        :class="{ 'pointer-events-none opacity-40': menuOpen }"
+        @click="handleLogoClick"
+      >
+        <!-- TODO: text-[#FFA75F] 改為 text-brand-primary -->
+        <span
+          class="text-2xl font-semibold text-[#FFA75F] max-[800px]:text-xl"
+          style="font-family: 'Fredoka', sans-serif"
+        >
+          PetPetNi
+        </span>
+      </button>
+
+      <!-- 登入前：只顯示登入按鈕 + Menu -->
+      <div v-if="!isLoggedIn" class="flex items-center gap-3">
         <router-link
           v-show="!uiStore.isMenuOpen"
           :to="{ name: 'login' }"
-          class="flex items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-3 text-[11px] font-bold tracking-wider text-black transition-colors duration-300 hover:bg-gray-200"
+          class="flex items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-3 text-xs font-bold tracking-wider text-black transition-colors duration-300 hover:bg-gray-200"
         >
-          <!-- Logo（先用文字：不使用 inline font；後續可改成圖片） -->
-          <span class="text-brand-primary text-2xl font-semibold md:text-3xl">PetPetNi</span>
+          登入
         </router-link>
+        <MenuButton />
+      </div>
 
-        <div class="flex items-center gap-3 max-md:gap-2">
+      <!-- 登入後：完整功能按鈕 -->
+      <div v-else class="flex items-center gap-3">
+        <div v-show="!uiStore.isMenuOpen" class="flex items-center gap-3">
           <!-- 收藏：桌機 dropdown、手機 modal -->
           <div class="relative" :class="{ 'pointer-events-none opacity-40': menuOpen }">
+            <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
             <button
-              class="c-icon-btn"
+              class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
               title="收藏"
               type="button"
               aria-label="收藏的活動"
               @click="toggleFavPanel"
             >
-              <!-- 有收藏：用品牌強調色（避免使用未定義 token 的紅色） -->
               <i
                 :class="fav.count ? 'fa-solid fa-heart text-brand-accent' : 'fa-regular fa-heart'"
               ></i>
             </button>
 
-            <!-- ===== Desktop dropdown（md 以上） ===== -->
+            <!-- Desktop dropdown -->
             <div v-if="favOpen" class="c-popover absolute right-0 mt-2 w-72 max-md:hidden">
               <div
                 class="border-border-default flex items-center justify-between border-b px-3 py-2"
@@ -123,7 +169,6 @@ function toggleMenu() {
                         {{ e.desc || '（沒有描述）' }}
                       </div>
                     </div>
-
                     <button
                       type="button"
                       class="rounded-btn text-brand-primary hover:bg-bg-base shrink-0 px-3 py-1 text-sm font-semibold"
@@ -136,7 +181,7 @@ function toggleMenu() {
               </ul>
             </div>
 
-            <!-- ===== Mobile modal（max-md） ===== -->
+            <!-- Mobile modal -->
             <teleport to="body">
               <div v-if="favOpen" class="md:hidden">
                 <div class="fixed inset-0 z-40 bg-black/30" @click="onBackdropClose"></div>
@@ -178,7 +223,6 @@ function toggleMenu() {
                             {{ e.desc || '（沒有描述）' }}
                           </div>
                         </div>
-
                         <button
                           type="button"
                           class="rounded-btn text-brand-primary hover:bg-bg-base shrink-0 px-3 py-1.5 text-sm font-semibold"
@@ -195,23 +239,25 @@ function toggleMenu() {
           </div>
 
           <!-- 訊息 -->
+          <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
           <button
-            class="c-icon-btn"
+            class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
             title="訊息"
             type="button"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
             @click="goChat"
           >
             <i class="fa-regular fa-comment-dots"></i>
-            <!-- badge：使用品牌強調色 -->
+            <!-- TODO: bg-[#ff5e57] 改為 bg-status-error 或定義 notification token -->
             <span
-              class="border-bg-surface bg-brand-accent absolute top-2 right-2 h-2 w-2 rounded-full border"
-            ></span>
+              class="absolute top-2 right-2 h-2 w-2 rounded-full border border-white bg-[#ff5e57]"
+            />
           </button>
 
-          <!-- TODO: Replace with CSS variable var(--app-primary) -->
+          <!-- 通知 -->
+          <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
           <button
-            class="c-icon-btn"
+            class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
             title="通知"
             type="button"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
@@ -219,32 +265,22 @@ function toggleMenu() {
             <i class="fa-regular fa-bell"></i>
           </button>
 
-          <!-- Avatar -->
+          <!-- Avatar：點擊導向個人頁面 -->
+          <!-- TODO: border-[#eee] 改為 border-border-default -->
           <button
             type="button"
-            class="border-border-default h-10 w-10 overflow-hidden rounded-full border p-0 max-md:h-9 max-md:w-9"
+            class="h-10 w-10 overflow-hidden rounded-full border-2 border-[#eee] p-0"
             title="個人頁面"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
             @click="goProfile"
           >
-            <img
-              :src="props.avatarUrl || defaultAvatar"
-              class="h-full w-full object-cover"
-              alt="avatar"
-            />
-          </button>
-
-          <!-- menu：接到 uiStore -->
-          <button
-            class="rounded-btn text-fg-secondary hover:bg-bg-base hover:text-brand-primary ml-2 p-2 text-xl transition-colors max-md:ml-1"
-            type="button"
-            title="menu"
-            @click="toggleMenu"
-          >
-            <i class="fa-solid" :class="menuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+            <img :src="defaultAvatar" class="h-full w-full object-cover" alt="avatar" />
           </button>
         </div>
+
+        <!-- Menu 按鈕 -->
+        <MenuButton class="ml-2" />
       </div>
-    </header>
-  </div>
+    </div>
+  </header>
 </template>
