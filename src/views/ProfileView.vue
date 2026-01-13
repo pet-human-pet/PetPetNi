@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onUnmounted } from 'vue'
+import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount } from 'vue'
 import {
   predefinedTags,
   profile as profileData,
@@ -62,6 +62,14 @@ const openDetail = (item) => {
   selectedItem.value = item
   showDetail.value = true
 }
+
+onMounted(() => {
+  document.body.classList.add('md:overflow-hidden')
+})
+
+onBeforeUnmount(() => {
+  document.body.classList.remove('md:overflow-hidden')
+})
 
 onUnmounted(() => {
   if (profile.avatar && profile.avatar.startsWith('blob:')) {
@@ -399,13 +407,12 @@ onUnmounted(() => {
               </div>
             </div>
             <button
-              class="w-full rounded-2xl py-4 font-bold text-white shadow-md transition-all active:scale-95"
+              class="w-full rounded-2xl py-4 font-bold text-white shadow-md transition-all active:scale-95 bg-[#f48e31]"
               :class="
                 profile.hashtags.length >= 5
                   ? 'cursor-not-allowed grayscale'
                   : 'hover:brightness-110'
               "
-              class="bg-[#f48e31]"
               :disabled="profile.hashtags.length >= 5"
               @click="showTagPicker = true"
             >
@@ -456,7 +463,7 @@ onUnmounted(() => {
     <Transition name="fade"
       ><div
         v-if="showUserList"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md" 
       >
         <div class="c-card w-full max-w-md bg-white p-8 text-left">
           <div class="mb-6 flex items-center justify-between border-b pb-4">
@@ -533,14 +540,6 @@ onUnmounted(() => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #d1d5db;
-}
-
-@media (min-width: 1024px) {
-  :global(body) {
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
-  }
 }
 
 .fade-enter-active,
