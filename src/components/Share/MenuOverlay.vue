@@ -157,12 +157,14 @@ const getIconUrl = (name) => {
 
           <!-- 桌面版按鈕 -->
           <div class="flex flex-col gap-4">
+            <!-- TODO: 待替換 text-[#D70035] 為變數 (Style.md 禁止直接使用 Hex 色碼) -->
             <button
               class="group flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold text-[#D70035] transition-colors hover:bg-gray-100"
             >
               <span>探索寵物</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </button>
+            <!-- TODO: 待替換 text-[#D70035] 為變數 (Style.md 禁止直接使用 Hex 色碼) -->
             <button
               class="group flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold text-[#D70035] transition-colors hover:bg-gray-100"
             >
