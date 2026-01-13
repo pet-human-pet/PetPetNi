@@ -99,6 +99,7 @@ defineExpose({ startTear })
   position: absolute;
   width: 300px;
   height: 200px;
+  /* TODO: 待替換為變數 (Style.md 禁止直接使用 Hex 色碼) */
   background: linear-gradient(135deg, #2e6256, #edc920);
   border-radius: var(--radius-card);
   transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -146,6 +147,7 @@ defineExpose({ startTear })
 .flash-overlay {
   position: absolute;
   inset: 0;
+  /* TODO: 替換為 tokens 變數 (Style.md 禁止直接使用 Hex 色碼) */
   background: radial-gradient(circle, rgba(237, 201, 32, 0.6), transparent);
   animation: flash-pulse 0.4s ease-out;
 }
@@ -170,6 +172,7 @@ defineExpose({ startTear })
 .pet-avatar {
   font-size: 8rem;
   animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* TODO: 替換為 tokens 變數 (Style.md 禁止直接使用 Hex 色碼) */
   filter: drop-shadow(0 0 30px rgba(237, 201, 32, 0.5));
 }
 
