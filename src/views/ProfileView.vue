@@ -178,11 +178,13 @@ onUnmounted(() => {
                     <p class="text-fg-muted text-[10px] font-medium md:text-sm">追蹤中</p>
                   </div>
                 </div>
-                <Transition name="fade">
-                  <div
-                    v-if="isAboutVisible"
-                    class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none"
-                  >
+                <Transition
+                  enter-active-class="transition-opacity duration-300 ease-out transform-gpu"
+                  leave-active-class="transition-opacity duration-300 ease-in transform-gpu"
+                  enter-from-class="opacity-0 -translate-y-[10px]"
+                  leave-to-class="opacity-0 -translate-y-[10px]"
+                >
+                  <div v-if="isAboutVisible" class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none">
                     <div
                       class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden md:h-auto md:gap-2"
                     >
@@ -194,8 +196,7 @@ onUnmounted(() => {
                       >
                     </div>
                   </div>
-                </Transition>
-                <Transition name="fade">
+                </Transition>                <Transition name="fade">
                   <div
                     v-if="isAboutVisible"
                     class="flex w-full items-end border-t border-gray-50 pt-1 md:mt-6 md:pt-6"
