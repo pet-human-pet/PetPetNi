@@ -15,7 +15,7 @@ import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import IconGear from '@/components/icons/IconGear.vue'
 
-const BRAND_ORANGE = '#f48e31'
+// const BRAND_ORANGE = '#f48e31' // 已移除
 const activeTab = ref('posts')
 const activeSubTab = ref('my')
 const isEditing = ref(false)
@@ -95,8 +95,7 @@ onUnmounted(() => {
                 class="flex w-1/3 min-w-24 shrink-0 flex-col items-center justify-between md:w-full"
               >
                 <h1
-                  class="w-full truncate pt-1 text-center text-lg leading-tight font-bold md:text-3xl"
-                  :style="{ color: BRAND_ORANGE }"
+                  class="w-full truncate pt-1 text-center text-lg leading-tight font-bold text-[#f48e31] md:text-3xl"
                 >
                   {{ profile.name }}
                 </h1>
@@ -147,21 +146,17 @@ onUnmounted(() => {
                     class="group flex-1 cursor-pointer md:flex-none"
                     @click="openUserList('followers')"
                   >
-                    <p class="text-lg font-bold md:text-3xl" :style="{ color: BRAND_ORANGE }">2</p>
+                    <p class="text-lg font-bold text-[#f48e31] md:text-3xl">2</p>
                     <p class="text-fg-muted text-[10px] font-medium md:text-sm">粉絲</p>
                   </div>
                   <div class="flex flex-[1.5] justify-center md:flex-none">
                     <button
                       class="c-btn w-full max-w-20 truncate rounded-full border py-1 text-[10px] font-bold whitespace-nowrap transition-all md:w-auto md:max-w-none md:px-6 md:py-1.5 md:text-sm"
-                      :style="
+                      :class="[
                         isAboutVisible
-                          ? {
-                              backgroundColor: BRAND_ORANGE,
-                              color: 'white',
-                              borderColor: BRAND_ORANGE
-                            }
-                          : { color: BRAND_ORANGE, borderColor: BRAND_ORANGE }
-                      "
+                          ? 'bg-[#f48e31] text-white border-[#f48e31]'
+                          : 'text-[#f48e31] border-[#f48e31]'
+                      ]"
                       @click="isAboutVisible = !isAboutVisible"
                     >
                       關於我
@@ -171,7 +166,7 @@ onUnmounted(() => {
                     class="group flex-1 cursor-pointer md:flex-none"
                     @click="openUserList('following')"
                   >
-                    <p class="text-lg font-bold md:text-3xl" :style="{ color: BRAND_ORANGE }">6</p>
+                    <p class="text-lg font-bold text-[#f48e31] md:text-3xl">6</p>
                     <p class="text-fg-muted text-[10px] font-medium md:text-sm">追蹤中</p>
                   </div>
                 </div>
@@ -250,14 +245,13 @@ onUnmounted(() => {
                 ]"
                 :key="tab.id"
                 class="relative w-full pb-3 text-center text-base font-bold md:pb-5 md:text-lg"
-                :style="{ color: activeTab === tab.id ? BRAND_ORANGE : '' }"
+                :class="{'text-[#f48e31]': activeTab === tab.id}"
                 @click="handleTabChange(tab.id)"
               >
                 {{ tab.n }}
                 <div
                   v-if="activeTab === tab.id"
-                  class="absolute bottom-0 h-1 w-full rounded-t-full md:h-1.5"
-                  :style="{ backgroundColor: BRAND_ORANGE }"
+                  class="absolute bottom-0 h-1 w-full rounded-t-full bg-[#f48e31] md:h-1.5"
                 ></div>
               </button>
             </div>
@@ -266,22 +260,22 @@ onUnmounted(() => {
               <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
                 <button
                   class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
-                  :style="
+                  :class="[
                     activeSubTab === 'my'
-                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
-                      : { backgroundColor: '#f3f4f6' }
-                  "
+                      ? 'bg-[#f48e31] text-white'
+                      : 'bg-[#f3f4f6]'
+                  ]"
                   @click="activeSubTab = 'my'"
                 >
                   我的貼文
                 </button>
                 <button
                   class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
-                  :style="
+                  :class="[
                     activeSubTab === 'saved'
-                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
-                      : { backgroundColor: '#f3f4f6' }
-                  "
+                      ? 'bg-[#f48e31] text-white'
+                      : 'bg-[#f3f4f6]'
+                  ]"
                   @click="activeSubTab = 'saved'"
                 >
                   儲存的貼文
@@ -293,33 +287,33 @@ onUnmounted(() => {
               >
                 <button
                   class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                  :style="
+                  :class="[
                     activeSubTab === 'create'
-                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
-                      : { backgroundColor: '#f3f4f6' }
-                  "
+                      ? 'bg-[#f48e31] text-white'
+                      : 'bg-[#f3f4f6]'
+                  ]"
                   @click="activeSubTab = 'create'"
                 >
                   發起活動
                 </button>
                 <button
                   class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                  :style="
+                  :class="[
                     activeSubTab === 'follow'
-                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
-                      : { backgroundColor: '#f3f4f6' }
-                  "
+                      ? 'bg-[#f48e31] text-white'
+                      : 'bg-[#f3f4f6]'
+                  ]"
                   @click="activeSubTab = 'follow'"
                 >
                   收藏活動
                 </button>
                 <button
                   class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                  :style="
+                  :class="[
                     activeSubTab === 'history'
-                      ? { backgroundColor: BRAND_ORANGE, color: 'white' }
-                      : { backgroundColor: '#f3f4f6' }
-                  "
+                      ? 'bg-[#f48e31] text-white'
+                      : 'bg-[#f3f4f6]'
+                  ]"
                   @click="activeSubTab = 'history'"
                 >
                   歷史活動
@@ -372,7 +366,7 @@ onUnmounted(() => {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 text-left backdrop-blur-sm"
     >
       <div class="c-card max-h-[90vh] w-full max-w-xl overflow-y-auto bg-white p-8">
-        <h2 class="mb-8 text-center text-2xl font-bold" :style="{ color: BRAND_ORANGE }">
+        <h2 class="mb-8 text-center text-2xl font-bold text-[#f48e31]">
           編輯寵物 Hashtags
         </h2>
         <div class="space-y-8">
@@ -411,7 +405,7 @@ onUnmounted(() => {
                   ? 'cursor-not-allowed grayscale'
                   : 'hover:brightness-110'
               "
-              :style="{ backgroundColor: BRAND_ORANGE }"
+              class="bg-[#f48e31]"
               :disabled="profile.hashtags.length >= 5"
               @click="showTagPicker = true"
             >
@@ -466,7 +460,7 @@ onUnmounted(() => {
       >
         <div class="c-card w-full max-w-md bg-white p-8 text-left">
           <div class="mb-6 flex items-center justify-between border-b pb-4">
-            <h2 class="text-2xl font-bold" :style="{ color: BRAND_ORANGE }">{{ userListTitle }}</h2>
+            <h2 class="text-2xl font-bold text-[#f48e31]">{{ userListTitle }}</h2>
             <button class="text-2xl" @click="showUserList = false">✕</button>
           </div>
           <div class="custom-scrollbar max-h-96 space-y-4 overflow-y-auto px-6 py-4">
@@ -491,14 +485,13 @@ onUnmounted(() => {
             </div>
           </div>
           <button
-            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg"
-            :style="{ backgroundColor: BRAND_ORANGE }"
+            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg bg-[#f48e31]"
             @click="showUserList = false"
           >
             返回
           </button>
         </div>
-      </div></Transition
+      </div></Transition>
     ><Transition name="fade"
       ><div
         v-if="showDetail"
@@ -506,7 +499,7 @@ onUnmounted(() => {
       >
         <div class="c-card w-full max-w-2xl bg-white p-8 text-left">
           <div v-if="selectedItem" class="space-y-6 text-left">
-            <h2 class="text-left text-3xl font-bold" :style="{ color: BRAND_ORANGE }">
+            <h2 class="text-left text-3xl font-bold text-[#f48e31]">
               {{ selectedItem.name }}
             </h2>
             <div class="text-fg-secondary border-t pt-6 text-left text-lg leading-relaxed">
@@ -514,14 +507,13 @@ onUnmounted(() => {
             </div>
           </div>
           <button
-            class="mt-10 w-full rounded-full py-4 font-bold text-white shadow-lg"
-            :style="{ backgroundColor: BRAND_ORANGE }"
+            class="mt-10 w-full rounded-full py-4 font-bold text-white shadow-lg bg-[#f48e31]"
             @click="showDetail = false"
           >
             關閉視窗
           </button>
         </div>
-      </div></Transition
+      </div></Transition>
     >
   </div>
 </template>
