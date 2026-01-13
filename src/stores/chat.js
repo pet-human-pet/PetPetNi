@@ -282,7 +282,7 @@ export const useChatStore = defineStore('chat', () => {
       chat.msgs.push({
         id: Date.now() + 1,
         sender: 'them',
-        text: generateAIResponse(userText),
+        content: generateAIResponse(userText),
         time: replyTime,
         timestamp: Date.now(),
         read: 0
@@ -332,7 +332,7 @@ export const useChatStore = defineStore('chat', () => {
         currentChat.msgs.push({
           id: Date.now(),
           sender: 'them',
-          text: welcomeMsg,
+          content: welcomeMsg,
           time: new Date().toLocaleTimeString('en-US', {
             hour12: false,
             hour: '2-digit',
@@ -357,7 +357,7 @@ export const useChatStore = defineStore('chat', () => {
         {
           id: Date.now(),
           sender: 'them',
-          text: welcomeMsg,
+          content: welcomeMsg,
           time: new Date().toLocaleTimeString('en-US', {
             hour12: false,
             hour: '2-digit',
