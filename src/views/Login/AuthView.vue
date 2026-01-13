@@ -282,6 +282,7 @@ onUnmounted(() => {
               <p class="mb-6 text-sm text-gray-500">您還有其他毛孩嗎？</p>
 
               <div class="flex flex-col gap-3">
+                <!-- TODO: 待替換為變數 (Style.md 禁止直接使用 Hex 色碼) -->
                 <button
                   type="button"
                   class="w-full rounded-xl py-3 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
