@@ -1,12 +1,53 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { INITIAL_DB, INITIAL_AI_DB, AI_WELCOME_MESSAGES } from '@/utils/chatMockData'
+import { useSocket } from '@/composables/useSocket'
 
 export const useChatStore = defineStore('chat', () => {
-  const currentCategory = ref('ai') 
+  // --- 0. Socket.IO 整合 (Align with Team Spec) ---
+  const {
+    isConnected,
+    initSocket,
+    joinRoom,
+    sendMessage: sendSocketMessage, // Alias for socket emit
+    onNewMessage, // Changed from onMessageReceived
+    onHistoryReceived, // Custom
+    markRead,
+    startTyping,
+    stopTyping
+  } = useSocket()
+
+  // 系統啟動時初始化 Socket
+  initSocket()
+
+  // 監聽接收訊息 (Spec: new_message)
+  onNewMessage((msg) => {
+    const chat = findChat(msg.roomId)
+    if (chat) {
+      // 確保格式一致 (Spec return content, we use content)
+      if (!chat.msgs.find((m) => m.id === msg.id)) {
+        chat.msgs.push({
+          ...msg,
+          // 如果後端沒回傳 read 狀態，預設為 0
+          read: msg.read || 0
+        })
+      }
+    }
+  })
+
+  // 監聽歷史訊息 (可選，視後端實作而定)
+  onHistoryReceived((history) => {
+    // 這裡暫時只對目前開啟的聊天室生效，實務上可能需要更複雜的邏輯
+    if (activeChat.value && activeChat.value.msgs.length === 0) {
+      activeChat.value.msgs = history
+    }
+  })
+
+  // --- 1. State (From Upstream PR #55) ---
+  const currentCategory = ref('ai')
   const activeChatId = ref(null)
   const currentUserId = ref('u_123456')
-  
+
   // UI 協調狀態
   const privateSubTab = ref('friend')
   const selectedFriendId = ref(null)
@@ -17,13 +58,32 @@ export const useChatStore = defineStore('chat', () => {
   const db = ref(INITIAL_DB)
   const aiDb = ref(INITIAL_AI_DB)
 
+  // --- 內部輔助：搜尋所有分類的聊天室 (For Socket) ---
+  function findChat(id) {
+    if (id === currentUserId.value) return db.value.myProfile
+
+    // 找 AI
+    const ai = aiDb.value.history.find((c) => c.id === id)
+    if (ai) return ai
+
+    // 找一般聊天室
+    for (const key in db.value) {
+      if (Array.isArray(db.value[key])) {
+        const found = db.value[key].find((c) => c.id === id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  // --- 2. Getters ---
   const unreadCounts = computed(() => {
     const counts = { match: 0, community: 0, event: 0, ai: 0 }
-    ;['match', 'community', 'event', 'stranger'].forEach(cat => {
+    ;['match', 'community', 'event', 'stranger'].forEach((cat) => {
       if (!db.value[cat]) return
-      db.value[cat].forEach(chat => {
-        const unreadInChat = chat.msgs.filter(m => m.sender !== 'me' && !m.read).length
-        const targetCat = cat === 'stranger' ? 'match' : cat 
+      db.value[cat].forEach((chat) => {
+        const unreadInChat = chat.msgs.filter((m) => m.sender !== 'me' && !m.read).length
+        const targetCat = cat === 'stranger' ? 'match' : cat
         counts[targetCat] += unreadInChat
       })
     })
@@ -32,7 +92,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const currentChatList = computed(() => {
     if (currentCategory.value === 'friendList') {
-      return db.value.match.filter(c => c.status === 'friend')
+      return db.value.match.filter((c) => c.status === 'friend')
     }
     if (currentCategory.value === 'ai') {
       return aiDb.value.history
@@ -42,18 +102,13 @@ export const useChatStore = defineStore('chat', () => {
 
   const activeChat = computed(() => {
     if (!activeChatId.value) return null
-    
-    if (activeChatId.value === currentUserId.value) {
-      return db.value.myProfile
-    }
-
-    if (currentCategory.value === 'ai') {
-      return aiDb.value.history.find(c => c.id === activeChatId.value)
-    }
+    if (activeChatId.value === currentUserId.value) return db.value.myProfile
+    if (currentCategory.value === 'ai')
+      return aiDb.value.history.find((c) => c.id === activeChatId.value)
 
     for (const key in db.value) {
       if (Array.isArray(db.value[key])) {
-        const found = db.value[key].find(c => c.id === activeChatId.value)
+        const found = db.value[key].find((c) => c.id === activeChatId.value)
         if (found) return found
       }
     }
@@ -70,7 +125,12 @@ export const useChatStore = defineStore('chat', () => {
     const chat = activeChat.value
     if (!chat) return 'LOCKED'
 
-    if (chat.type === 'community' || chat.type === 'ai' || chat.type === 'event' || chat.status === 'friend') {
+    if (
+      chat.type === 'community' ||
+      chat.type === 'ai' ||
+      chat.type === 'event' ||
+      chat.status === 'friend'
+    ) {
       return 'REAL_MODE'
     }
     if (chat.type === 'knock' && chat.status === 'pending') {
@@ -82,7 +142,7 @@ export const useChatStore = defineStore('chat', () => {
   const myMessageCount = computed(() => {
     const chat = activeChat.value
     if (!chat) return 0
-    return chat.msgs.filter(m => m.sender === 'me').length
+    return chat.msgs.filter((m) => m.sender === 'me').length
   })
 
   const isLimitReached = computed(() => {
@@ -98,7 +158,7 @@ export const useChatStore = defineStore('chat', () => {
     return false
   })
 
-  // Actions
+  // --- 3. Actions ---
   function switchCategory(cat) {
     currentCategory.value = cat
     activeChatId.value = null
@@ -109,11 +169,18 @@ export const useChatStore = defineStore('chat', () => {
     activeChatId.value = id
     selectedFriendId.value = null
     replyingMsg.value = null
-    const chat = activeChat.value
-    if (chat && chat.msgs.length > 0) {
-      chat.msgs.forEach(m => {
-        if (m.sender !== 'me') m.read = 1
-      })
+    const chat = activeChat.value // 利用 computed 取得 chat 物件
+
+    if (chat) {
+      // 1. 標記已讀
+      if (chat.msgs.length > 0) {
+        chat.msgs.forEach((m) => {
+          if (m.sender !== 'me') m.read = 1
+        })
+      }
+
+      // 2. [Socket] 加入房間
+      joinRoom(id)
     }
   }
 
@@ -132,7 +199,7 @@ export const useChatStore = defineStore('chat', () => {
   function sendMessage(text, isImage = false, replyTo = null) {
     if (!activeChat.value && currentCategory.value === 'ai') {
       createAiChat()
-      const chat = aiDb.value.history.find(c => c.id === activeChatId.value)
+      const chat = aiDb.value.history.find((c) => c.id === activeChatId.value)
       if (chat) {
         chat.title = text.substring(0, 10) + (text.length > 10 ? '...' : '')
       }
@@ -169,34 +236,71 @@ export const useChatStore = defineStore('chat', () => {
     const newMsg = {
       id: Date.now(),
       sender: 'me',
-      text: isImage ? '[圖片]' : text,
+      content: isImage ? '[圖片]' : text, // Changed key to content
       image: isImage ? text : null,
-      time: new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit' }),
+      time: new Date().toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
       timestamp: Date.now(),
       read: 0,
       replyTo: replyTo
     }
 
+    // 1. 前端先顯示 (Optimistic UI)
     activeChat.value.msgs.push(newMsg)
+
+    // 2. [Socket] 如果不是 AI，發送給後端
+    if (activeChat.value.type !== 'ai') {
+      sendSocketMessage({
+        roomId: activeChat.value.id,
+        content: newMsg.content, // Spec: content
+        messageType: isImage ? 'image' : 'text' // Spec: messageType
+      })
+    }
+
+    // 3. 處理自動回覆 (AI 或是模擬用)
     handleAutoReply(activeChat.value, text)
 
     return { success: true }
   }
 
   function handleAutoReply(chat, userText) {
+    // 只有 AI 才會有本地自動回覆
+    // 真人與群組對話應該依賴 Socket 接收對方的訊息
+    if (chat.type !== 'ai') return
+
     const now = new Date()
-    const replyTime = now.toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit'})
+    const replyTime = now.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit'
+    })
 
     setTimeout(() => {
       chat.msgs.push({
         id: Date.now() + 1,
         sender: 'them',
-        text: chat.type === 'ai' ? '我是波波，您可以問我關於寵物照護、行為理解或平台活動的問題喔！' : `收到囉！關於「${userText.substring(0, 10)}...」`,
+        text: generateAIResponse(userText),
         time: replyTime,
         timestamp: Date.now(),
         read: 0
       })
     }, 1000)
+  }
+
+  function generateAIResponse(text) {
+    const forbidden = /(code|script|program|html|css|javascript|python|java|kill|abuse|porn|sex)/i
+    const health = /(生病|痛|抓|吐|拉|症狀|看|叫|行為|為什麼|怎麼辦)/
+    const platform = /(活動|聚會|貼文|推薦|找)/
+
+    if (forbidden.test(text))
+      return '我是寵物溝通師，無法回答程式碼、羶腥色或暴力相關的內容喔！請專注在毛孩身上 🐶'
+    if (health.test(text))
+      return '感應到毛孩可能想表達不舒服或焦慮... (通靈解釋) 🔮\n\n⚠️ 溫馨提醒：我僅能提供行為上的感知參考，實際健康狀況請務必諮詢專業獸醫！'
+    if (platform.test(text)) return '沒問題！幫您找到了平台上相關的熱門討論與活動 📋 (模擬搜尋結果)'
+    return '我是波波，您可以問我關於寵物照護、行為理解或平台活動的問題喔！'
   }
 
   function createAiChat() {
@@ -220,9 +324,8 @@ export const useChatStore = defineStore('chat', () => {
     const title = featureText.split('：')[0]
     const welcomeMsg = AI_WELCOME_MESSAGES[title] || '你好！我是波波，有什麼我可以幫你的嗎？'
 
-    // 檢查是否可以重用當前對話 (若是空的)
     if (activeChatId.value && currentCategory.value === 'ai') {
-      const currentChat = aiDb.value.history.find(c => c.id === activeChatId.value)
+      const currentChat = aiDb.value.history.find((c) => c.id === activeChatId.value)
       if (currentChat && currentChat.msgs.length === 0) {
         currentChat.title = title
         currentChat.timestamp = Date.now()
@@ -230,11 +333,15 @@ export const useChatStore = defineStore('chat', () => {
           id: Date.now(),
           sender: 'them',
           text: welcomeMsg,
-          time: new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit' }),
+          time: new Date().toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
           timestamp: Date.now(),
           read: 0
         })
-        return // 結束函式，不再建立新對話
+        return
       }
     }
 
@@ -251,7 +358,11 @@ export const useChatStore = defineStore('chat', () => {
           id: Date.now(),
           sender: 'them',
           text: welcomeMsg,
-          time: new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit' }),
+          time: new Date().toLocaleTimeString('en-US', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
           timestamp: Date.now(),
           read: 0
         }
@@ -265,22 +376,21 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function acceptStranger(chatId) {
-    // TODO:實務上這會 call API，成功後移動資料位置，這裡用模擬的
-    const chat = db.value.stranger.find(c => c.id === chatId)
+    const chat = db.value.stranger.find((c) => c.id === chatId)
     if (chat) {
-      chat.status = 'trial' 
+      chat.status = 'trial'
       currentCategory.value = 'match'
       activeChatId.value = chatId
     }
   }
 
   function rejectStranger(chatId) {
-    db.value.stranger = db.value.stranger.filter(c => c.id !== chatId)
+    db.value.stranger = db.value.stranger.filter((c) => c.id !== chatId)
     if (activeChatId.value === chatId) activeChatId.value = null
   }
 
   function becomeFriend(chatId) {
-    const strangerIndex = db.value.stranger.findIndex(c => c.id === chatId)
+    const strangerIndex = db.value.stranger.findIndex((c) => c.id === chatId)
     if (strangerIndex !== -1) {
       const chat = db.value.stranger[strangerIndex]
       chat.status = 'friend'
@@ -291,7 +401,7 @@ export const useChatStore = defineStore('chat', () => {
       return
     }
 
-    const chat = db.value.match.find(c => c.id === chatId)
+    const chat = db.value.match.find((c) => c.id === chatId)
     if (chat) {
       chat.status = 'friend'
       chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
@@ -300,9 +410,9 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function deleteChat(chatId) {
-    const aiIndex = aiDb.value.history.findIndex(c => c.id === chatId)
+    const aiIndex = aiDb.value.history.findIndex((c) => c.id === chatId)
     if (aiIndex !== -1) {
-      aiDb.value.history = aiDb.value.history.filter(c => c.id !== chatId)
+      aiDb.value.history = aiDb.value.history.filter((c) => c.id !== chatId)
       if (activeChatId.value === chatId) activeChatId.value = null
       return
     }
@@ -330,7 +440,6 @@ export const useChatStore = defineStore('chat', () => {
     if (activeChatId.value === friendId) activeChatId.value = null
   }
 
-  // 更新個人資料
   function updateMyProfile(payload) {
     if (payload.statusMsg !== undefined) db.value.myProfile.statusMsg = payload.statusMsg
   }
@@ -382,7 +491,7 @@ export const useChatStore = defineStore('chat', () => {
     for (const key in db.value) {
       if (Array.isArray(db.value[key])) {
         const list = db.value[key]
-        const chat = list.find(c => c.id === chatId)
+        const chat = list.find((c) => c.id === chatId)
         if (chat) {
           chat.pinned = !chat.pinned
           if (chat.pinned) {
@@ -428,6 +537,7 @@ export const useChatStore = defineStore('chat', () => {
     removeFriend,
     updateMyProfile,
     clearNotice,
-    unblockChat
+    unblockChat,
+    isConnected // Export isConnected for UI status
   }
 })
