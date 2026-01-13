@@ -79,13 +79,7 @@ const handleDeleteHistory = (chat) => {
       <div class="bg-bg-surface animate-slide-right relative flex h-full w-64 flex-col shadow-2xl">
         <div class="border-border-default flex items-center justify-between border-b p-4">
           <div class="flex items-center gap-2">
-            <button
-              class="text-fg-primary hover:text-brand-primary"
-              @click="
-                store.activeChatId = null
-                store.isAiDrawerOpen = false
-              "
-            >
+            <button class="text-fg-primary hover:text-brand-primary" @click="handleBackClick">
               <i class="fa-solid fa-chevron-left text-lg"></i>
             </button>
             <span class="text-lg font-bold">歷史紀錄</span>
