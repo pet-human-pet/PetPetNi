@@ -80,7 +80,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="bg-bg-base relative flex min-h-screen w-full flex-col text-left font-sans md:h-screen md:overflow-hidden"
+    class="bg-bg-base relative w-full flex flex-col text-left font-sans h-screen overflow-y-auto custom-scrollbar"
   >
     <BackgroundGrid />
 
@@ -241,7 +241,7 @@ onUnmounted(() => {
         </aside>
 
         <main
-          class="md:c-card flex h-auto flex-col overflow-visible bg-transparent md:h-full md:overflow-hidden md:rounded-2xl md:bg-white"
+          class="md:c-card flex h-full flex-col overflow-visible bg-transparent md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
             class="sticky top-15 z-40 flex-none border-b border-gray-100 bg-white min-[800px]:top-17.5 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
@@ -332,7 +332,7 @@ onUnmounted(() => {
           </div>
 
           <div
-            class="custom-scrollbar h-auto flex-none overflow-visible bg-transparent p-4 pb-20 md:flex-1 md:overflow-y-auto md:bg-gray-50/20 md:p-8 md:pb-8"
+            class="custom-scrollbar h-full flex-1 overflow-y-auto bg-transparent p-4 pb-20 bg-gray-50/20 md:p-8 md:pb-8"
           >
             <div
               v-if="activeTab === 'posts'"
