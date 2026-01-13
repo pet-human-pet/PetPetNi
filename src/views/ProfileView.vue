@@ -94,7 +94,7 @@ onUnmounted(() => {
           class="md:c-card flex h-auto shrink-0 flex-col bg-transparent md:h-full md:overflow-hidden md:rounded-2xl md:border-none md:bg-white md:p-0 md:shadow-none"
         >
           <div
-            class="custom-scrollbar flex h-auto flex-col p-4 md:h-full md:overflow-y-auto md:p-8"
+            class="custom-scrollbar flex h-auto flex-col p-4 md:h-full md:p-8"
           >
             <div
               class="flex flex-row items-stretch gap-2 border-b border-gray-100 pb-2 md:mb-8 md:flex-col md:items-center md:gap-0 md:border-b-0 md:pb-0"
