@@ -1,12 +1,34 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import BaseInput from '@/components/Form/BaseInput.vue'
 
 const emit = defineEmits(['change-view'])
 
 const email = ref('')
+const emailError = ref('')
+
+// 監聽輸入變化，清除錯誤訊息
+watch(email, () => {
+  emailError.value = ''
+})
 
 const handleSubmit = () => {
+  // 清空錯誤訊息
+  emailError.value = ''
+
+  // 驗證 Email
+  if (!email.value) {
+    emailError.value = '請輸入電子郵件'
+    return
+  }
+
+  // Email 格式驗證
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value)) {
+    emailError.value = '電子郵件格式不正確'
+    return
+  }
+
   // TODO: 未來實作 API - 發送重設密碼連結至 Email
   // 暫時直接導回登入頁，正式版應顯示「已發送」訊息
   emit('change-view', 'LOGIN')
@@ -25,7 +47,16 @@ const handleSubmit = () => {
     <form @submit.prevent="handleSubmit">
       <div class="mb-4">
         <label class="mb-2 block text-sm font-medium text-gray-600">Email</label>
-        <BaseInput v-model="email" placeholder="example@email.com" type="email" />
+        <BaseInput
+          v-model="email"
+          :error="emailError"
+          placeholder="example@email.com"
+          type="email"
+          @blur="
+            emailError =
+              email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '電子郵件格式不正確' : ''
+          "
+        />
       </div>
 
       <button

@@ -154,6 +154,10 @@ const handleSubmit = () => {
           placeholder="例如：0912345678"
           type="tel"
           required
+          @blur="
+            phoneError =
+              phone && !validatePhone(phone) ? '請輸入正確的手機號碼格式（例如：0912345678）' : ''
+          "
         />
       </div>
 
@@ -268,6 +272,7 @@ const handleSubmit = () => {
           style="background-color: #ffa75f"
           :disabled="!realName || !nickname || !phone || !city || !district || !gender || !birthday"
         >
+          <!-- TODO: Replace with CSS variable var(--app-primary) -->
           下一步
         </button>
       </div>
