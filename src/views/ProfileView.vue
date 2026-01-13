@@ -72,67 +72,67 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="bg-bg-base relative flex min-h-screen w-full flex-col text-left font-sans lg:h-screen lg:overflow-hidden"
+    class="bg-bg-base relative flex min-h-screen w-full flex-col text-left font-sans md:h-screen md:overflow-hidden"
   >
     <BackgroundGrid />
 
     <div
-      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-10 pb-6 md:pb-24 lg:overflow-hidden"
+      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-10 pb-6 md:pb-24 md:overflow-hidden"
     >
       <div
-        class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm lg:grid lg:grid-cols-[1.2fr_2fr] lg:gap-10 lg:overflow-hidden lg:border-none lg:bg-transparent lg:shadow-none"
+        class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm md:grid md:grid-cols-[1.2fr_2fr] md:gap-10 md:overflow-hidden md:border-none md:bg-transparent md:shadow-none"
       >
         <aside
-          class="lg:c-card flex h-auto shrink-0 flex-col bg-transparent lg:h-full lg:overflow-hidden lg:rounded-2xl lg:border-none lg:bg-white lg:p-0 lg:shadow-none"
+          class="md:c-card flex h-auto shrink-0 flex-col bg-transparent md:h-full md:overflow-hidden md:rounded-2xl md:border-none md:bg-white md:p-0 md:shadow-none"
         >
           <div
-            class="custom-scrollbar flex h-auto flex-col p-4 lg:h-full lg:overflow-y-auto lg:p-8"
+            class="custom-scrollbar flex h-auto flex-col p-4 md:h-full md:overflow-y-auto md:p-8"
           >
             <div
-              class="flex flex-row items-stretch gap-2 border-b border-gray-100 pb-2 lg:mb-8 lg:flex-col lg:items-center lg:gap-0 lg:border-b-0 lg:pb-0"
+              class="flex flex-row items-stretch gap-2 border-b border-gray-100 pb-2 md:mb-8 md:flex-col md:items-center md:gap-0 md:border-b-0 md:pb-0"
             >
               <div
-                class="flex w-1/3 min-w-24 shrink-0 flex-col items-center justify-between lg:w-full"
+                class="flex w-1/3 min-w-24 shrink-0 flex-col items-center justify-between md:w-full"
               >
                 <h1
-                  class="w-full truncate pt-1 text-center text-lg leading-tight font-bold lg:text-3xl"
+                  class="w-full truncate pt-1 text-center text-lg leading-tight font-bold md:text-3xl"
                   :style="{ color: BRAND_ORANGE }"
                 >
                   {{ profile.name }}
                 </h1>
                 <div
-                  class="group relative flex flex-1 cursor-pointer items-center justify-center py-1 lg:py-4"
+                  class="group relative flex flex-1 cursor-pointer items-center justify-center py-1 md:py-4"
                   @click="handleAvatarClick"
                 >
                   <div
-                    class="relative h-20 w-20 overflow-hidden rounded-full border-4 border-white shadow-md lg:h-44 lg:w-44"
+                    class="relative h-20 w-20 overflow-hidden rounded-full border-4 border-white shadow-md md:h-44 md:w-44"
                   >
                     <img :src="profile.avatar" class="h-full w-full object-cover" />
                   </div>
                   <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
                   <span
-                    class="absolute -right-1 bottom-2.5 z-10 rounded-full border bg-white px-2 py-0.5 text-[10px] font-bold shadow-sm lg:right-2 lg:bottom-4 lg:px-3 lg:py-1 lg:text-xs"
+                    class="absolute -right-1 bottom-2.5 z-10 rounded-full border bg-white px-2 py-0.5 text-[10px] font-bold shadow-sm md:right-2 md:bottom-4 md:px-3 md:py-1 md:text-xs"
                     >已驗證</span
                   >
                 </div>
                 <div
-                  class="hidden h-6 w-full items-end justify-center gap-1 pb-1 lg:flex lg:h-auto lg:gap-2"
+                  class="hidden h-6 w-full items-end justify-center gap-1 pb-1 md:flex md:h-auto md:gap-2"
                 >
-                  <span class="text-fg-muted max-w-20 truncate text-xs lg:max-w-none lg:text-lg">{{
+                  <span class="text-fg-muted max-w-20 truncate text-xs md:max-w-none md:text-lg">{{
                     profile.username
                   }}</span>
                   <button class="group shrink-0 cursor-pointer" @click="isEditing = true">
                     <IconGear
-                      class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31] lg:h-6 lg:w-6"
+                      class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31] md:h-6 md:w-6"
                     />
                   </button>
                 </div>
               </div>
-              <div class="mx-1 h-auto w-px self-stretch bg-gray-100 lg:hidden"></div>
+              <div class="mx-1 h-auto w-px self-stretch bg-gray-100 md:hidden"></div>
               <div
-                class="flex w-full min-w-0 flex-1 flex-col justify-between lg:block lg:w-auto lg:gap-0"
+                class="flex w-full min-w-0 flex-1 flex-col justify-between md:block md:w-auto md:gap-0"
               >
-                <div class="flex items-center justify-center gap-2 pb-2 text-center lg:hidden">
+                <div class="flex items-center justify-center gap-2 pb-2 text-center md:hidden">
                   <span class="text-fg-muted text-xs">{{ profile.username }}</span>
                   <button class="group shrink-0 cursor-pointer" @click="isEditing = true">
                     <IconGear
@@ -141,18 +141,18 @@ onUnmounted(() => {
                   </button>
                 </div>
                 <div
-                  class="flex items-start justify-between pt-0.5 text-center lg:mb-6 lg:flex-nowrap lg:justify-center lg:gap-10"
+                  class="flex items-start justify-between pt-0.5 text-center md:mb-6 md:flex-nowrap md:justify-center md:gap-10"
                 >
                   <div
-                    class="group flex-1 cursor-pointer lg:flex-none"
+                    class="group flex-1 cursor-pointer md:flex-none"
                     @click="openUserList('followers')"
                   >
-                    <p class="text-lg font-bold lg:text-3xl" :style="{ color: BRAND_ORANGE }">2</p>
-                    <p class="text-fg-muted text-[10px] font-medium lg:text-sm">粉絲</p>
+                    <p class="text-lg font-bold md:text-3xl" :style="{ color: BRAND_ORANGE }">2</p>
+                    <p class="text-fg-muted text-[10px] font-medium md:text-sm">粉絲</p>
                   </div>
-                  <div class="flex flex-[1.5] justify-center lg:flex-none">
+                  <div class="flex flex-[1.5] justify-center md:flex-none">
                     <button
-                      class="c-btn w-full max-w-20 truncate rounded-full border py-1 text-[10px] font-bold whitespace-nowrap transition-all lg:w-auto lg:max-w-none lg:px-6 lg:py-1.5 lg:text-sm"
+                      class="c-btn w-full max-w-20 truncate rounded-full border py-1 text-[10px] font-bold whitespace-nowrap transition-all md:w-auto md:max-w-none md:px-6 md:py-1.5 md:text-sm"
                       :style="
                         isAboutVisible
                           ? {
@@ -168,25 +168,25 @@ onUnmounted(() => {
                     </button>
                   </div>
                   <div
-                    class="group flex-1 cursor-pointer lg:flex-none"
+                    class="group flex-1 cursor-pointer md:flex-none"
                     @click="openUserList('following')"
                   >
-                    <p class="text-lg font-bold lg:text-3xl" :style="{ color: BRAND_ORANGE }">6</p>
-                    <p class="text-fg-muted text-[10px] font-medium lg:text-sm">追蹤中</p>
+                    <p class="text-lg font-bold md:text-3xl" :style="{ color: BRAND_ORANGE }">6</p>
+                    <p class="text-fg-muted text-[10px] font-medium md:text-sm">追蹤中</p>
                   </div>
                 </div>
                 <Transition name="fade">
                   <div
                     v-if="isAboutVisible"
-                    class="my-1 flex w-full flex-1 items-center lg:my-0 lg:block lg:flex-none"
+                    class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none"
                   >
                     <div
-                      class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden lg:h-auto lg:gap-2"
+                      class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden md:h-auto md:gap-2"
                     >
                       <span
                         v-for="(tag, index) in profile.hashtags"
                         :key="index"
-                        class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-[9px] font-medium tracking-tighter lg:px-2 lg:py-1 lg:text-[11px]"
+                        class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-[9px] font-medium tracking-tighter md:px-2 md:py-1 md:text-[11px]"
                         >{{ tag }}</span
                       >
                     </div>
@@ -195,36 +195,36 @@ onUnmounted(() => {
                 <Transition name="fade">
                   <div
                     v-if="isAboutVisible"
-                    class="flex w-full items-end border-t border-gray-50 pt-1 lg:mt-6 lg:pt-6"
+                    class="flex w-full items-end border-t border-gray-50 pt-1 md:mt-6 md:pt-6"
                   >
                     <div
-                      class="grid w-full grid-cols-3 items-center gap-0.5 text-center lg:flex lg:justify-around"
+                      class="grid w-full grid-cols-3 items-center gap-0.5 text-center md:flex md:justify-around"
                     >
                       <div
-                        class="flex flex-col items-center border-r border-gray-100 last:border-0 lg:flex-1 lg:border-0"
+                        class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
                       >
-                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase lg:mb-1"
+                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase md:mb-1"
                           >品種</span
                         ><span
-                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter lg:text-sm"
+                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter md:text-sm"
                           >{{ profile.petInfo.breed }}</span
                         >
                       </div>
                       <div
-                        class="flex flex-col items-center border-r border-gray-100 last:border-0 lg:flex-1 lg:border-0"
+                        class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
                       >
-                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase lg:mb-1"
+                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase md:mb-1"
                           >生日</span
                         ><span
-                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter lg:text-sm"
+                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter md:text-sm"
                           >{{ profile.petInfo.birthday }}</span
                         >
                       </div>
-                      <div class="flex flex-col items-center lg:flex-1">
-                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase lg:mb-1"
+                      <div class="flex flex-col items-center md:flex-1">
+                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase md:mb-1"
                           >性別</span
                         ><span
-                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter lg:text-sm"
+                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter md:text-sm"
                           >{{ profile.petInfo.gender }}</span
                         >
                       </div>
@@ -237,35 +237,35 @@ onUnmounted(() => {
         </aside>
 
         <main
-          class="lg:c-card flex h-auto flex-col overflow-visible bg-transparent lg:h-full lg:overflow-hidden lg:rounded-2xl lg:bg-white"
+          class="md:c-card flex h-auto flex-col overflow-visible bg-transparent md:h-full md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
-            class="sticky top-15 z-40 flex-none border-b border-gray-100 bg-white min-[800px]:top-17.5 lg:static lg:z-auto lg:mx-0 lg:rounded-t-3xl lg:border-b-0 lg:px-0"
+            class="sticky top-15 z-40 flex-none border-b border-gray-100 bg-white min-[800px]:top-17.5 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
           >
-            <div class="flex shrink-0 justify-around px-4 pt-4 lg:px-6">
+            <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
               <button
                 v-for="tab in [
                   { id: 'posts', n: '貼文' },
                   { id: 'events', n: '活動' }
                 ]"
                 :key="tab.id"
-                class="relative w-full pb-3 text-center text-base font-bold lg:pb-5 lg:text-lg"
+                class="relative w-full pb-3 text-center text-base font-bold md:pb-5 md:text-lg"
                 :style="{ color: activeTab === tab.id ? BRAND_ORANGE : '' }"
                 @click="handleTabChange(tab.id)"
               >
                 {{ tab.n }}
                 <div
                   v-if="activeTab === tab.id"
-                  class="absolute bottom-0 h-1 w-full rounded-t-full lg:h-1.5"
+                  class="absolute bottom-0 h-1 w-full rounded-t-full md:h-1.5"
                   :style="{ backgroundColor: BRAND_ORANGE }"
                 ></div>
               </button>
             </div>
 
-            <div class="px-4 py-4 lg:px-6">
-              <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 lg:gap-6">
+            <div class="px-4 py-4 md:px-6">
+              <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
                 <button
-                  class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm lg:px-10 lg:py-2.5 lg:text-sm"
+                  class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
                   :style="
                     activeSubTab === 'my'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -276,7 +276,7 @@ onUnmounted(() => {
                   我的貼文
                 </button>
                 <button
-                  class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm lg:px-10 lg:py-2.5 lg:text-sm"
+                  class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
                   :style="
                     activeSubTab === 'saved'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -289,10 +289,10 @@ onUnmounted(() => {
               </div>
               <div
                 v-if="activeTab === 'events'"
-                class="flex flex-wrap justify-center gap-2 lg:gap-4"
+                class="flex flex-wrap justify-center gap-2 md:gap-4"
               >
                 <button
-                  class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm lg:px-8 lg:py-2.5 lg:text-sm"
+                  class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
                   :style="
                     activeSubTab === 'create'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -303,7 +303,7 @@ onUnmounted(() => {
                   發起活動
                 </button>
                 <button
-                  class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm lg:px-8 lg:py-2.5 lg:text-sm"
+                  class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
                   :style="
                     activeSubTab === 'follow'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -314,7 +314,7 @@ onUnmounted(() => {
                   收藏活動
                 </button>
                 <button
-                  class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm lg:px-8 lg:py-2.5 lg:text-sm"
+                  class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
                   :style="
                     activeSubTab === 'history'
                       ? { backgroundColor: BRAND_ORANGE, color: 'white' }
@@ -329,11 +329,11 @@ onUnmounted(() => {
           </div>
 
           <div
-            class="custom-scrollbar h-auto flex-none overflow-visible bg-transparent p-4 pb-20 lg:flex-1 lg:overflow-y-auto lg:bg-gray-50/20 lg:p-8 lg:pb-8"
+            class="custom-scrollbar h-auto flex-none overflow-visible bg-transparent p-4 pb-20 md:flex-1 md:overflow-y-auto md:bg-gray-50/20 md:p-8 md:pb-8"
           >
             <div
               v-if="activeTab === 'posts'"
-              class="mx-auto max-w-xl space-y-4 pb-10 text-left lg:space-y-6"
+              class="mx-auto max-w-xl space-y-4 pb-10 text-left md:space-y-6"
             >
               <PostCard
                 v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
@@ -341,7 +341,7 @@ onUnmounted(() => {
                 :post="post"
               />
             </div>
-            <div v-if="activeTab === 'events'" class="grid gap-4 pb-10 lg:gap-5">
+            <div v-if="activeTab === 'events'" class="grid gap-4 pb-10 md:gap-5">
               <div
                 v-for="event in activeSubTab === 'create'
                   ? createdEvents
@@ -349,15 +349,15 @@ onUnmounted(() => {
                     ? followedEvents
                     : historyEvents"
                 :key="event.id"
-                class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-4 shadow-sm transition-all hover:shadow-md lg:p-6"
+                class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-4 shadow-sm transition-all hover:shadow-md md:p-6"
                 @click="openDetail(event)"
               >
                 <div class="flex-1 text-left">
-                  <h4 class="text-fg-primary text-base font-bold lg:text-lg">{{ event.name }}</h4>
-                  <p class="text-fg-muted text-xs lg:text-sm">{{ event.location }}</p>
+                  <h4 class="text-fg-primary text-base font-bold md:text-lg">{{ event.name }}</h4>
+                  <p class="text-fg-muted text-xs md:text-sm">{{ event.location }}</p>
                 </div>
                 <span
-                  class="rounded-full border border-orange-100 bg-orange-50 px-3 py-0.5 text-[10px] font-bold text-[#f48e31] lg:px-4 lg:py-1 lg:text-xs"
+                  class="rounded-full border border-orange-100 bg-orange-50 px-3 py-0.5 text-[10px] font-bold text-[#f48e31] md:px-4 md:py-1 md:text-xs"
                   >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
                 >
               </div>
