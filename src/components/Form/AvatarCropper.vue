@@ -2,17 +2,14 @@
 import { ref, computed, nextTick, watch, onBeforeUnmount, onMounted } from 'vue'
 
 const props = defineProps({
-  // 接收選中的圖片檔案
   file: {
     type: File,
     required: true
   },
-  // 裁切框大小（像素）
   cropSize: {
     type: Number,
     default: 300
   },
-  // 輸出解析度
   outputSize: {
     type: Number,
     default: 512
@@ -21,39 +18,22 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'save'])
 
-// --- 狀態變數 ---
-
-/** 原圖 URL（Blob） */
 const rawImageUrl = ref('')
 let rawObjectUrl = null
 
-/** 裁切區/圖片 DOM */
 const cropArea = ref(null)
 const cropImgEl = ref(null)
 
-/** 圖片原始尺寸 */
 const naturalW = ref(0)
 const naturalH = ref(0)
-
-/** 實際渲染的裁切框寬度 (px) - 可能會隨 RWD 改變 */
 const currentCropSize = ref(0)
-
-/** cover 基準縮放 */
 const baseScale = ref(1)
-
-/** 使用者縮放倍率（>=1） */
 const zoom = ref(1)
-
-/** 使用者拖曳位移 */
 const pos = ref({ x: 0, y: 0 })
 
-/** 拖曳狀態 */
 let dragging = false
 let dragStart = { x: 0, y: 0, baseX: 0, baseY: 0 }
 
-// --- 初始化與監聽 ---
-
-// 監聽傳入的 file 變化
 watch(
   () => props.file,
   (newFile) => {
@@ -63,10 +43,7 @@ watch(
   { immediate: true }
 )
 
-// 監聽 zoom 變化，自動限制位置
-watch(zoom, () => {
-  clampPos()
-})
+watch(zoom, () => clampPos())
 
 onMounted(() => {
   window.addEventListener('resize', onResize)
@@ -77,48 +54,33 @@ onBeforeUnmount(() => {
   if (rawObjectUrl) URL.revokeObjectURL(rawObjectUrl)
 })
 
-// --- 核心邏輯 ---
-
 function loadFile(file) {
-  // 清釋舊 URL
   if (rawObjectUrl) URL.revokeObjectURL(rawObjectUrl)
 
   rawObjectUrl = URL.createObjectURL(file)
   rawImageUrl.value = rawObjectUrl
-
-  // Reset
   pos.value = { x: 0, y: 0 }
   zoom.value = 1
 
-  // 等待 DOM 更新後測量
-  nextTick(() => {
-    updateCropMetrics()
-  })
+  nextTick(() => updateCropMetrics())
 }
 
-/** 量測裁切框大小 + 計算 cover baseScale */
+/** 計算 cover 縮放比例，確保圖片最短邊填滿裁切框 */
 function updateCropMetrics() {
   const el = cropArea.value
   if (!el) return
   currentCropSize.value = el.clientWidth || 0
 
-  // 有 natural size 才能算 cover
   if (!naturalW.value || !naturalH.value || !currentCropSize.value) return
 
-  // 確保圖片最短邊也能填滿
-  const cover = Math.max(
+  baseScale.value = Math.max(
     currentCropSize.value / naturalW.value,
     currentCropSize.value / naturalH.value
   )
-  baseScale.value = cover
-
-  // 確保 zoom 至少為 1
   zoom.value = Math.max(1, zoom.value)
-
   clampPos()
 }
 
-/** 圖片載入完成 (DOM事件) */
 function onCropImgLoad() {
   const img = cropImgEl.value
   if (!img) return
@@ -127,7 +89,7 @@ function onCropImgLoad() {
   updateCropMetrics()
 }
 
-/** 限制拖曳範圍：確保圖片不會露出背景 */
+/** 限制拖曳範圍，確保圖片邊緣不超出裁切框 */
 function clampPos() {
   const size = currentCropSize.value
   if (!size || !naturalW.value || !naturalH.value) return
@@ -145,7 +107,10 @@ function clampPos() {
   }
 }
 
-/** 輸出裁切結果 */
+/**
+ * 將目前裁切框內的圖片區域輸出為圓形 PNG Blob
+ * 使用 Canvas 進行圓形遮罩繪製
+ */
 async function saveCrop() {
   const img = cropImgEl.value
   const size = currentCropSize.value
@@ -155,12 +120,9 @@ async function saveCrop() {
   const renderedW = naturalW.value * scale
   const renderedH = naturalH.value * scale
 
-  // 計算圖片在裁切框內的 Top-Left
-  // 裁切框中心 (size/2, size/2) 對應到 圖片中心 + pos
   const imgLeft = size / 2 + pos.value.x - renderedW / 2
   const imgTop = size / 2 + pos.value.y - renderedH / 2
 
-  // 計算對應原圖的取樣區域 (source rect)
   const srcX = (0 - imgLeft) / scale
   const srcY = (0 - imgTop) / scale
   const srcSize = size / scale
@@ -173,27 +135,18 @@ async function saveCrop() {
   if (!ctx) return
 
   ctx.clearRect(0, 0, out, out)
-
-  // 圓形裁切
   ctx.save()
   ctx.beginPath()
   ctx.arc(out / 2, out / 2, out / 2, 0, Math.PI * 2)
   ctx.closePath()
   ctx.clip()
-
-  // 繪圖: drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
   ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, out, out)
   ctx.restore()
 
-  // 轉成 Blob 輸出
   canvas.toBlob((blob) => {
-    if (blob) {
-      emit('save', blob)
-    }
+    if (blob) emit('save', blob)
   }, 'image/png')
 }
-
-// --- 互動事件 ---
 
 function onPointerDown(e) {
   dragging = true
@@ -222,7 +175,6 @@ function onResize() {
   updateCropMetrics()
 }
 
-// 計算樣式
 const imgStyle = computed(() => {
   const scale = baseScale.value * zoom.value
   return {
@@ -238,9 +190,12 @@ const imgStyle = computed(() => {
     class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50 p-4"
     @click.self="emit('close')"
   >
+    <!-- TODO: shadow-[rgba] 應替換為設計系統陰影變數 -->
     <div class="w-full max-w-105 rounded-2xl bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
       <div class="flex items-center justify-between">
+        <!-- TODO: text-[16px] 應替換為設計系統字級 -->
         <div class="text-[16px] font-bold">裁切頭像</div>
+        <!-- TODO: bg-[#f0f2f5] text-[#666] hover:bg-[#fffcf7] hover:text-[#FFA75F] 應替換為設計系統顏色變數 -->
         <button
           type="button"
           class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#f0f2f5] text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F]"
@@ -251,7 +206,7 @@ const imgStyle = computed(() => {
         </button>
       </div>
 
-      <!-- Crop Area -->
+      <!-- TODO: bg-[#f3f4f6] 應替換為設計系統顏色變數 -->
       <div
         ref="cropArea"
         class="relative mt-4 aspect-square w-full touch-none overflow-hidden rounded-xl bg-[#f3f4f6]"
@@ -271,28 +226,26 @@ const imgStyle = computed(() => {
           @load="onCropImgLoad"
         />
 
-        <!-- Mask Overlay -->
         <!-- TODO: EXIF 方向支援 -->
         <div class="pointer-events-none absolute inset-0">
-          <!-- 陰影遮罩：中間鏤空 -->
+          <!-- TODO: shadow-[rgba(0,0,0,0.45)] 應替換為設計系統陰影/顏色變數 -->
           <div
             class="absolute top-1/2 left-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]"
           />
-          <!-- 白色邊框 -->
           <div
             class="absolute top-1/2 left-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white"
           />
         </div>
       </div>
 
-      <!-- Zoom Slider -->
       <div class="mt-4">
+        <!-- TODO: text-[13px] text-[#666] 應替換為設計系統字級與顏色變數 -->
         <div class="mb-2 text-[13px] font-bold text-[#666]">縮放</div>
         <input v-model.number="zoom" type="range" min="1" max="3" step="0.01" class="w-full" />
       </div>
 
-      <!-- Actions -->
       <div class="mt-4 flex gap-3">
+        <!-- TODO: bg-[#eee] text-[#666] 應替換為設計系統顏色變數或使用 c-btn--secondary -->
         <button
           type="button"
           class="flex-1 rounded-lg bg-[#eee] p-3 font-bold text-[#666]"
@@ -300,6 +253,7 @@ const imgStyle = computed(() => {
         >
           取消
         </button>
+        <!-- TODO: bg-[#FFA75F] 應替換為設計系統顏色變數或使用 c-btn--accent -->
         <button
           type="button"
           class="flex-1 rounded-lg bg-[#FFA75F] p-3 font-bold text-white"
@@ -309,6 +263,7 @@ const imgStyle = computed(() => {
         </button>
       </div>
 
+      <!-- TODO: text-[12px] text-[#888] 應替換為設計系統字級與顏色變數，或使用 c-meta -->
       <div class="mt-3 text-[12px] text-[#888]">提示：可用手指/滑鼠拖曳調整位置，用滑桿縮放。</div>
     </div>
   </div>
