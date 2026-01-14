@@ -22,20 +22,16 @@ const io = new Server(httpServer, {
 })
 
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`)
-
   // 從 handshake.auth 取得 userId，自動加入所有聊天室
   const userId = socket.handshake.auth?.userId
   if (userId) {
     const userRooms = db.getUserRooms(userId)
     userRooms.forEach((roomId) => socket.join(roomId))
-    console.log(`User ${userId} auto-joined rooms:`, userRooms)
   }
 
   // 1. 加入聊天室
   socket.on('join_room', (roomId) => {
     socket.join(roomId)
-    console.log(`User ${socket.id} joined room: ${roomId}`)
 
     // 通知其他人有人加入 (Spec: user_joined)
     socket.to(roomId).emit('user_joined', { userId: socket.id, userName: 'Guest' })
@@ -48,7 +44,6 @@ io.on('connection', (socket) => {
   // 2. 離開聊天室
   socket.on('leave_room', (roomId) => {
     socket.leave(roomId)
-    console.log(`User ${socket.id} left room: ${roomId}`)
     socket.to(roomId).emit('user_left', { userId: socket.id, userName: 'Guest' })
   })
 
@@ -105,12 +100,8 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('message_recalled', { messageId })
   })
 
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`)
-  })
+  socket.on('disconnect', () => {})
 })
 
 const PORT = process.env.PORT || 3000
-httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+httpServer.listen(PORT, () => {})
