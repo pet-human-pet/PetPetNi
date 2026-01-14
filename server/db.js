@@ -34,10 +34,25 @@ function writeDb(data) {
 export const db = {
   // 取得用戶參與的所有聊天室 ID
   getUserRooms: (userId) => {
-    // 目前簡化版：回傳 DB 中所有房間 ID
-    // 未來接真實 DB 時，應查詢該 userId 有參與的聊天室
-    const data = readDb()
-    return Object.keys(data)
+    // MVP 簡化版：回傳所有預設房間 ID (對應前端 chatMockData.js)
+    // 未來接真實 DB 時，應查詢該 userId 實際參與的聊天室
+    const defaultRooms = [
+      // community
+      'c1',
+      'c2',
+      // match (含 friend)
+      'm1',
+      'm2',
+      'm3',
+      'm4',
+      // stranger (敲敲門)
+      's1',
+      's2',
+      // event
+      'e1',
+      'e2'
+    ]
+    return defaultRooms
   },
 
   // 取得某個房間的歷史訊息

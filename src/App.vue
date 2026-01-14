@@ -1,9 +1,12 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 import { useSocket } from '@/composables/useSocket'
+=======
+>>>>>>> 05989c3 (chore: 清理 socket 相關 debug logs)
 import AppHeader from './components/Share/AppHeader.vue'
 >>>>>>> 37037f5 (feat:新增socket.io功能，目前是使用假資料)
 import MainHeader from './components/Share/Header.vue'
@@ -14,6 +17,7 @@ import ReportDialog from './components/Share/ReportDialog.vue'
 import SimpleToast from './components/Share/SimpleToast.vue'
 
 const route = useRoute()
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 // 判斷是否為首頁
@@ -27,6 +31,8 @@ const { initSocket } = useSocket()
 onMounted(() => {
   initSocket()
 })
+=======
+>>>>>>> 05989c3 (chore: 清理 socket 相關 debug logs)
 
 // 計算是否顯示 Footer
 // 如果 meta.hideFooter 為 true，則不顯示
