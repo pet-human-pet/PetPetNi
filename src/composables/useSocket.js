@@ -4,13 +4,13 @@ import { io } from 'socket.io-client'
 const socket = ref(null)
 const isConnected = ref(false)
 
+// 儲存等待註冊的監聽器 (解決 store 比 socket 更早初始化的問題)
+const pendingListeners = ref([])
+
 export function useSocket() {
   const initSocket = (userId) => {
-    console.log('[useSocket] initSocket called with userId:', userId)
-
     // 如果 socket 已存在且已連線，直接返回
     if (socket.value?.connected) {
-      console.log('[useSocket] Socket already connected, reusing')
       return socket.value
     }
 
@@ -26,15 +26,30 @@ export function useSocket() {
 
     socket.value.on('connect', () => {
       isConnected.value = true
-      console.log('[useSocket] Socket connected:', socket.value.id)
+
+      // 連線成功後，註冊所有等待中的監聽器
+      pendingListeners.value.forEach(({ event, callback }) => {
+        socket.value.on(event, callback)
+      })
+      pendingListeners.value = []
     })
 
     socket.value.on('disconnect', () => {
       isConnected.value = false
-      console.log('[useSocket] Socket disconnected')
     })
 
     return socket.value
+  }
+
+  // 通用的安全監聽器註冊函式
+  const safeOn = (event, callback) => {
+    if (socket.value?.connected) {
+      // Socket 已連線，直接註冊
+      socket.value.on(event, callback)
+    } else {
+      // Socket 尚未連線，先存起來
+      pendingListeners.value.push({ event, callback })
+    }
   }
 
   // --- Emits (前端 -> 後端) ---
@@ -68,8 +83,9 @@ export function useSocket() {
   }
 
   // --- Listeners (後端 -> 前端) ---
+  // 使用 safeOn 確保監聽器會在 socket 連線後註冊
   const onNewMessage = (callback) => {
-    if (socket.value) socket.value.on('new_message', callback)
+    safeOn('new_message', callback)
   }
 
   const onUserTyping = (callback) => {
