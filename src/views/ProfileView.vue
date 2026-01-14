@@ -390,7 +390,7 @@ onUnmounted(() => {
               >
             </div>
             <div
-              class="mb-6 grid grid-cols-3 gap-3 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-6"
+              class="mb-6 flex flex-wrap gap-3 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-6"
             >
               <span
                 v-if="profile.hashtags.length === 0"
