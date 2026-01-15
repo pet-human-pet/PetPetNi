@@ -80,7 +80,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="bg-bg-base relative flex w-full flex-col text-left font-sans custom-scrollbar md:h-screen md:overflow-y-auto"
+    class="bg-bg-base relative flex w-full flex-col text-left font-sans custom-scrollbar md:h-screen md:overflow-y-auto md:py-6"
   >
     <BackgroundGrid />
 
@@ -500,7 +500,7 @@ onUnmounted(() => {
           </button>
         </div>
       </div></Transition>
-    ><Transition name="fade"
+    <Transition name="fade"
       ><div
         v-if="showDetail"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
@@ -522,7 +522,6 @@ onUnmounted(() => {
           </button>
         </div>
       </div></Transition>
-    >
   </div>
 </template>
 
