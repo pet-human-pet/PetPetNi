@@ -60,13 +60,8 @@ io.on('connection', (socket) => {
       messageType: messageType || 'text',
       sender: 'other', // 模擬對方
       senderId: socket.id,
-      time: new Date().toLocaleTimeString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
       timestamp: Date.now(),
-      read: 0
+      read: false
     }
 
     // 存入 DB (注意：模擬 DB 還是用舊 key，但不影響)
