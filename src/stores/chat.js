@@ -9,9 +9,9 @@ export const useChatStore = defineStore('chat', () => {
     isConnected,
     initSocket,
     joinRoom,
-    sendMessage: sendSocketMessage, // Alias for socket emit
-    onNewMessage, // Changed from onMessageReceived
-    onHistoryReceived, // Custom
+    sendMessage: sendSocketMessage,
+    onNewMessage,
+    onHistoryReceived,
     markRead,
     startTyping,
     stopTyping
@@ -31,7 +31,7 @@ export const useChatStore = defineStore('chat', () => {
         chat.msgs.push({
           ...msg,
           // 如果是當前聊天室，直接標記已讀；否則標記未讀
-          read: isActiveChat ? 1 : 0
+          read: isActiveChat ? true : false
         })
       }
     }
@@ -45,7 +45,7 @@ export const useChatStore = defineStore('chat', () => {
     }
   })
 
-  // --- 1. State (From Upstream PR #55) ---
+  // --- 狀態資料 ---
   const currentCategory = ref('ai')
   const activeChatId = ref(null)
   const currentUserId = ref('u_123456')
@@ -78,7 +78,7 @@ export const useChatStore = defineStore('chat', () => {
     return null
   }
 
-  // --- 2. Getters ---
+  // --- 計算屬性 (未讀數量)---
   const unreadCounts = computed(() => {
     const counts = { match: 0, community: 0, event: 0, ai: 0 }
     ;['match', 'community', 'event', 'stranger'].forEach((cat) => {
@@ -238,15 +238,10 @@ export const useChatStore = defineStore('chat', () => {
     const newMsg = {
       id: Date.now(),
       sender: 'me',
-      content: isImage ? '[圖片]' : text, // Changed key to content
+      content: isImage ? '[圖片]' : text,
       image: isImage ? text : null,
-      time: new Date().toLocaleTimeString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
       timestamp: Date.now(),
-      read: 0,
+      read: false,
       replyTo: replyTo
     }
 
@@ -273,21 +268,13 @@ export const useChatStore = defineStore('chat', () => {
     // 真人與群組對話應該依賴 Socket 接收對方的訊息
     if (chat.type !== 'ai') return
 
-    const now = new Date()
-    const replyTime = now.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-
     setTimeout(() => {
       chat.msgs.push({
         id: Date.now() + 1,
         sender: 'them',
         content: generateAIResponse(userText),
-        time: replyTime,
         timestamp: Date.now(),
-        read: 0
+        read: false
       })
     }, 1000)
   }
@@ -335,13 +322,8 @@ export const useChatStore = defineStore('chat', () => {
           id: Date.now(),
           sender: 'them',
           content: welcomeMsg,
-          time: new Date().toLocaleTimeString('en-US', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
           timestamp: Date.now(),
-          read: 0
+          read: false
         })
         return
       }
@@ -360,13 +342,8 @@ export const useChatStore = defineStore('chat', () => {
           id: Date.now(),
           sender: 'them',
           content: welcomeMsg,
-          time: new Date().toLocaleTimeString('en-US', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
           timestamp: Date.now(),
-          read: 0
+          read: false
         }
       ],
       timestamp: Date.now()
