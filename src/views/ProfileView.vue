@@ -244,7 +244,7 @@ onUnmounted(() => {
           class="md:c-card flex h-full flex-col overflow-visible bg-transparent md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
-            class="sticky top-[var(--header-h)] z-40 flex-none border-b border-gray-100 bg-white md:top-0 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
+            class="sticky top-(--header-h) z-40 flex-none border-b border-gray-100 bg-white md:top-0 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
               <button
@@ -332,7 +332,7 @@ onUnmounted(() => {
           </div>
 
           <div
-            class="custom-scrollbar h-full flex-1 overflow-y-auto bg-transparent p-4 pb-20 bg-gray-50/20 md:p-8 md:pb-8"
+            class="custom-scrollbar h-full flex-1 overflow-y-auto bg-transparent p-4 pb-20 md:p-8 md:pb-8"
           >
             <div
               v-if="activeTab === 'posts'"
