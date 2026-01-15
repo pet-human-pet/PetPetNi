@@ -5,9 +5,6 @@
       <BackgroundGrid class="h-full w-full" />
     </div>
 
-    <!-- Header -->
-    <Header />
-
     <div class="daily-match-view">
       <!-- 主要內容區 -->
       <main class="match-content">
@@ -61,7 +58,6 @@
 import { ref, onMounted } from 'vue'
 import { useMatchingStore } from '@/stores/matching'
 import { useMatching } from '@/composables/useMatching'
-import Header from '@/components/Share/Header.vue'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import CardPackSelector from '@/components/Matching/CardPackSelector.vue'
 import MatchResultCard from '@/components/Matching/MatchResultCard.vue'
@@ -219,7 +215,7 @@ onMounted(() => {
   position: relative;
   overflow-x: hidden;
   padding: 2rem 1rem;
-  padding-top: calc(70px + 2rem); /* Header 高度 + spacing */
+  padding-top: calc(var(--header-h) + 2rem); /* Header 高度 + spacing */
 }
 
 .match-content {

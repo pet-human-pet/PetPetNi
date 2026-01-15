@@ -10,10 +10,17 @@ import SimpleToast from './components/Share/SimpleToast.vue'
 
 const route = useRoute()
 
+// 判斷是否為首頁
+const isHomePage = computed(() => route.name === 'home')
 // 計算是否顯示 Header
 const showHeader = computed(() => !route.meta.hideHeader)
 // 計算是否顯示 Footer
 const showFooter = computed(() => !route.meta.hideFooter)
+// 非首頁時 main 需要 padding-top 來避免被 fixed header 蓋住
+const mainClasses = computed(() => [
+  'w-full flex-1',
+  !isHomePage.value && showHeader.value ? 'pt-(--header-h)' : ''
+])
 </script>
 
 <template>
@@ -26,11 +33,10 @@ const showFooter = computed(() => !route.meta.hideFooter)
     <!-- Main App Header -->
     <MainHeader v-if="showHeader" :transparent="route.meta.transparentHeaderBg" />
 
-    <main class="w-full flex-1">
+    <main :class="mainClasses">
       <RouterView />
     </main>
 
     <AppFooter v-if="showFooter" />
-    <SimpleToast />
   </div>
 </template>
