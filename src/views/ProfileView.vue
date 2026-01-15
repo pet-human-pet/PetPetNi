@@ -80,12 +80,12 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="bg-bg-base relative w-full flex flex-col text-left font-sans h-screen overflow-y-auto custom-scrollbar"
+    class="bg-bg-base relative flex w-full flex-col text-left font-sans custom-scrollbar md:h-screen md:overflow-y-auto"
   >
     <BackgroundGrid />
 
     <div
-      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-10 pb-6 md:pb-24 md:overflow-hidden"
+      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-6 pb-6 md:pb-24 md:overflow-hidden"
     >
       <div
         class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm md:grid md:grid-cols-[1.2fr_2fr] md:gap-10 md:overflow-hidden md:border-none md:bg-transparent md:shadow-none"
@@ -244,7 +244,7 @@ onUnmounted(() => {
           class="md:c-card flex h-full flex-col overflow-visible bg-transparent md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
-            class="sticky top-15 z-40 flex-none border-b border-gray-100 bg-white min-[800px]:top-17.5 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
+            class="sticky top-[var(--header-h)] z-40 flex-none border-b border-gray-100 bg-white md:top-0 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
               <button
