@@ -22,7 +22,7 @@ const showFooter = computed(() => !route.meta.hideFooter)
     <AppHeader v-if="route.meta.headerType === 'landing'" />
     <MainHeader v-if="route.meta.headerType === 'app'" />
 
-    <main class="w-full flex-1">
+    <main class="w-full">
       <RouterView />
     </main>
 
