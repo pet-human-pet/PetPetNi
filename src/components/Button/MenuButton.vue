@@ -17,8 +17,8 @@ function handleClick() {
     <!-- TODO: #FFA75F 為品牌主色，待整合 CSS 變數 var(--color-brand-primary) -->
     <!-- 背景動畫層 -->
     <div
-      class="absolute inset-0 origin-center rounded-full bg-white transition-transform duration-300"
-      :class="uiStore.isMenuOpen ? 'scale-150' : 'scale-0 group-hover:scale-150'"
+      class="absolute inset-0 origin-center rounded-full bg-white transition-all duration-300"
+      :class="uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'scale-0 group-hover:scale-150'"
     ></div>
 
     <!-- 漢堡圖標（3 條線） -->
