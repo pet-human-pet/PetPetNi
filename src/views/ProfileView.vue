@@ -10,7 +10,7 @@ import {
   createdEvents,
   followedEvents,
   historyEvents
-} from '@/mocks/profileData.js'
+} from '@/utils/profileData.js'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import IconGear from '@/components/icons/IconGear.vue'
