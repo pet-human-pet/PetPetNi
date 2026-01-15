@@ -17,7 +17,8 @@ function handleClick() {
     <!-- TODO: #FFA75F 為品牌主色，待整合 CSS 變數 var(--color-brand-primary) -->
     <!-- 背景動畫層 -->
     <div
-      class="absolute inset-0 origin-center scale-0 rounded-full bg-white transition-transform duration-300 group-hover:scale-150"
+      class="absolute inset-0 origin-center rounded-full bg-white transition-transform duration-300"
+      :class="uiStore.isMenuOpen ? 'scale-150' : 'scale-0 group-hover:scale-150'"
     ></div>
 
     <!-- 漢堡圖標（3 條線） -->
@@ -26,13 +27,26 @@ function handleClick() {
       class="relative z-10 flex h-3 w-5 flex-col items-center justify-between transition-all duration-300 md:h-4 md:w-6"
     >
       <span
-        class="h-0.5 w-full rounded-full bg-[#FFA75F] transition-all duration-300 group-hover:translate-y-[5px] group-hover:rotate-45 md:group-hover:translate-y-[7px]"
+        class="h-0.5 w-full origin-center rounded-full bg-[#FFA75F] transition-all duration-300"
+        :class="
+          uiStore.isMenuOpen
+            ? 'translate-y-[5px] rotate-45 md:translate-y-[7px]'
+            : 'group-hover:translate-y-[5px] group-hover:rotate-45 md:group-hover:translate-y-[7px]'
+        "
       ></span>
       <span
-        class="h-0.5 w-full rounded-full bg-[#FFA75F] transition-all duration-300 group-hover:opacity-0"
+        class="h-0.5 w-full origin-center rounded-full bg-[#FFA75F] transition-all duration-300"
+        :class="
+          uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'group-hover:scale-0 group-hover:opacity-0'
+        "
       ></span>
       <span
-        class="h-0.5 w-full rounded-full bg-[#FFA75F] transition-all duration-300 group-hover:-translate-y-[5px] group-hover:-rotate-45 md:group-hover:-translate-y-[7px]"
+        class="h-0.5 w-full origin-center rounded-full bg-[#FFA75F] transition-all duration-300"
+        :class="
+          uiStore.isMenuOpen
+            ? '-translate-y-[5px] -rotate-45 md:-translate-y-[7px]'
+            : 'group-hover:-translate-y-[5px] group-hover:-rotate-45 md:group-hover:-translate-y-[7px]'
+        "
       ></span>
     </div>
 
