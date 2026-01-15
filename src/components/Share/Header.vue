@@ -34,7 +34,7 @@ const menuOpen = computed(() => uiStore.isMenuOpen)
 
 // 計算屬性
 const headerClasses = computed(() => [
-  'fixed left-0 z-50 w-full',
+  'h-(--header-h) fixed left-0 z-50 w-full',
   props.transparent || uiStore.isMenuOpen
     ? 'bg-transparent border-none shadow-none'
     : // TODO: 將 border-[#eee] 改為 border-border-default，shadow 改為 tokens
@@ -45,7 +45,7 @@ const headerClasses = computed(() => [
 ])
 
 const containerClasses = computed(() => [
-  'mx-auto flex h-17.5 items-center justify-between max-[800px]:h-15',
+  'h-(--header-h) w-full mx-auto flex items-center justify-between',
   // TODO: px-[30px]/px-[50px] 為 MainFrame 對齊邊距，考慮抽成 CSS 變數
   isHomePage.value ? 'w-full px-[30px] md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
 ])
