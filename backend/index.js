@@ -21,23 +21,23 @@ const io = new Server(httpServer, {
   cors: { origin: FRONTEND_URL, methods: ['GET', 'POST'] }
 })
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   // 從 handshake.auth 取得 userId，自動加入所有聊天室
   const userId = socket.handshake.auth?.userId
   if (userId) {
-    const userRooms = db.getUserRooms(userId)
+    const userRooms = await db.getUserRooms(userId)
     userRooms.forEach((roomId) => socket.join(roomId))
   }
 
   // 1. 加入聊天室
-  socket.on('join_room', (roomId) => {
+  socket.on('join_room', async (roomId) => {
     socket.join(roomId)
 
     // 通知其他人有人加入 (Spec: user_joined)
     socket.to(roomId).emit('user_joined', { userId: socket.id, userName: 'Guest' })
 
     // 傳回歷史訊息 (Custom Feature)
-    const history = db.getMessages(roomId)
+    const history = await db.getMessages(roomId)
     socket.emit('history_messages', history)
   })
 
@@ -48,29 +48,28 @@ io.on('connection', (socket) => {
   })
 
   // 3. 發送訊息
-  socket.on('send_message', (data) => {
+  socket.on('send_message', async (data) => {
     // Spec: { roomId, content, messageType }
     const { roomId, content, messageType } = data
 
-    // 簡單模擬後端補齊資料
+    // 組裝訊息資料
     const messagePayload = {
-      id: Date.now(),
       roomId,
       content,
       messageType: messageType || 'text',
-      sender: 'other', // 模擬對方
-      senderId: socket.id,
-      timestamp: Date.now(),
-      read: false
+      senderId: socket.id
     }
 
-    // 存入 DB (注意：模擬 DB 還是用舊 key，但不影響)
-    db.saveMessage(roomId, messagePayload)
+    // 存入 Supabase
+    const savedMessage = await db.saveMessage(roomId, messagePayload)
 
-    // 廣播給房間內其他人 (Spec: new_message)
-    // 這裡用 broadcast.to(roomId) 不傳給自己，因為前端有 Optimistic UI
-    // 但為了確保資料一致性，通常還是會回傳確認，這裡先照一般聊天室邏輯
-    socket.to(roomId).emit('new_message', messagePayload)
+    if (savedMessage) {
+      // 廣播給房間內其他人 (Spec: new_message)
+      // 這裡用 broadcast.to(roomId) 不傳給自己，因為前端有 Optimistic UI
+      socket.to(roomId).emit('new_message', savedMessage)
+    } else {
+      console.error('❌ Failed to save message')
+    }
   })
 
   // 4. 輸入狀態
