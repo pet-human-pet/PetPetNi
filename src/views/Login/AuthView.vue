@@ -22,8 +22,7 @@ let countdownTimer = null
 
 // 資料管理
 const ownerData = ref(null) // 主人資料
-const petsData = ref([]) // 寵物資料陣列
-const currentPetIndex = ref(0) // 當前編輯的寵物索引
+const petData = ref(null) // 單隻寵物資料
 
 onMounted(() => {
   // 支援 query parameter: /login?mode=register
@@ -92,34 +91,13 @@ const handleOwnerInfoSubmit = (data) => {
   }
 }
 
-const handlePetSubmit = (petData) => {
-  // 儲存寵物資料到陣列
-  if (currentPetIndex.value < petsData.value.length) {
-    // 編輯現有寵物
-    petsData.value[currentPetIndex.value] = petData
-  } else {
-    // 新增寵物
-    petsData.value.push(petData)
-  }
-
-  console.log(`寵物 ${currentPetIndex.value + 1} 資料:`, petData)
-  console.log('所有寵物資料:', petsData.value)
-
-  // 顯示「新增更多寵物」確認頁面
-  authMode.value = 'add_more_pets'
-}
-
-const handleAddMorePets = () => {
-  // 新增更多寵物
-  currentPetIndex.value++
-  authMode.value = 'pet'
-}
-
-const handleFinishPets = () => {
-  // 完成所有寵物資料填寫
+const handlePetSubmit = (data) => {
+  // 儲存寵物資料
+  petData.value = data
   console.log('=== 完整註冊資料 ===')
   console.log('主人資料:', ownerData.value)
-  console.log('寵物資料:', petsData.value)
+  console.log('寵物資料:', petData.value)
+  // 直接完成註冊
   handleComplete()
 }
 
@@ -127,8 +105,7 @@ const handleGoBack = () => {
   // 根據當前模式返回上一步
   const backMap = {
     owner_info: 'role',
-    pet: currentPetIndex.value > 0 ? 'add_more_pets' : 'owner_info',
-    add_more_pets: 'pet'
+    pet: 'owner_info'
   }
   authMode.value = backMap[authMode.value] || 'login'
 }
@@ -253,54 +230,9 @@ onUnmounted(() => {
             key="pet"
             class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
-            <PetBasicInfo
-              :pet-index="currentPetIndex"
-              @submit="handlePetSubmit"
-              @back="handleGoBack"
-            />
+            <PetBasicInfo :pet-index="0" @submit="handlePetSubmit" @back="handleGoBack" />
           </div>
-          <!-- 新增更多寵物確認頁面 -->
-          <div
-            v-else-if="authMode === 'add_more_pets'"
-            key="add_more_pets"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
-          >
-            <div class="text-center">
-              <div class="mb-4 flex justify-center">
-                <div class="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                  <svg class="h-8 w-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
 
-              <h2 class="mb-2 text-2xl font-bold text-gray-800">
-                已新增第 {{ petsData.length }} 隻寵物！
-              </h2>
-              <p class="mb-6 text-sm text-gray-500">您還有其他毛孩嗎？</p>
-
-              <div class="flex flex-col gap-3">
-                <!-- TODO: 待替換為變數 (Style.md 禁止直接使用 Hex 色碼) -->
-                <button
-                  type="button"
-                  class="w-full rounded-xl py-3 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
-                  style="background-color: #ffa75f"
-                  @click="handleAddMorePets"
-                >
-                  新增更多寵物
-                </button>
-                <button
-                  type="button"
-                  class="w-full rounded-xl border-2 border-gray-300 bg-white py-3 text-lg font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
-                  @click="handleFinishPets"
-                >
-                  完成註冊
-                </button>
-              </div>
-            </div>
-          </div>
           <!-- 註冊成功頁面 -->
           <div
             v-else-if="authMode === 'success'"
