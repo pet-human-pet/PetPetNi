@@ -160,7 +160,7 @@ onUnmounted(() => {
 <template>
   <!-- TODO: Replace with CSS variable var(--app-bg) -->
   <div
-    class="flex min-h-screen items-center justify-center p-4 lg:p-8"
+    class="flex h-screen items-center justify-center overflow-hidden p-4 lg:p-8"
     style="background-color: #ffd9ad"
   >
     <!-- TODO: Replace with CSS variable var(--app-bg) -->
@@ -227,7 +227,7 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'owner_info'"
             key="owner_info"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
+            class="max-h-[90vh] w-full max-w-md overflow-hidden rounded-3xl border-none bg-white shadow-xl md:h-[85vh]"
           >
             <OwnerInfo
               :email="userEmail"
@@ -239,14 +239,14 @@ onUnmounted(() => {
           <div
             v-else-if="authMode === 'pet'"
             key="pet"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
+            class="max-h-[90vh] w-full max-w-md overflow-hidden rounded-3xl border-none bg-white shadow-xl md:h-[85vh]"
           >
             <PetBasicInfo :pet-index="0" @submit="handlePetSubmit" @back="handleGoBack" />
           </div>
           <div
             v-else-if="authMode === 'pet_tags'"
             key="pet_tags"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
+            class="max-h-[90vh] w-full max-w-md overflow-hidden rounded-3xl border-none bg-white shadow-xl md:h-[85vh]"
           >
             <PetTagsSelection @submit="handlePetTagsSubmit" @back="handleGoBack" />
           </div>
