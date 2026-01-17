@@ -81,6 +81,12 @@ onBeforeUnmount(() => {
   document.body.classList.remove('md:overflow-hidden')
 })
 
+// 處理標籤確認
+const handleTagConfirm = () => {
+  syncTagsToProfile()
+  showTagPicker.value = false
+}
+
 onUnmounted(() => {
   if (profile.avatar && profile.avatar.startsWith('blob:')) {
     URL.revokeObjectURL(profile.avatar)
@@ -380,22 +386,53 @@ onUnmounted(() => {
     <div
       v-if="showTagPicker"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      @click.self="showTagPicker = false"
     >
-      <TagSelector
-        :required-selections="requiredSelections"
-        :optional-tags="optionalTags"
-        :max-optional-tags="maxOptionalTags"
-        :required-count="requiredCount"
-        title="編輯標籤"
-        @select-required="selectRequiredTag"
-        @toggle-optional="toggleOptionalTag"
-        @remove-optional="removeOptionalTag"
-        @close="showTagPicker = false"
-        @confirm="
-          syncTagsToProfile()
-          showTagPicker = false
-        "
-      />
+      <!-- 卡片容器 -->
+      <div
+        class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-xl md:h-[85vh]"
+      >
+        <!-- 標題區（固定） -->
+        <div class="shrink-0 border-b border-gray-200 p-4 md:p-6">
+          <h3 class="text-center text-xl font-bold">編輯標籤</h3>
+        </div>
+
+        <!-- 內容區（可滾動） -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-6">
+          <TagSelector
+            :required-selections="requiredSelections"
+            :optional-tags="optionalTags"
+            :max-optional-tags="maxOptionalTags"
+            :required-count="requiredCount"
+            title=""
+            :show-required="true"
+            :show-confirm-button="false"
+            @select-required="selectRequiredTag"
+            @toggle-optional="toggleOptionalTag"
+            @remove-optional="removeOptionalTag"
+          />
+        </div>
+
+        <!-- 按鈕區（固定） -->
+        <div class="shrink-0 border-t border-gray-200 p-4 md:p-6">
+          <div class="flex gap-3">
+            <button
+              type="button"
+              class="flex-1 rounded-xl border-2 border-gray-300 bg-white py-3 font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+              @click="showTagPicker = false"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              class="flex-1 rounded-xl bg-orange-400 py-3 font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95"
+              @click="handleTagConfirm"
+            >
+              確認
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <Transition name="fade"
       ><div
