@@ -9,10 +9,11 @@ import SocialBindEmail from '@/components/login/SocialBindEmail.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import OwnerInfo from '@/components/Onboarding/OwnerInfo.vue'
 import PetBasicInfo from '@/components/Onboarding/PetBasicInfo.vue'
+import PetTagsSelection from '@/components/Onboarding/PetTagsSelection.vue'
 
 const route = useRoute()
 const router = useRouter()
-// 認證模式: 'login' | 'register' | 'forget' | 'reset-password' | 'social_bind' | 'role' | 'owner_info' | 'pet' | 'success'
+// 認證模式: 'login' | 'register' | 'forget' | 'reset-password' | 'social_bind' | 'role' | 'owner_info' | 'pet' | 'pet_tags' | 'success'
 
 const authMode = ref('login')
 const userRole = ref('owner') // 用於成功頁面顯示不同訊息
@@ -23,6 +24,7 @@ let countdownTimer = null
 // 資料管理
 const ownerData = ref(null) // 主人資料
 const petData = ref(null) // 單隻寵物資料
+const petTagsData = ref(null) // 寵物標籤資料
 
 onMounted(() => {
   // 支援 query parameter: /login?mode=register
@@ -94,10 +96,18 @@ const handleOwnerInfoSubmit = (data) => {
 const handlePetSubmit = (data) => {
   // 儲存寵物資料
   petData.value = data
+  // 進入標籤選擇頁面
+  authMode.value = 'pet_tags'
+}
+
+const handlePetTagsSubmit = (data) => {
+  // 儲存標籤資料
+  petTagsData.value = data
   console.log('=== 完整註冊資料 ===')
   console.log('主人資料:', ownerData.value)
   console.log('寵物資料:', petData.value)
-  // 直接完成註冊
+  console.log('標籤資料:', petTagsData.value)
+  // 完成註冊
   handleComplete()
 }
 
@@ -105,7 +115,8 @@ const handleGoBack = () => {
   // 根據當前模式返回上一步
   const backMap = {
     owner_info: 'role',
-    pet: 'owner_info'
+    pet: 'owner_info',
+    pet_tags: 'pet'
   }
   authMode.value = backMap[authMode.value] || 'login'
 }
@@ -231,6 +242,13 @@ onUnmounted(() => {
             class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
           >
             <PetBasicInfo :pet-index="0" @submit="handlePetSubmit" @back="handleGoBack" />
+          </div>
+          <div
+            v-else-if="authMode === 'pet_tags'"
+            key="pet_tags"
+            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
+          >
+            <PetTagsSelection @submit="handlePetTagsSubmit" @back="handleGoBack" />
           </div>
 
           <!-- 註冊成功頁面 -->
