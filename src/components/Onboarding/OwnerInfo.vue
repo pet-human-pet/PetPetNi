@@ -110,12 +110,16 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <div class="flex flex-col p-6 text-gray-800">
-    <h2 class="mb-2 text-center text-2xl font-bold">填寫個人資料</h2>
-    <p class="mb-6 text-center text-sm text-gray-500">讓我們更認識您</p>
+  <div class="flex h-full max-h-screen flex-col overflow-y-hidden p-4 text-gray-800 md:p-6">
+    <!-- 標題區（固定） -->
+    <div class="shrink-0">
+      <h2 class="mb-2 text-center text-2xl font-bold">填寫個人資料</h2>
+      <p class="mb-6 text-center text-sm text-gray-500">讓我們更認識您</p>
+    </div>
 
+    <!-- 表單區（可滾動） -->
     <form
-      class="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-2"
+      class="flex flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4"
       @submit.prevent="handleSubmit"
     >
       <!-- Email（唯讀顯示） -->
@@ -257,8 +261,8 @@ const handleSubmit = () => {
         />
       </div>
 
-      <!-- 按鈕群組 -->
-      <div class="mt-2 flex gap-3">
+      <!-- 按鈕群組（固定） -->
+      <div class="mt-2 flex shrink-0 gap-3">
         <button
           type="button"
           class="flex-1 rounded-2xl border-2 border-gray-300 bg-white py-4 text-lg font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
