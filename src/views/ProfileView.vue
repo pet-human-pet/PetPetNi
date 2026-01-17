@@ -1,7 +1,6 @@
 <script setup>
 import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount } from 'vue'
 import {
-  predefinedTags,
   profile as profileData,
   myPosts,
   savedPosts,
@@ -11,14 +10,16 @@ import {
   followedEvents,
   historyEvents
 } from '@/utils/profileData.js'
+import { useTagSelection } from '@/composables/useTagSelection.js'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import IconGear from '@/components/icons/IconGear.vue'
+import TagSelector from '@/components/Share/TagSelector.vue'
 
 // const BRAND_ORANGE = '#f48e31' // 已移除
 const activeTab = ref('posts')
 const activeSubTab = ref('my')
-const isEditing = ref(false)
+
 const showDetail = ref(false)
 const selectedItem = ref(null)
 const fileInput = ref(null)
@@ -31,12 +32,21 @@ const currentUserList = ref([])
 
 const profile = reactive(profileData)
 
-const selectTag = (tag) => {
-  if (profile.hashtags.length >= 5) return
-  if (!profile.hashtags.includes(tag)) profile.hashtags.push(tag)
-  showTagPicker.value = false
+// 使用 composable 管理標籤選擇狀態
+const {
+  requiredSelections,
+  optionalTags,
+  maxOptionalTags,
+  requiredCount,
+  selectRequiredTag,
+  toggleOptionalTag,
+  removeOptionalTag
+} = useTagSelection(profile.hashtags)
+
+// 同步 optionalTags 到 profile.hashtags
+const syncTagsToProfile = () => {
+  profile.hashtags = [...optionalTags.value]
 }
-const removeTag = (index) => profile.hashtags.splice(index, 1)
 
 // --- Mock Data ---
 const handleAvatarClick = () => fileInput.value.click()
@@ -80,12 +90,12 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="bg-bg-base relative flex w-full flex-col text-left font-sans custom-scrollbar md:h-screen md:overflow-y-auto md:py-6"
+    class="bg-bg-base custom-scrollbar relative flex w-full flex-col text-left font-sans md:h-screen md:overflow-y-auto md:py-6"
   >
     <BackgroundGrid />
 
     <div
-      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-6 pb-6 md:pb-24 md:overflow-hidden"
+      class="mx-auto flex w-full max-w-7xl flex-1 justify-center overflow-visible pt-6 pb-6 md:overflow-hidden md:pb-24"
     >
       <div
         class="border-border-default/20 flex h-full w-full flex-col items-stretch overflow-visible rounded-3xl border bg-white text-left shadow-sm md:grid md:grid-cols-[1.2fr_2fr] md:gap-10 md:overflow-hidden md:border-none md:bg-transparent md:shadow-none"
@@ -93,9 +103,7 @@ onUnmounted(() => {
         <aside
           class="md:c-card flex h-auto shrink-0 flex-col bg-transparent md:h-full md:overflow-hidden md:rounded-2xl md:border-none md:bg-white md:p-0 md:shadow-none"
         >
-          <div
-            class="custom-scrollbar flex h-auto flex-col p-4 md:h-full md:p-8"
-          >
+          <div class="custom-scrollbar flex h-auto flex-col p-4 md:h-full md:p-8">
             <div
               class="flex flex-row items-stretch gap-2 border-b border-gray-100 pb-2 md:mb-8 md:flex-col md:items-center md:gap-0 md:border-b-0 md:pb-0"
             >
@@ -105,6 +113,7 @@ onUnmounted(() => {
                 <h1
                   class="w-full truncate pt-1 text-center text-lg leading-tight font-bold text-[#f48e31] md:text-3xl"
                 >
+                  <!-- TODO: Replace #f48e31 with var(--brand-orange) -->
                   {{ profile.name }}
                 </h1>
                 <div
@@ -118,7 +127,7 @@ onUnmounted(() => {
                   </div>
                   <input ref="fileInput" type="file" class="hidden" @change="handleFileChange" />
                   <span
-                    class="absolute -right-1 bottom-2.5 z-10 rounded-full border bg-white px-2 py-0.5 text-[10px] font-bold shadow-sm md:right-2 md:bottom-4 md:px-3 md:py-1 md:text-xs"
+                    class="absolute -right-1 bottom-2.5 z-10 rounded-full border bg-white px-2 py-0.5 text-xs font-bold shadow-sm md:right-2 md:bottom-4 md:px-3 md:py-1 md:text-xs"
                     >已驗證</span
                   >
                 </div>
@@ -128,7 +137,7 @@ onUnmounted(() => {
                   <span class="text-fg-muted max-w-20 truncate text-xs md:max-w-none md:text-lg">{{
                     profile.username
                   }}</span>
-                  <button class="group shrink-0 cursor-pointer" @click="isEditing = true">
+                  <button class="group shrink-0 cursor-pointer" @click="showTagPicker = true">
                     <IconGear
                       class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31] md:h-6 md:w-6"
                     />
@@ -141,7 +150,7 @@ onUnmounted(() => {
               >
                 <div class="flex items-center justify-center gap-2 pb-2 text-center md:hidden">
                   <span class="text-fg-muted text-xs">{{ profile.username }}</span>
-                  <button class="group shrink-0 cursor-pointer" @click="isEditing = true">
+                  <button class="group shrink-0 cursor-pointer" @click="showTagPicker = true">
                     <IconGear
                       class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31]"
                     />
@@ -154,16 +163,20 @@ onUnmounted(() => {
                     class="group flex-1 cursor-pointer md:flex-none"
                     @click="openUserList('followers')"
                   >
-                    <p class="text-lg font-bold text-[#f48e31] md:text-3xl">2</p>
-                    <p class="text-fg-muted text-[10px] font-medium md:text-sm">粉絲</p>
+                    <div class="relative">
+                      <!-- TODO: Replace #f48e31 -->
+                      <p class="text-lg font-bold text-[#f48e31] md:text-3xl">2</p>
+                    </div>
+                    <p class="text-fg-muted text-xs font-medium md:text-sm">粉絲</p>
                   </div>
                   <div class="flex flex-[1.5] justify-center md:flex-none">
+                    <!-- TODO: Replace #f48e31 -->
                     <button
-                      class="c-btn w-full max-w-20 truncate rounded-full border py-1 text-[10px] font-bold whitespace-nowrap transition-all md:w-auto md:max-w-none md:px-6 md:py-1.5 md:text-sm"
+                      class="c-btn w-full max-w-20 truncate rounded-full border py-1 text-xs font-bold whitespace-nowrap transition-all md:w-auto md:max-w-none md:px-6 md:py-1.5 md:text-sm"
                       :class="[
                         isAboutVisible
-                          ? 'bg-[#f48e31] text-white border-[#f48e31]'
-                          : 'text-[#f48e31] border-[#f48e31]'
+                          ? 'border-[#f48e31] bg-[#f48e31] text-white'
+                          : 'border-[#f48e31] text-[#f48e31]'
                       ]"
                       @click="isAboutVisible = !isAboutVisible"
                     >
@@ -174,8 +187,11 @@ onUnmounted(() => {
                     class="group flex-1 cursor-pointer md:flex-none"
                     @click="openUserList('following')"
                   >
-                    <p class="text-lg font-bold text-[#f48e31] md:text-3xl">6</p>
-                    <p class="text-fg-muted text-[10px] font-medium md:text-sm">追蹤中</p>
+                    <div class="relative">
+                      <!-- TODO: Replace #f48e31 -->
+                      <p class="text-lg font-bold text-[#f48e31] md:text-3xl">6</p>
+                    </div>
+                    <p class="text-fg-muted text-xs font-medium md:text-sm">追蹤中</p>
                   </div>
                 </div>
                 <Transition
@@ -184,19 +200,23 @@ onUnmounted(() => {
                   enter-from-class="opacity-0 -translate-y-[10px]"
                   leave-to-class="opacity-0 -translate-y-[10px]"
                 >
-                  <div v-if="isAboutVisible" class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none">
+                  <div
+                    v-if="isAboutVisible"
+                    class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none"
+                  >
                     <div
                       class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden md:h-auto md:gap-2"
                     >
                       <span
                         v-for="(tag, index) in profile.hashtags"
                         :key="index"
-                        class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-[9px] font-medium tracking-tighter md:px-2 md:py-1 md:text-[11px]"
+                        class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-xs font-medium tracking-tighter md:px-2 md:py-1 md:text-xs"
                         >{{ tag }}</span
                       >
                     </div>
                   </div>
-                </Transition>                <Transition name="fade">
+                </Transition>
+                <Transition name="fade">
                   <div
                     v-if="isAboutVisible"
                     class="flex w-full items-end border-t border-gray-50 pt-1 md:mt-6 md:pt-6"
@@ -207,28 +227,28 @@ onUnmounted(() => {
                       <div
                         class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
                       >
-                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase md:mb-1"
+                        <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
                           >品種</span
                         ><span
-                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter md:text-sm"
+                          class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
                           >{{ profile.petInfo.breed }}</span
                         >
                       </div>
                       <div
                         class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
                       >
-                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase md:mb-1"
+                        <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
                           >生日</span
                         ><span
-                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter md:text-sm"
+                          class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
                           >{{ profile.petInfo.birthday }}</span
                         >
                       </div>
                       <div class="flex flex-col items-center md:flex-1">
-                        <span class="text-fg-muted mb-0.5 text-[9px] font-bold uppercase md:mb-1"
+                        <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
                           >性別</span
                         ><span
-                          class="text-fg-secondary w-full truncate text-[10px] font-bold tracking-tighter md:text-sm"
+                          class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
                           >{{ profile.petInfo.gender }}</span
                         >
                       </div>
@@ -244,7 +264,7 @@ onUnmounted(() => {
           class="md:c-card flex h-full flex-col overflow-visible bg-transparent md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
-            class="sticky top-(--header-h) z-40 flex-none border-b border-gray-100 bg-white md:top-0 md:static md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
+            class="sticky top-(--header-h) z-40 flex-none border-b border-gray-100 bg-white md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
               <button
@@ -254,10 +274,11 @@ onUnmounted(() => {
                 ]"
                 :key="tab.id"
                 class="relative w-full pb-3 text-center text-base font-bold md:pb-5 md:text-lg"
-                :class="{'text-[#f48e31]': activeTab === tab.id}"
+                :class="{ 'text-[#f48e31]': activeTab === tab.id }"
                 @click="handleTabChange(tab.id)"
               >
                 {{ tab.n }}
+                <!-- TODO: Replace #f48e31 -->
                 <div
                   v-if="activeTab === tab.id"
                   class="absolute bottom-0 h-1 w-full rounded-t-full bg-[#f48e31] md:h-1.5"
@@ -267,24 +288,18 @@ onUnmounted(() => {
 
             <div class="px-4 py-4 md:px-6">
               <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
+                <!-- TODO: Replace #f48e31 -->
                 <button
                   class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
-                  :class="[
-                    activeSubTab === 'my'
-                      ? 'bg-[#f48e31] text-white'
-                      : 'bg-[#f3f4f6]'
-                  ]"
+                  :class="[activeSubTab === 'my' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
                   @click="activeSubTab = 'my'"
                 >
                   我的貼文
                 </button>
+                <!-- TODO: Replace #f48e31 -->
                 <button
                   class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
-                  :class="[
-                    activeSubTab === 'saved'
-                      ? 'bg-[#f48e31] text-white'
-                      : 'bg-[#f3f4f6]'
-                  ]"
+                  :class="[activeSubTab === 'saved' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
                   @click="activeSubTab = 'saved'"
                 >
                   儲存的貼文
@@ -294,35 +309,26 @@ onUnmounted(() => {
                 v-if="activeTab === 'events'"
                 class="flex flex-wrap justify-center gap-2 md:gap-4"
               >
+                <!-- TODO: Replace #f48e31 -->
                 <button
                   class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                  :class="[
-                    activeSubTab === 'create'
-                      ? 'bg-[#f48e31] text-white'
-                      : 'bg-[#f3f4f6]'
-                  ]"
+                  :class="[activeSubTab === 'create' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
                   @click="activeSubTab = 'create'"
                 >
                   發起活動
                 </button>
+                <!-- TODO: Replace #f48e31 -->
                 <button
                   class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                  :class="[
-                    activeSubTab === 'follow'
-                      ? 'bg-[#f48e31] text-white'
-                      : 'bg-[#f3f4f6]'
-                  ]"
+                  :class="[activeSubTab === 'follow' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
                   @click="activeSubTab = 'follow'"
                 >
                   收藏活動
                 </button>
+                <!-- TODO: Replace #f48e31 -->
                 <button
                   class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                  :class="[
-                    activeSubTab === 'history'
-                      ? 'bg-[#f48e31] text-white'
-                      : 'bg-[#f3f4f6]'
-                  ]"
+                  :class="[activeSubTab === 'history' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
                   @click="activeSubTab = 'history'"
                 >
                   歷史活動
@@ -359,8 +365,9 @@ onUnmounted(() => {
                   <h4 class="text-fg-primary text-base font-bold md:text-lg">{{ event.name }}</h4>
                   <p class="text-fg-muted text-xs md:text-sm">{{ event.location }}</p>
                 </div>
+                <!-- TODO: Replace #f48e31 -->
                 <span
-                  class="rounded-full border border-orange-100 bg-orange-50 px-3 py-0.5 text-[10px] font-bold text-[#f48e31] md:px-4 md:py-1 md:text-xs"
+                  class="rounded-full border border-orange-100 bg-orange-50 px-3 py-0.5 text-xs font-bold text-[#f48e31] md:px-4 md:py-1 md:text-xs"
                   >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
                 >
               </div>
@@ -371,103 +378,33 @@ onUnmounted(() => {
     </div>
 
     <div
-      v-if="isEditing"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 text-left backdrop-blur-sm"
-    >
-      <div class="c-card max-h-[90vh] w-full max-w-xl overflow-y-auto bg-white p-8">
-        <h2 class="mb-8 text-center text-2xl font-bold text-[#f48e31]">
-          編輯寵物 Hashtags
-        </h2>
-        <div class="space-y-8">
-          <div>
-            <div class="mb-4 flex items-center justify-between">
-              <label class="text-fg-secondary text-lg font-bold"
-                >目前已選標籤 ({{ profile.hashtags.length }}/5)</label
-              ><span
-                v-if="profile.hashtags.length >= 5"
-                class="animate-bounce text-sm font-bold text-red-500"
-                >已達上限！</span
-              >
-            </div>
-            <div
-              class="mb-6 flex flex-wrap gap-3 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-6"
-            >
-              <span
-                v-if="profile.hashtags.length === 0"
-                class="text-fg-muted col-span-3 py-4 text-center text-sm italic"
-                >點擊下方按鈕開始選擇</span
-              >
-              <div
-                v-for="(tag, index) in profile.hashtags"
-                :key="index"
-                class="flex cursor-pointer items-center justify-between rounded-full border border-orange-100 bg-white px-3 py-2 text-[10px] font-bold text-[#f48e31] shadow-sm"
-                @click="removeTag(index)"
-              >
-                <span class="truncate">{{ tag }}</span
-                ><span class="ml-1 shrink-0 text-[10px]">✕</span>
-              </div>
-            </div>
-            <button
-              class="w-full rounded-2xl py-4 font-bold text-white shadow-md transition-all active:scale-95 bg-[#f48e31]"
-              :class="
-                profile.hashtags.length >= 5
-                  ? 'cursor-not-allowed grayscale'
-                  : 'hover:brightness-110'
-              "
-              :disabled="profile.hashtags.length >= 5"
-              @click="showTagPicker = true"
-            >
-              選擇標籤
-            </button>
-          </div>
-        </div>
-        <div class="mt-12">
-          <button
-            class="w-full rounded-full bg-gray-100 py-4 text-lg font-bold transition-colors hover:bg-gray-200"
-            @click="isEditing = false"
-          >
-            關閉視窗
-          </button>
-        </div>
-      </div>
-    </div>
-    <div
       v-if="showTagPicker"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
     >
-      <div class="c-card w-full max-w-lg bg-white p-8">
-        <h3 class="mb-4 text-left text-xl font-bold">選擇標籤 ({{ profile.hashtags.length }}/5)</h3>
-        <div class="custom-scrollbar grid max-h-80 grid-cols-3 gap-2 overflow-y-auto p-2">
-          <button
-            v-for="tag in predefinedTags"
-            :key="tag"
-            class="rounded-lg border p-2 text-xs transition-all"
-            :class="
-              profile.hashtags.includes(tag)
-                ? 'cursor-not-allowed border-orange-300 bg-orange-100 text-[#f48e31]'
-                : 'border-gray-200 hover:bg-orange-50'
-            "
-            :disabled="profile.hashtags.includes(tag)"
-            @click="selectTag(tag)"
-          >
-            {{ tag }}
-          </button>
-        </div>
-        <button
-          class="mt-6 w-full rounded-full bg-gray-100 py-3 font-bold"
-          @click="showTagPicker = false"
-        >
-          取消
-        </button>
-      </div>
+      <TagSelector
+        :required-selections="requiredSelections"
+        :optional-tags="optionalTags"
+        :max-optional-tags="maxOptionalTags"
+        :required-count="requiredCount"
+        title="編輯標籤"
+        @select-required="selectRequiredTag"
+        @toggle-optional="toggleOptionalTag"
+        @remove-optional="removeOptionalTag"
+        @close="showTagPicker = false"
+        @confirm="
+          syncTagsToProfile()
+          showTagPicker = false
+        "
+      />
     </div>
     <Transition name="fade"
       ><div
         v-if="showUserList"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md" 
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       >
         <div class="c-card w-full max-w-md bg-white p-8 text-left">
           <div class="mb-6 flex items-center justify-between border-b pb-4">
+            <!-- TODO: Replace #f48e31 -->
             <h2 class="text-2xl font-bold text-[#f48e31]">{{ userListTitle }}</h2>
             <button class="text-2xl" @click="showUserList = false">✕</button>
           </div>
@@ -488,18 +425,21 @@ onUnmounted(() => {
               <button
                 class="rounded-full border border-orange-100 bg-orange-50 px-4 py-1 text-xs font-bold text-[#f48e31]"
               >
+                <!-- TODO: Replace #f48e31 above -->
                 查看
               </button>
             </div>
           </div>
           <button
-            class="mt-8 w-full rounded-full py-4 font-bold text-white shadow-lg bg-[#f48e31]"
+            class="mt-8 w-full rounded-full bg-[#f48e31] py-4 font-bold text-white shadow-lg"
             @click="showUserList = false"
           >
+            <!-- TODO: Replace #f48e31 above -->
             返回
           </button>
         </div>
-      </div></Transition>
+      </div></Transition
+    >
     <Transition name="fade"
       ><div
         v-if="showDetail"
@@ -508,6 +448,7 @@ onUnmounted(() => {
         <div class="c-card w-full max-w-2xl bg-white p-8 text-left">
           <div v-if="selectedItem" class="space-y-6 text-left">
             <h2 class="text-left text-3xl font-bold text-[#f48e31]">
+              <!-- TODO: Replace #f48e31 -->
               {{ selectedItem.name }}
             </h2>
             <div class="text-fg-secondary border-t pt-6 text-left text-lg leading-relaxed">
@@ -515,13 +456,15 @@ onUnmounted(() => {
             </div>
           </div>
           <button
-            class="mt-10 w-full rounded-full py-4 font-bold text-white shadow-lg bg-[#f48e31]"
+            class="mt-10 w-full rounded-full bg-[#f48e31] py-4 font-bold text-white shadow-lg"
             @click="showDetail = false"
           >
+            <!-- TODO: Replace #f48e31 -->
             關閉視窗
           </button>
         </div>
-      </div></Transition>
+      </div></Transition
+    >
   </div>
 </template>
 
