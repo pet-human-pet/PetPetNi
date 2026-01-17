@@ -274,7 +274,7 @@ onUnmounted(() => {
           class="md:c-card flex h-full flex-col overflow-visible bg-transparent md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
-            class="sticky top-(--header-h) z-40 flex-none border-b border-gray-100 bg-white md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
+            class="sticky top-(--header-h) flex-none border-b border-gray-100 bg-white md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
               <button
