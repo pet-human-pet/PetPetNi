@@ -32,18 +32,19 @@ const submitForm = () => {
 </script>
 
 <template>
-  <div class="flex flex-col p-6 text-gray-800">
-    <h2 class="mb-2 text-center text-2xl font-bold">
-      填寫{{ currentPetIndex > 0 ? `第 ${currentPetIndex + 1} 隻` : '' }}毛孩資料
-    </h2>
-    <p class="mb-6 text-center text-sm text-gray-500">
-      {{ currentPetIndex > 0 ? '讓我們認識您的下一位寶貝' : '讓我們更認識您的寶貝' }}
-    </p>
+  <div class="flex h-full max-h-screen flex-col overflow-y-hidden p-4 text-gray-800 md:p-6">
+    <!-- 標題區（固定） -->
+    <div class="shrink-0">
+      <h2 class="mb-2 text-center text-2xl font-bold">
+        填寫{{ currentPetIndex > 0 ? `第 ${currentPetIndex + 1} 隻` : '' }}毛孩資料
+      </h2>
+      <p class="mb-6 text-center text-sm text-gray-500">
+        {{ currentPetIndex > 0 ? '讓我們認識您的下一位寶貝' : '讓我們更認識您的寶貝' }}
+      </p>
+    </div>
 
-    <form
-      class="flex max-h-[70vh] flex-col gap-5 overflow-y-auto pr-2"
-      @submit.prevent="submitForm"
-    >
+    <!-- 表單區（可滾動） -->
+    <form class="flex flex-1 flex-col gap-5 overflow-y-auto px-2 pb-4" @submit.prevent="submitForm">
       <!-- 毛孩姓名 -->
       <div class="space-y-2">
         <label class="ml-1 text-sm font-bold">毛孩姓名</label>
@@ -136,8 +137,8 @@ const submitForm = () => {
         </div>
       </div>
 
-      <!-- 按鈕群組 -->
-      <div class="mt-4 flex gap-3">
+      <!-- 按鈕群組（固定） -->
+      <div class="mt-4 flex shrink-0 gap-3">
         <button
           type="button"
           class="flex-1 rounded-xl border-2 border-gray-300 bg-white py-4 font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
