@@ -12,33 +12,12 @@ const type = ref('dog')
 const breed = ref('')
 const birthday = ref('')
 const gender = ref('male')
-const selectedInterests = ref([])
 
 // 計算今天日期（YYYY-MM-DD 格式，用於日期選擇器的 max 屬性）
 const today = new Date().toISOString().split('T')[0]
 
 // 計算當前寵物索引（用於 template 顯示）
 const currentPetIndex = computed(() => props.petIndex)
-
-// 預設興趣選項
-const interestOptions = [
-  { value: 'play', label: '玩玩具', emoji: '🎾' },
-  { value: 'walk', label: '散步', emoji: '🚶' },
-  { value: 'eat', label: '吃零食', emoji: '🍖' },
-  { value: 'sleep', label: '睡覺', emoji: '😴' },
-  { value: 'social', label: '社交', emoji: '🐕' },
-  { value: 'run', label: '奔跑', emoji: '🏃' }
-]
-
-// TODO: 之後會從 tag 資料庫取得 interestOptions
-const toggleInterest = (value) => {
-  const index = selectedInterests.value.indexOf(value)
-  if (index > -1) {
-    selectedInterests.value.splice(index, 1)
-  } else {
-    selectedInterests.value.push(value)
-  }
-}
 
 const submitForm = () => {
   if (!name.value || !breed.value || !birthday.value) return
@@ -47,8 +26,7 @@ const submitForm = () => {
     type: type.value,
     breed: breed.value,
     birthday: birthday.value,
-    gender: gender.value,
-    interests: selectedInterests.value
+    gender: gender.value
   })
 }
 </script>
@@ -158,41 +136,6 @@ const submitForm = () => {
         </div>
       </div>
 
-      <!-- 興趣 -->
-      <div class="space-y-2">
-        <label class="ml-1 text-sm font-bold">興趣（可多選）</label>
-
-        <!-- 預設選項 -->
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            v-for="option in interestOptions"
-            :key="option.value"
-            type="button"
-            :class="[
-              'flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all',
-              selectedInterests.includes(option.value)
-                ? 'border-red-400 bg-red-50 text-red-700'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-            ]"
-            @click="toggleInterest(option.value)"
-          >
-            <span>{{ option.emoji }}</span>
-            <span>{{ option.label }}</span>
-          </button>
-        </div>
-
-        <!-- 已選興趣標籤 -->
-        <div v-if="selectedInterests.length > 0" class="flex flex-wrap gap-2 pt-2">
-          <span
-            v-for="interest in selectedInterests"
-            :key="interest"
-            class="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700"
-          >
-            {{ interestOptions.find((opt) => opt.value === interest)?.label }}
-          </span>
-        </div>
-      </div>
-
       <!-- 按鈕群組 -->
       <div class="mt-4 flex gap-3">
         <button
@@ -202,13 +145,14 @@ const submitForm = () => {
         >
           上一步
         </button>
+        <!-- TODO: Replace #ffa75f with var(--app-primary) -->
         <button
           type="submit"
           class="flex-1 rounded-xl py-4 font-bold text-white shadow-lg transition-transform active:scale-95 disabled:opacity-50"
           style="background-color: #ffa75f"
           :disabled="!name || !breed || !birthday"
         >
-          {{ currentPetIndex > 0 ? '繼續' : '完成' }}
+          下一步
         </button>
       </div>
     </form>
