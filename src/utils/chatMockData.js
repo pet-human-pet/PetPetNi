@@ -23,7 +23,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '本月罐罐團購開始囉！',
-          time: '10:00',
           timestamp: 1736301600000,
           read: true
         }
@@ -41,7 +40,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '大安森林公園今天很多人嗎？',
-          time: '11:30',
           timestamp: 1736307000000,
           read: false
         }
@@ -62,7 +60,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '嗨！我看你們也喜歡去大安森林公園？',
-          time: '10:00',
           timestamp: 1736301600000,
           read: true
         },
@@ -70,7 +67,6 @@ export const INITIAL_DB = {
           id: 2,
           sender: 'me',
           content: '對呀！豆皮超愛草地的',
-          time: '10:05',
           timestamp: 1736301900000,
           read: true
         }
@@ -88,7 +84,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '你好，我們的狗狗品種好像一樣！',
-          time: '15:00',
           timestamp: 1736319600000,
           read: false
         }
@@ -106,7 +101,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '下次一起出來玩！',
-          time: '09:00',
           timestamp: 1736298000000,
           read: true
         }
@@ -124,7 +118,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '今天天氣很好耶',
-          time: '08:30',
           timestamp: 1736296200000,
           read: true
         }
@@ -143,7 +136,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '你好，我覺得你的狗狗很可愛！(來自敲敲門)',
-          time: '09:00',
           timestamp: 1736298000000,
           read: false
         }
@@ -160,7 +152,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '我們可以交流一下飼料嗎？',
-          time: '14:00',
           timestamp: 1736316000000,
           read: true
         },
@@ -168,7 +159,6 @@ export const INITIAL_DB = {
           id: 2,
           sender: 'me',
           content: '好喔，我目前吃紐崔斯',
-          time: '14:05',
           timestamp: 1736316300000,
           read: false
         }
@@ -189,7 +179,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '請問集合地點是在大安森林公園幾號出口？',
-          time: '09:00',
           timestamp: 1736298000000,
           read: false
         },
@@ -197,7 +186,6 @@ export const INITIAL_DB = {
           id: 2,
           sender: 'me',
           content: '好像是 5 號出口喔！',
-          time: '09:05',
           timestamp: 1736298300000,
           read: false
         }
@@ -217,7 +205,6 @@ export const INITIAL_DB = {
           id: 1,
           sender: 'them',
           content: '當天會有獸醫義診嗎？',
-          time: '12:00',
           timestamp: 1736308800000,
           read: false
         }
@@ -253,7 +240,6 @@ export const INITIAL_AI_DB = {
           id: 1,
           sender: 'me',
           content: '我家狗狗最近一直抓耳朵，而且有點紅紅的，是怎麼了嗎？',
-          time: '10:00',
           timestamp: 1736265600000,
           read: true
         },
@@ -262,7 +248,6 @@ export const INITIAL_AI_DB = {
           sender: 'them',
           content:
             '感應到毛孩可能不太舒服... \n耳朵紅腫且頻繁抓癢可能是「外耳炎」或「耳疥蟲」感染的徵兆。建議您可以先觀察是否有異味或分泌物。\n\n⚠️ 溫馨提醒：我只能提供行為建議，生理問題請務必看獸醫喔！',
-          time: '10:00',
           timestamp: 1736265605000,
           read: false
         }
