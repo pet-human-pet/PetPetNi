@@ -9,7 +9,7 @@ const { success, error } = useToast()
 
 const handleSubmit = async (payload) => {
   try {
-    await postStore.createPost(payload.content, payload.images)
+    await postStore.createPost(payload.content, payload.images, payload.audience)
     success('貼文已發布')
   } catch {
     error('發布失敗')

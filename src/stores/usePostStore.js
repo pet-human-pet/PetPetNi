@@ -48,7 +48,7 @@ export const usePostStore = defineStore('post', () => {
     }
   }
 
-  const createPost = async (content, imageUrls = []) => {
+  const createPost = async (content, imageUrls = [], audience = 'public') => {
     // 建構暫時的貼文物件
     const tempPost = {
       id: Date.now(),
@@ -56,6 +56,7 @@ export const usePostStore = defineStore('post', () => {
       authorId: authStore.user?.id,
       content,
       images: imageUrls,
+      audience,
       isLiked: false,
       likeCount: 0,
       commentCount: 0,
@@ -65,7 +66,7 @@ export const usePostStore = defineStore('post', () => {
     }
 
     try {
-      const res = await socialApi.createPost({ content, imageUrls })
+      const res = await socialApi.createPost({ content, imageUrls, audience })
       if (res.data) {
         posts.value.unshift(res.data)
 
