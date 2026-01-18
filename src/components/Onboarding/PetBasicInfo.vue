@@ -48,6 +48,7 @@ const submitForm = () => {
       <!-- 毛孩姓名 -->
       <div class="space-y-2">
         <label class="ml-1 text-sm font-bold">毛孩姓名</label>
+        <!-- TODO: Replace focus:ring-red-300 with var(--app-primary) -->
         <input
           v-model="name"
           type="text"
@@ -61,6 +62,7 @@ const submitForm = () => {
       <div class="space-y-2">
         <label class="ml-1 text-sm font-bold">種類</label>
         <div class="flex gap-3">
+          <!-- TODO: Replace border-red-400 and bg-red-50 with var(--app-primary) variants -->
           <label class="flex-1 cursor-pointer">
             <input v-model="type" type="radio" value="dog" class="peer hidden" />
             <div
@@ -91,6 +93,7 @@ const submitForm = () => {
       <!-- 品種 -->
       <div class="space-y-2">
         <label class="ml-1 text-sm font-bold">品種</label>
+        <!-- TODO: Replace focus:ring-red-300 with var(--app-primary) -->
         <input
           v-model="breed"
           type="text"
@@ -103,6 +106,7 @@ const submitForm = () => {
       <!-- 生日 -->
       <div class="space-y-2">
         <label class="ml-1 text-sm font-bold">生日</label>
+        <!-- TODO: Replace focus:ring-red-300 with var(--app-primary) -->
         <input
           v-model="birthday"
           type="date"
@@ -115,6 +119,7 @@ const submitForm = () => {
       <!-- 性別 -->
       <div class="space-y-2">
         <label class="ml-1 text-sm font-bold">性別</label>
+        <!-- TODO: Replace border-blue-400/bg-blue-50 and border-pink-400/bg-pink-50 with semantic color variables -->
         <div class="flex gap-3">
           <label class="flex-1 cursor-pointer">
             <input v-model="gender" type="radio" value="male" class="peer hidden" />
