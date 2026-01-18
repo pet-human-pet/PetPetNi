@@ -40,12 +40,14 @@ const {
   requiredCount,
   selectRequiredTag,
   toggleOptionalTag,
-  removeOptionalTag
+  removeOptionalTag,
+  getSubmitData
 } = useTagSelection(profile.hashtags)
 
-// 同步 optionalTags 到 profile.hashtags
+// 同步所有標籤（包含必選標籤和非必選標籤）到 profile.hashtags
 const syncTagsToProfile = () => {
-  profile.hashtags = [...optionalTags.value]
+  const { requiredTags, optionalTags: optional } = getSubmitData()
+  profile.hashtags = [...requiredTags, ...optional]
 }
 
 // --- Mock Data ---
@@ -216,8 +218,8 @@ onUnmounted(() => {
                       class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden md:h-auto md:gap-2"
                     >
                       <span
-                        v-for="(tag, index) in profile.hashtags"
-                        :key="index"
+                        v-for="tag in profile.hashtags"
+                        :key="tag"
                         class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-xs font-medium tracking-tighter md:px-2 md:py-1 md:text-xs"
                         >{{ tag }}</span
                       >
