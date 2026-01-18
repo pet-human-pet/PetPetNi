@@ -62,15 +62,17 @@ io.on('connection', async (socket) => {
   // 3. 發送訊息
   socket.on('send_message', async (data) => {
     try {
-      // Spec: { roomId, content, messageType }
-      const { roomId, content, messageType } = data
+      // Spec: { roomId, content, messageType, imageUrl, replyTo }
+      const { roomId, content, messageType, imageUrl, replyTo } = data
 
       // 組裝訊息資料
       const messagePayload = {
         roomId,
         content,
         messageType: messageType || 'text',
-        senderId: socket.userId || socket.id // 使用真實 userId，fallback 到 socket.id
+        senderId: socket.userId || socket.id, // 使用真實 userId，fallback 到 socket.id
+        imageUrl: imageUrl || null,
+        replyTo: replyTo || null
       }
 
       // 存入 Supabase
