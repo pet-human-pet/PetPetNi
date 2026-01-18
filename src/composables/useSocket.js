@@ -89,32 +89,32 @@ export function useSocket() {
   }
 
   const onUserTyping = (callback) => {
-    if (socket.value) socket.value.on('user_typing', callback)
+    safeOn('user_typing', callback)
   }
 
   const onUserStopTyping = (callback) => {
-    if (socket.value) socket.value.on('user_stop_typing', callback)
+    safeOn('user_stop_typing', callback)
   }
 
   const onUserJoined = (callback) => {
-    if (socket.value) socket.value.on('user_joined', callback)
+    safeOn('user_joined', callback)
   }
 
   const onUserLeft = (callback) => {
-    if (socket.value) socket.value.on('user_left', callback)
+    safeOn('user_left', callback)
   }
 
   const onMessagesRead = (callback) => {
-    if (socket.value) socket.value.on('messages_read', callback)
+    safeOn('messages_read', callback)
   }
 
   const onMessageRecalled = (callback) => {
-    if (socket.value) socket.value.on('message_recalled', callback)
+    safeOn('message_recalled', callback)
   }
 
   // Custom: 歷史訊息 (Spec沒寫，但功能需要)
   const onHistoryReceived = (callback) => {
-    if (socket.value) socket.value.on('history_messages', callback)
+    safeOn('history_messages', callback)
   }
 
   const disconnectSocket = () => {
