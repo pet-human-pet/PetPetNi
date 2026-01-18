@@ -16,11 +16,11 @@ export function useTagSelection(
 ) {
   // 必選標籤選擇狀態
   const requiredSelections = ref(
-    initialRequiredSelections || {
-      size: null,
-      personality_type: null,
-      activity_level: null
-    }
+    initialRequiredSelections ||
+      requiredTagGroups.reduce((acc, group) => {
+        acc[group.id] = null
+        return acc
+      }, {})
   )
 
   // 非必選標籤
@@ -59,17 +59,15 @@ export function useTagSelection(
 
   // 重置所有選擇
   const resetSelections = () => {
-    requiredSelections.value = {
-      size: null,
-      personality_type: null,
-      activity_level: null
-    }
+    requiredSelections.value = requiredTagGroups.reduce((acc, group) => {
+      acc[group.id] = null
+      return acc
+    }, {})
     optionalTags.value = []
   }
 
   // 取得格式化的提交資料
   const getSubmitData = () => {
-    // 組合硬性標籤 (格式: #size:medium)
     const hardTags = Object.entries(requiredSelections.value)
       .filter(([, value]) => value !== null)
       .map(([key, value]) => `#${key}:${value}`)
