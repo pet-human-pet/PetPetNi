@@ -7,6 +7,19 @@ dotenv.config()
 // 初始化 Supabase Client
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
 
+// Helper: 將 Supabase 格式轉換為前端所需格式
+const formatMessageForFrontend = (msg) => ({
+  id: msg.id,
+  roomId: msg.room_id,
+  content: msg.content,
+  messageType: msg.message_type || 'text',
+  sender: 'other', // 前端會根據 senderId 判斷
+  senderId: msg.sender_id,
+  timestamp: msg.created_at,
+  read: msg.read || false,
+  imageUrl: msg.image_url || null
+})
+
 export const db = {
   // 取得用戶參與的所有聊天室 ID
   getUserRooms: async (userId) => {
@@ -45,18 +58,8 @@ export const db = {
         return []
       }
 
-      // 轉換 Supabase 格式為前端所需格式
-      return data.map((msg) => ({
-        id: msg.id,
-        roomId: msg.room_id,
-        content: msg.content,
-        messageType: msg.message_type || 'text',
-        sender: 'other', // 前端會根據 senderId 判斷
-        senderId: msg.sender_id,
-        timestamp: msg.created_at,
-        read: msg.read || false,
-        imageUrl: msg.image_url || null
-      }))
+      // 使用 helper function 轉換格式
+      return data.map(formatMessageForFrontend)
     } catch (error) {
       console.error('❌ Exception in getMessages:', error)
       return []
@@ -88,18 +91,8 @@ export const db = {
 
       console.log('✅ Message saved to Supabase:', data.id)
 
-      // 轉換為前端格式
-      return {
-        id: data.id,
-        roomId: data.room_id,
-        content: data.content,
-        messageType: data.message_type,
-        sender: 'other',
-        senderId: data.sender_id,
-        timestamp: data.created_at,
-        read: data.read,
-        imageUrl: data.image_url
-      }
+      // 使用 helper function 轉換格式
+      return formatMessageForFrontend(data)
     } catch (error) {
       console.error('❌ Exception in saveMessage:', error)
       return null
