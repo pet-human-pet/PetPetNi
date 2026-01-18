@@ -252,8 +252,10 @@ export const useChatStore = defineStore('chat', () => {
     if (activeChat.value.type !== 'ai') {
       sendSocketMessage({
         roomId: activeChat.value.id,
-        content: newMsg.content, // Spec: content
-        messageType: isImage ? 'image' : 'text' // Spec: messageType
+        content: newMsg.content,
+        messageType: isImage ? 'image' : 'text',
+        imageUrl: isImage ? text : null, // 圖片 URL
+        replyTo: replyTo || null // 回覆訊息的 ID
       })
     }
 

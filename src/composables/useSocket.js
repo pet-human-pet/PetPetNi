@@ -78,10 +78,6 @@ export function useSocket() {
     if (socket.value) socket.value.emit('mark_read', { roomId })
   }
 
-  const recallMessage = (roomId, messageId) => {
-    if (socket.value) socket.value.emit('recall_message', { roomId, messageId })
-  }
-
   // --- Listeners (後端 -> 前端) ---
   // 使用 safeOn 確保監聽器會在 socket 連線後註冊
   const onNewMessage = (callback) => {
@@ -106,10 +102,6 @@ export function useSocket() {
 
   const onMessagesRead = (callback) => {
     safeOn('messages_read', callback)
-  }
-
-  const onMessageRecalled = (callback) => {
-    safeOn('message_recalled', callback)
   }
 
   // Custom: 歷史訊息 (Spec沒寫，但功能需要)
@@ -137,7 +129,6 @@ export function useSocket() {
     startTyping,
     stopTyping,
     markRead,
-    recallMessage,
     // Listeners
     onNewMessage, // renamed from onMessageReceived
     onUserTyping,
@@ -145,7 +136,6 @@ export function useSocket() {
     onUserJoined,
     onUserLeft,
     onMessagesRead,
-    onMessageRecalled,
     onHistoryReceived
   }
 }
