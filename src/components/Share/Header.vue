@@ -101,7 +101,7 @@ function goChat() {
           <!-- 訊息 -->
 
           <button
-            class="text-btn-accent hover:text-brand-primary hover:bg-btn-secondary relative flex h-10 w-10 items-center justify-center rounded-full transition max-[800px]:hidden"
+            class="c-header-btn max-[800px]:hidden"
             title="訊息"
             type="button"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
