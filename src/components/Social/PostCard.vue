@@ -1,8 +1,8 @@
 <script setup>
-import ActionBar from './PostCard/ActionBar.vue'
 import { ref, computed, watch, nextTick } from 'vue'
-import AudiencePicker from './AudiencePicker.vue'
 import { useRouter } from 'vue-router'
+import ActionBar from './PostCard/ActionBar.vue'
+import AudiencePicker from './AudiencePicker.vue'
 import CommentSection from './CommentSection.vue'
 
 const props = defineProps({

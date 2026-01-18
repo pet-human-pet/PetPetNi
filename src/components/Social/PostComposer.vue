@@ -15,7 +15,18 @@ const emit = defineEmits(['submit', 'toast'])
 const { error, info } = useToast()
 
 // 引入圖片處理邏輯
-const { images, isCropping, currentCropSrc, handleFileChange, onCropConfirm, onCropCancel, reCropImage, removeImage, uploadAllImages, clearImages} = usePostComposerImages(4)
+const {
+  images,
+  isCropping,
+  currentCropSrc,
+  handleFileChange,
+  onCropConfirm,
+  onCropCancel,
+  reCropImage,
+  removeImage,
+  uploadAllImages,
+  clearImages
+} = usePostComposerImages(4)
 
 const open = ref(false)
 const content = ref('')
@@ -55,12 +66,12 @@ const triggerImageUpload = () => {
 
 const submit = async () => {
   if (!canSubmit.value) return
-  
+
   const text = content.value.trim()
   const hasImages = images.value.length > 0
-  
-  if (!hasImages && text.length <= 5) {
-    error('文字須超過五個字才能發布')
+
+  if (!hasImages && text.length <= 3) {
+    error('文字須超過三個字才能發布')
     return
   }
 
@@ -81,7 +92,6 @@ const submit = async () => {
     content.value = ''
     clearImages()
     open.value = false
-
   } catch {
     error('發布失敗，請稍後再試')
   } finally {
@@ -108,7 +118,7 @@ const audience = ref('public')
       @confirm="onCropConfirm"
       @cancel="onCropCancel"
     />
-    
+
     <input
       ref="fileInputRef"
       type="file"
@@ -136,7 +146,7 @@ const audience = ref('public')
         <div class="min-w-0 flex-1">
           <textarea
             v-model="content"
-            class="min-h-16 w-full resize-none bg-transparent text-fg-primary text-sm outline-none"
+            class="text-fg-primary min-h-16 w-full resize-none bg-transparent text-base outline-none"
             placeholder="分享你的寵物日常..."
             :maxlength="maxLength"
           />
@@ -149,21 +159,35 @@ const audience = ref('public')
               class="group relative aspect-square w-24 cursor-pointer overflow-hidden rounded-xl border border-zinc-200"
               @click="reCropImage(img)"
             >
-              <img :src="img.url" class="h-full w-full object-cover transition-transform group-hover:scale-105" />
-              
+              <img
+                :src="img.url"
+                class="h-full w-full object-cover transition-transform group-hover:scale-105"
+              />
+
               <!-- 上傳中遮罩 -->
-              <div v-if="img.status === 'uploading'" class="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
-                <div class="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              <div
+                v-if="img.status === 'uploading'"
+                class="absolute inset-0 z-20 flex items-center justify-center bg-black/60"
+              >
+                <div
+                  class="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"
+                ></div>
               </div>
 
               <!-- 成功勾勾 -->
-              <div v-if="img.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-gray-700/40 z-20">
-                <span class="text-white text-xl font-bold">✓</span>
+              <div
+                v-if="img.status === 'success'"
+                class="absolute inset-0 z-20 flex items-center justify-center bg-gray-700/40"
+              >
+                <span class="text-xl font-bold text-white">✓</span>
               </div>
 
               <!-- 編輯提示 -->
-              <div v-if="img.status === 'idle'" class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
-                <span class="text-white text-xs font-bold">重裁</span>
+              <div
+                v-if="img.status === 'idle'"
+                class="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                <span class="text-xs font-bold text-white">重裁</span>
               </div>
 
               <!-- 移除按鈕 -->
@@ -205,7 +229,7 @@ const audience = ref('public')
                 :disabled="!canSubmit"
                 @click="submit"
               >
-                {{ isSubmitting ? '處理中...' : (editing ? '更新' : '發布') }}
+                {{ isSubmitting ? '處理中...' : editing ? '更新' : '發布' }}
               </button>
             </div>
           </div>
@@ -248,7 +272,7 @@ const audience = ref('public')
           </div>
 
           <!-- 手機預覽 -->
-          <div v-if="images.length > 0" class="mt-3 flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+          <div v-if="images.length > 0" class="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-2">
             <div
               v-for="(img, index) in images"
               :key="img.id"
@@ -256,20 +280,28 @@ const audience = ref('public')
               @click="reCropImage(img)"
             >
               <img :src="img.url" class="h-full w-full object-cover" />
-              
+
               <!-- 上傳中遮罩 -->
-              <div v-if="img.status === 'uploading'" class="absolute inset-0 flex items-center justify-center bg-black/60 z-20">
-                <div class="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              <div
+                v-if="img.status === 'uploading'"
+                class="absolute inset-0 z-20 flex items-center justify-center bg-black/60"
+              >
+                <div
+                  class="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"
+                ></div>
               </div>
 
               <!-- 成功勾勾 -->
-              <div v-if="img.status === 'success'" class="absolute inset-0 flex items-center justify-center bg-gray-700/40 z-20">
-                <span class="text-white text-xl font-bold">✓</span>
+              <div
+                v-if="img.status === 'success'"
+                class="absolute inset-0 z-20 flex items-center justify-center bg-gray-700/40"
+              >
+                <span class="text-xl font-bold text-white">✓</span>
               </div>
 
               <button
                 type="button"
-                class="absolute top-1 right-1 grid h-5 w-5 place-items-center rounded-full bg-black/50 text-white z-30"
+                class="absolute top-1 right-1 z-30 grid h-5 w-5 place-items-center rounded-full bg-black/50 text-white"
                 @click.stop="removeImage(index)"
               >
                 <span class="text-[10px]">✕</span>
