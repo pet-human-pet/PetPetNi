@@ -25,6 +25,8 @@ io.on('connection', async (socket) => {
   try {
     // 從 handshake.auth 取得 userId，自動加入所有聊天室
     const userId = socket.handshake.auth?.userId
+    socket.userId = userId // 儲存 userId 供後續使用
+
     if (userId) {
       const userRooms = await db.getUserRooms(userId)
       userRooms.forEach((roomId) => socket.join(roomId))
@@ -68,7 +70,7 @@ io.on('connection', async (socket) => {
         roomId,
         content,
         messageType: messageType || 'text',
-        senderId: socket.id
+        senderId: socket.userId || socket.id // 使用真實 userId，fallback 到 socket.id
       }
 
       // 存入 Supabase
