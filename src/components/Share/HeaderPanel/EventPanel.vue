@@ -52,14 +52,7 @@ const onSelectFavorite = (evt) => {
     :class="{ 'pointer-events-none opacity-40': menuOpen }"
   >
     <!-- Trigger Button -->
-    <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
-    <button
-      class="c-header-btn max-[800px]:hidden"
-      title="收藏"
-      type="button"
-      aria-label="收藏的活動"
-      @click="toggle"
-    >
+    <button class="c-header-btn" title="收藏" type="button" aria-label="收藏的活動" @click="toggle">
       <i :class="fav.count ? 'fa-solid fa-heart text-brand-accent' : 'fa-regular fa-heart'"></i>
     </button>
 

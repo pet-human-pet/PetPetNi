@@ -31,6 +31,9 @@ const defaultAvatar =
 
 const menuOpen = computed(() => uiStore.isMenuOpen)
 
+// 判斷是否顯示頭像 (首頁與個人頁面隱藏)
+const shouldShowAvatar = computed(() => !['home', 'Profile'].includes(route.name))
+
 // 計算屬性
 const headerClasses = computed(() => [
   'h-(--header-h) fixed left-0 z-50 w-full',
@@ -43,7 +46,7 @@ const headerClasses = computed(() => [
 ])
 
 const containerClasses = computed(() => [
-  'h-(--header-h) w-full mx-auto flex items-center justify-between',
+  'h-(--header-h) w-full mx-auto flex items-center justify-between relative',
   // TODO: px-[30px]/px-[50px] 為 MainFrame 對齊邊距，考慮抽成 CSS 變數
   isHomePage.value ? 'w-full px-[30px] md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
 ])
@@ -67,6 +70,7 @@ function goChat() {
   <header v-show="!uiStore.isMenuOpen" :class="headerClasses">
     <div :class="containerClasses">
       <!-- Logo -->
+      <!-- TODO: 之後應該會換成logo圖片檔 -->
       <button
         class="flex cursor-pointer items-center border-none bg-transparent p-0 no-underline"
         :class="{ 'pointer-events-none opacity-40': menuOpen }"
@@ -82,26 +86,34 @@ function goChat() {
 
       <!-- 登入前：只顯示登入按鈕 + Menu -->
       <div v-if="!isLoggedIn" class="flex items-center gap-3">
-        <router-link
-          v-show="!uiStore.isMenuOpen"
-          :to="{ name: 'login' }"
-          class="flex items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-3 text-xs font-bold tracking-wider text-black transition-colors duration-300 hover:bg-gray-200"
-        >
-          登入
-        </router-link>
+        <div class="flex items-center gap-3 md:absolute md:left-1/2 md:-translate-x-1/2">
+          <router-link
+            v-show="!uiStore.isMenuOpen"
+            :to="{ name: 'login', query: { mode: 'register' } }"
+            class="hover:text-brand-primary text-brand-primary flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-bold tracking-wider transition-colors duration-300 hover:bg-gray-50"
+          >
+            註冊
+          </router-link>
+          <router-link
+            v-show="!uiStore.isMenuOpen"
+            :to="{ name: 'login' }"
+            class="bg-brand-primary hover:bg-brand-primary/80 flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold tracking-wider text-white transition-colors duration-300"
+          >
+            登入
+          </router-link>
+        </div>
         <MenuButton />
       </div>
 
       <!-- 登入後：完整功能按鈕 -->
-      <div v-else class="flex items-center gap-3">
-        <div v-show="!uiStore.isMenuOpen" class="flex items-center gap-3">
+      <div v-else class="flex items-center gap-1 md:gap-3">
+        <div v-show="!uiStore.isMenuOpen" class="flex items-center gap-1 md:gap-3">
           <!-- 收藏：桌機 dropdown、手機 modal -->
           <EventPanel />
 
           <!-- 訊息 -->
-
           <button
-            class="c-header-btn max-[800px]:hidden"
+            class="c-header-btn"
             title="訊息"
             type="button"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
@@ -115,11 +127,13 @@ function goChat() {
           </button>
 
           <!-- 通知 -->
-          <NotificationPanel></NotificationPanel>
+          <NotificationPanel />
+
           <!-- Avatar：點擊導向個人頁面 -->
           <button
+            v-if="shouldShowAvatar"
             type="button"
-            class="border-border-default h-10 w-10 overflow-hidden rounded-full border-2 p-0"
+            class="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-white p-0"
             title="個人頁面"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
             @click="goProfile"
@@ -129,7 +143,7 @@ function goChat() {
         </div>
 
         <!-- Menu 按鈕 -->
-        <MenuButton class="ml-2" />
+        <MenuButton class="ml-1 md:ml-2" />
       </div>
     </div>
   </header>
