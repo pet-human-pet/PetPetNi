@@ -16,6 +16,16 @@ const bubbleClasses = computed(() => {
   return props.isMe ? 'c-chat-bubble--me' : 'c-chat-bubble--them'
 })
 
+const formatTime = (timestamp) => {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 const handleAction = (action) => {
   emit('action', action, props.msg)
 }
@@ -87,7 +97,7 @@ const handleAction = (action) => {
 
       <!-- Time & Read Status -->
       <div class="text-fg-muted mt-1 text-xs" :class="isMe ? 'text-right' : ''">
-        {{ msg.time }}
+        {{ formatTime(msg.timestamp) }}
         <span v-if="isMe && msg.read">已讀</span>
       </div>
     </div>
