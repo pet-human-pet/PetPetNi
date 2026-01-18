@@ -127,6 +127,7 @@ const submitForm = () => {
         type="button"
         :class="[
           'h-2 rounded-full transition-all duration-300',
+          // TODO: Replace bg-orange-400 with var(--app-primary)
           currentCardIndex === index ? 'w-8 bg-orange-400' : 'w-2 bg-gray-300 hover:bg-gray-400'
         ]"
         :aria-label="`切換到${label}`"
@@ -171,6 +172,7 @@ const submitForm = () => {
                 <div class="flex items-center gap-2">
                   <span class="text-xl">{{ group.options[0].emoji }}</span>
                   <span class="font-bold text-gray-700">{{ group.label }}</span>
+                  <!-- TODO: Replace text-orange-500 with var(--app-primary) -->
                   <span v-if="requiredSelections[group.id]" class="text-sm text-orange-500">
                     ✓ 已選擇
                   </span>
@@ -198,6 +200,7 @@ const submitForm = () => {
                       type="button"
                       :class="[
                         'flex flex-col items-center justify-center rounded-xl border-2 py-3 transition-all',
+                        // TODO: Replace border-orange-400 and bg-orange-50 with var(--app-primary) variants
                         requiredSelections[group.id] === option.value
                           ? 'border-orange-400 bg-orange-50'
                           : 'border-gray-200 bg-white hover:border-gray-300'
