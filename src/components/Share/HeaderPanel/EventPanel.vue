@@ -54,7 +54,7 @@ const onSelectFavorite = (evt) => {
     <!-- Trigger Button -->
     <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
     <button
-      class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
+      class="c-header-btn max-[800px]:hidden"
       title="收藏"
       type="button"
       aria-label="收藏的活動"
