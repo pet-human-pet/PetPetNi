@@ -20,25 +20,35 @@ app.get('/api/health', (req, res) => {
 const io = new Server(httpServer, {
   cors: { origin: FRONTEND_URL, methods: ['GET', 'POST'] }
 })
-
+//TODO: 之後要改成JWT驗證
 io.on('connection', async (socket) => {
-  // 從 handshake.auth 取得 userId，自動加入所有聊天室
-  const userId = socket.handshake.auth?.userId
-  if (userId) {
-    const userRooms = await db.getUserRooms(userId)
-    userRooms.forEach((roomId) => socket.join(roomId))
+  try {
+    // 從 handshake.auth 取得 userId，自動加入所有聊天室
+    const userId = socket.handshake.auth?.userId
+    if (userId) {
+      const userRooms = await db.getUserRooms(userId)
+      userRooms.forEach((roomId) => socket.join(roomId))
+    }
+  } catch (error) {
+    console.error('❌ Error in connection handler:', error)
+    socket.disconnect()
   }
 
   // 1. 加入聊天室
   socket.on('join_room', async (roomId) => {
-    socket.join(roomId)
+    try {
+      socket.join(roomId)
 
-    // 通知其他人有人加入 (Spec: user_joined)
-    socket.to(roomId).emit('user_joined', { userId: socket.id, userName: 'Guest' })
+      // 通知其他人有人加入 (Spec: user_joined)
+      socket.to(roomId).emit('user_joined', { userId: socket.id, userName: 'Guest' })
 
-    // 傳回歷史訊息 (Custom Feature)
-    const history = await db.getMessages(roomId)
-    socket.emit('history_messages', history)
+      // 傳回歷史訊息 (Custom Feature)
+      const history = await db.getMessages(roomId)
+      socket.emit('history_messages', history)
+    } catch (error) {
+      console.error('❌ Error in join_room:', error)
+      socket.emit('error', { message: 'Failed to join room' })
+    }
   })
 
   // 2. 離開聊天室
@@ -49,26 +59,32 @@ io.on('connection', async (socket) => {
 
   // 3. 發送訊息
   socket.on('send_message', async (data) => {
-    // Spec: { roomId, content, messageType }
-    const { roomId, content, messageType } = data
+    try {
+      // Spec: { roomId, content, messageType }
+      const { roomId, content, messageType } = data
 
-    // 組裝訊息資料
-    const messagePayload = {
-      roomId,
-      content,
-      messageType: messageType || 'text',
-      senderId: socket.id
-    }
+      // 組裝訊息資料
+      const messagePayload = {
+        roomId,
+        content,
+        messageType: messageType || 'text',
+        senderId: socket.id
+      }
 
-    // 存入 Supabase
-    const savedMessage = await db.saveMessage(roomId, messagePayload)
+      // 存入 Supabase
+      const savedMessage = await db.saveMessage(roomId, messagePayload)
 
-    if (savedMessage) {
-      // 廣播給房間內其他人 (Spec: new_message)
-      // 這裡用 broadcast.to(roomId) 不傳給自己，因為前端有 Optimistic UI
-      socket.to(roomId).emit('new_message', savedMessage)
-    } else {
-      console.error('❌ Failed to save message')
+      if (savedMessage) {
+        // 廣播給房間內其他人 (Spec: new_message)
+        // 這裡用 broadcast.to(roomId) 不傳給自己，因為前端有 Optimistic UI
+        socket.to(roomId).emit('new_message', savedMessage)
+      } else {
+        console.error('❌ Failed to save message')
+        socket.emit('error', { message: 'Failed to save message' })
+      }
+    } catch (error) {
+      console.error('❌ Error in send_message:', error)
+      socket.emit('error', { message: 'Failed to send message' })
     }
   })
 
