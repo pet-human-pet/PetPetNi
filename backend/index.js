@@ -105,13 +105,6 @@ io.on('connection', async (socket) => {
     socket.to(roomId).emit('messages_read', { userId: socket.id, readAt: Date.now() })
   })
 
-  // 6. 收回訊息
-  socket.on('recall_message', ({ roomId, messageId }) => {
-    // 這裡應該要去 DB 刪除或標記
-    // 廣播給房間所有人移除該訊息
-    io.to(roomId).emit('message_recalled', { messageId })
-  })
-
   socket.on('disconnect', () => {})
 })
 
