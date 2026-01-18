@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
 import { useFavoritesStore } from '@/stores/favorites'
 import MenuButton from '@/components/Button/MenuButton.vue'
+import NotificationPanel from './NotificationPanel.vue'
 
 // Props
 const props = defineProps({
@@ -252,16 +253,7 @@ function onSelectFavorite(evt) {
           </button>
 
           <!-- 通知 -->
-
-          <button
-            class="text-btn-accent hover:text-brand-primary hover:bg-btn-secondary relative flex h-10 w-10 items-center justify-center rounded-full transition max-[800px]:hidden"
-            title="通知"
-            type="button"
-            :class="{ 'pointer-events-none opacity-40': menuOpen }"
-          >
-            <i class="fa-regular fa-bell"></i>
-          </button>
-
+          <NotificationPanel></NotificationPanel>
           <!-- Avatar：點擊導向個人頁面 -->
           <button
             type="button"

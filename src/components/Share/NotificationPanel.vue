@@ -70,7 +70,7 @@ function handleRefresh() {
     <!-- header -->
     <button
       type="button"
-      class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#ff9f43]"
+      class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F]"
       title="通知"
       @click="toggle"
     >
