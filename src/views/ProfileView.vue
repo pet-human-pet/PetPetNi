@@ -144,8 +144,9 @@ onUnmounted(() => {
                     profile.username
                   }}</span>
                   <button class="group shrink-0 cursor-pointer" @click="showTagPicker = true">
+                    <!-- TODO: Replace hover:text-[#f48e31] with CSS variable -->
                     <IconGear
-                      class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31] md:h-6 md:w-6"
+                      class="text-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:text-[#f48e31] md:h-6 md:w-6"
                     />
                   </button>
                 </div>
@@ -157,8 +158,9 @@ onUnmounted(() => {
                 <div class="flex items-center justify-center gap-2 pb-2 text-center md:hidden">
                   <span class="text-fg-muted text-xs">{{ profile.username }}</span>
                   <button class="group shrink-0 cursor-pointer" @click="showTagPicker = true">
+                    <!-- TODO: Replace hover:text-[#f48e31] with CSS variable -->
                     <IconGear
-                      class="fill-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:fill-[#f48e31]"
+                      class="text-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:text-[#f48e31]"
                     />
                   </button>
                 </div>
