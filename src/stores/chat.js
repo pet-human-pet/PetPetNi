@@ -255,7 +255,7 @@ export const useChatStore = defineStore('chat', () => {
         content: newMsg.content,
         messageType: isImage ? 'image' : 'text',
         imageUrl: isImage ? text : null, // 圖片 URL
-        replyTo: replyTo || null // 回覆訊息的 ID
+        replyTo: replyTo?.id || null // 修正：只傳訊息 ID
       })
     }
 

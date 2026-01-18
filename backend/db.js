@@ -23,25 +23,41 @@ const formatMessageForFrontend = (msg) => ({
 export const db = {
   // 取得用戶參與的所有聊天室 ID
   getUserRooms: async (userId) => {
-    // MVP 簡化版：暫時回傳所有預設房間 ID (對應前端 chatMockData.js)
-    // TODO: 未來改為從 Supabase 查詢該 userId 實際參與的聊天室
-    const defaultRooms = [
-      // community
-      'c1',
-      'c2',
-      // match (含 friend)
-      'm1',
-      'm2',
-      'm3',
-      'm4',
-      // stranger (敲敲門)
-      's1',
-      's2',
-      // event
-      'e1',
-      'e2'
-    ]
-    return defaultRooms
+    try {
+      const { data, error } = await supabase
+        .from('chat_room_participants')
+        .select(
+          `
+          room_id,
+          status,
+          pinned,
+          pinned_at,
+          is_blocked,
+          chat_rooms (
+            id,
+            type,
+            name,
+            avatar,
+            metadata
+          )
+        `
+        )
+        .eq('user_id', userId)
+        .eq('is_blocked', false)
+        .order('pinned', { ascending: false })
+        .order('pinned_at', { ascending: false })
+
+      if (error) {
+        console.error('❌ Error getting user rooms:', error)
+        return []
+      }
+
+      // 只回傳 room_id 陣列（與原本的格式一致）
+      return data.map((p) => p.room_id)
+    } catch (error) {
+      console.error('❌ Exception in getUserRooms:', error)
+      return []
+    }
   },
 
   // 取得某個房間的歷史訊息
