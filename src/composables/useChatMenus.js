@@ -99,7 +99,7 @@ export function useChatMenus(options = {}) {
     closeMsgMenu()
 
     if (action === 'reply') {
-      store.replyingMsg = { id: msg.id, content: msg.text }
+      store.replyingMsg = { id: msg.id, content: msg.content }
     }
 
     if (action === 'delete') {
