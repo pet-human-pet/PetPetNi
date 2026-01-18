@@ -75,7 +75,8 @@ export const db = {
         message_type: message.messageType || 'text',
         sender_id: message.senderId,
         read: false,
-        image_url: message.imageUrl || null
+        image_url: message.imageUrl || null,
+        parent_id: message.replyTo || null // 支援回覆訊息
       }
 
       const { data, error } = await supabase
