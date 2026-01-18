@@ -20,7 +20,7 @@ const {
 
 // 滑動卡片狀態管理
 const currentCardIndex = ref(0) // 當前卡片索引 (0: 必填資訊, 1: 特色標籤)
-const cardContainerRef = ref(null) // 卡片容器引用
+const cardContainerRef = ref(null)
 
 // 必填資訊手風琴狀態（獨立）
 const requiredExpandedSection = ref('size') // 預設展開「體型」
@@ -52,14 +52,11 @@ const handleScroll = () => {
 
 // 切換必填資訊手風琴（確保單一展開）
 const toggleRequiredSection = (sectionId) => {
-  // 如果點擊的是當前已展開的，則收合
-  // 否則展開新的（自動收合舊的）
   requiredExpandedSection.value = requiredExpandedSection.value === sectionId ? null : sectionId
 }
 
 // 處理必填標籤選擇並自動展開下一個區塊
 const handleSelectRequiredTag = (groupId, value) => {
-  // 調用原始函數
   selectRequiredTag(groupId, value)
 
   // 確保在第一張卡片且有選擇值
@@ -79,17 +76,13 @@ const handleSelectRequiredTag = (groupId, value) => {
 watch(
   () => requiredSelections.value,
   (newVal, oldVal) => {
-    // 確保在第一張卡片
     if (currentCardIndex.value !== 0) return
 
-    // 當選完「體型」後，自動展開「性格傾向」
     if (newVal.size && (!oldVal || !oldVal.size)) {
       setTimeout(() => {
         requiredExpandedSection.value = 'personality_type'
-      }, 100) // 快速展開
-    }
-    // 當選完「性格傾向」後，自動展開「活動量」
-    else if (newVal.personality_type && (!oldVal || !oldVal.personality_type)) {
+      }, 100)
+    } else if (newVal.personality_type && (!oldVal || !oldVal.personality_type)) {
       setTimeout(() => {
         requiredExpandedSection.value = 'activity_level'
       }, 100)
@@ -101,7 +94,6 @@ watch(
 // 監聽必選項完成狀態，自動切換到選填頁
 watch(allRequiredSelected, (isAllSelected) => {
   if (isAllSelected && currentCardIndex.value === 0) {
-    // 延遲 300ms 讓用戶看到最後一個選項的效果
     setTimeout(() => {
       scrollToCard(1)
     }, 300)
@@ -240,7 +232,6 @@ const submitForm = () => {
       </div>
     </div>
 
-    <!-- 滑動提示 -->
     <div class="mt-2 text-center text-xs text-gray-400">👈 左右滑動切換 👉</div>
 
     <!-- 按鈕群組 -->
@@ -252,7 +243,6 @@ const submitForm = () => {
       >
         上一步
       </button>
-      <!-- TODO: Replace with CSS variable var(--app-primary) -->
       <!-- TODO: Replace #ffa75f with var(--app-primary) -->
       <button
         type="button"
