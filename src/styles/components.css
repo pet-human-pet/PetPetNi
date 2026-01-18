@@ -69,6 +69,12 @@
     @apply disabled:cursor-not-allowed disabled:opacity-50;
   }
 
+  /* Header Function Button (Message, Notification, Favorite) */
+  .c-header-btn {
+    @apply relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#666] transition;
+    @apply hover:bg-bg-base hover:text-brand-primary;
+  }
+
   /* Header dropdown / popover 容器（桌機） */
   .c-popover {
     @apply bg-bg-surface shadow-card rounded-card border-border-default overflow-hidden border;
@@ -134,8 +140,12 @@
     animation: slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   @keyframes slideRight {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   /* 自定義Scrollbar */
@@ -157,28 +167,27 @@
   }
 
   .c-badge {
-    @apply bg-brand-accent absolute flex items-center justify-center rounded-full text-white font-bold
-    leading-none;
+    @apply bg-brand-accent absolute flex items-center justify-center rounded-full leading-none font-bold text-white;
   }
   .c-badge--dot {
     @apply h-2 w-2 border border-white;
   }
   .c-badge--num {
-    @apply min-w-3.5 h-3.5 px-1 text-[8px];
-  }        
+    @apply h-3.5 min-w-3.5 px-1 text-[8px];
+  }
 
   .c-chat-bubble {
-    @apply relative flex cursor-pointer flex-col gap-1 break-all rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm transition-opacity hover:opacity-95;
+    @apply relative flex cursor-pointer flex-col gap-1 rounded-2xl px-4 py-3 text-sm leading-relaxed break-all shadow-sm transition-opacity hover:opacity-95;
   }
   .c-chat-bubble--me {
-    @apply bg-brand-primary text-white rounded-br-sm;
+    @apply bg-brand-primary rounded-br-sm text-white;
   }
   .c-chat-bubble--them {
-    @apply border-border-default bg-bg-surface text-fg-primary border rounded-bl-sm;
+    @apply border-border-default bg-bg-surface text-fg-primary rounded-bl-sm border;
   }
 
   .c-chat-item {
-    @apply relative mb-1 flex cursor-pointer items-center rounded-xl px-4 py-3 transition-colors hover:bg-bg-base;
+    @apply hover:bg-bg-base relative mb-1 flex cursor-pointer items-center rounded-xl px-4 py-3 transition-colors;
   }
 
   .c-chat-info {
@@ -206,11 +215,11 @@
   }
 
   .c-chat-nav {
-    @apply relative flex h-full w-13 shrink-0 cursor-pointer flex-col items-center justify-center text-fg-muted transition-all duration-200 hover:bg-black/5 hover:text-brand-primary md:h-12 md:w-full md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-lg md:px-3;
+    @apply text-fg-muted hover:text-brand-primary relative flex h-full w-13 shrink-0 cursor-pointer flex-col items-center justify-center transition-all duration-200 hover:bg-black/5 md:h-12 md:w-full md:flex-row md:items-center md:justify-start md:gap-3 md:rounded-lg md:px-3;
   }
 
   .c-chat-nav-active {
-    @apply bg-brand-primary text-white shadow-lg shadow-brand-primary/30;
+    @apply bg-brand-primary shadow-brand-primary/30 text-white shadow-lg;
     @apply hover:bg-brand-primary/90 hover:text-white;
   }
 
@@ -228,21 +237,21 @@
   }
 
   .c-chat-tab {
-    @apply flex-1 cursor-pointer rounded-full border py-1.5 text-sm font-bold transition-all duration-200 whitespace-nowrap;
+    @apply flex-1 cursor-pointer rounded-full border py-1.5 text-sm font-bold whitespace-nowrap transition-all duration-200;
     @apply border-border-default text-fg-muted hover:bg-bg-base bg-transparent;
   }
 
   .c-chat-tab-active {
-    @apply bg-brand-primary border-transparent text-white shadow-sm hover:bg-brand-primary/90 hover:text-white;
+    @apply bg-brand-primary hover:bg-brand-primary/90 border-transparent text-white shadow-sm hover:text-white;
   }
 
   .c-chat-menu {
-    @apply flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm font-bold transition-colors hover:bg-bg-base;
+    @apply hover:bg-bg-base flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left text-sm font-bold transition-colors;
   }
   .c-chat-menu i {
     @apply w-5 text-center;
   }
-  
+
   .c-chat-menu-danger {
     @apply text-red-500 hover:bg-red-50;
   }
@@ -263,35 +272,32 @@
   }
 
   .c-icon-edit {
-    @apply text-fg-muted transition-all cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-brand-primary;
+    @apply text-fg-muted hover:text-brand-primary cursor-pointer opacity-100 transition-all md:opacity-0 md:group-hover:opacity-100;
   }
 
   .c-ai-prompt-btn {
-    @apply border-border-default hover:bg-bg-base hover:border-brand-primary/50 
-           text-fg-primary flex items-center gap-2 rounded-xl border 
-           bg-white p-2.5 text-left text-sm transition-all;
+    @apply border-border-default hover:bg-bg-base hover:border-brand-primary/50 text-fg-primary flex items-center gap-2 rounded-xl border bg-white p-2.5 text-left text-sm transition-all;
   }
 
   .c-ai-prompt-btn__icon {
-    @apply bg-brand-primary/10 text-brand-primary flex h-6 w-6 
-           shrink-0 items-center justify-center rounded-full;
+    @apply bg-brand-primary/10 text-brand-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full;
   }
 
   .c-chat-input-container {
-    @apply flex shrink-0 flex-col border-t border-border-default bg-bg-surface p-4 pb-7.5 md:pb-4;
+    @apply border-border-default bg-bg-surface flex shrink-0 flex-col border-t p-4 pb-7.5 md:pb-4;
   }
 
   .c-chat-reply-bar {
-    @apply mb-2 flex items-center justify-between border-l-4 border-brand-primary bg-zinc-50 px-3 py-2;
+    @apply border-brand-primary mb-2 flex items-center justify-between border-l-4 bg-zinc-50 px-3 py-2;
   }
 
   .c-chat-input-field {
-    @apply relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-transparent bg-bg-base transition-colors focus-within:border-brand-primary;
+    @apply bg-bg-base focus-within:border-brand-primary relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-transparent transition-colors;
   }
 
   /* 個人資料標籤 (好友/我) */
   .c-profile-tag {
-    @apply ml-24 pointer-events-auto text-[10px] px-2 py-0.5 rounded-md uppercase tracking-widest font-bold whitespace-nowrap;
+    @apply pointer-events-auto ml-24 rounded-md px-2 py-0.5 text-[10px] font-bold tracking-widest whitespace-nowrap uppercase;
   }
 
   .c-profile-tag--friend {
@@ -349,12 +355,12 @@
   }
 
   .c-dialog-box {
-    @apply w-full max-w-sm overflow-hidden rounded-2xl bg-bg-surface shadow-2xl transition-all;
+    @apply bg-bg-surface w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl transition-all;
   }
 
   /* 檢舉對話框專用 */
   .c-report-reason {
-    @apply flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-bg-base transition-colors;
+    @apply hover:bg-bg-base flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors;
   }
 
   .c-report-reason--active {
@@ -362,7 +368,7 @@
   }
 
   .c-report-input {
-    @apply w-full mt-2 p-3 text-sm border border-border-default rounded-lg bg-bg-base outline-none focus:border-brand-primary;
+    @apply border-border-default bg-bg-base focus:border-brand-primary mt-2 w-full rounded-lg border p-3 text-sm outline-none;
   }
 
   /* Transition: Fade */
@@ -377,13 +383,13 @@
   }
 
   .c-toast {
-    @apply pointer-events-auto relative flex w-[320px] items-center gap-3 overflow-hidden rounded-xl px-5 py-3.5 shadow-md border;
-    background-color: #ffffff; 
+    @apply pointer-events-auto relative flex w-[320px] items-center gap-3 overflow-hidden rounded-xl border px-5 py-3.5 shadow-md;
+    background-color: #ffffff;
     isolation: isolate;
   }
 
   .c-toast::before {
-    content: "";
+    content: '';
     @apply absolute inset-0 -z-10 opacity-100;
   }
 
@@ -393,15 +399,19 @@
   .c-toast--success::before {
     background-color: #f0f6f4;
   }
-  .c-toast--success i { @apply text-brand-primary; }
+  .c-toast--success i {
+    @apply text-brand-primary;
+  }
 
   .c-toast--error {
     @apply border-func-danger/20;
   }
   .c-toast--error::before {
-    background-color: #fff4f4; 
+    background-color: #fff4f4;
   }
-  .c-toast--error i { @apply text-func-danger; }
+  .c-toast--error i {
+    @apply text-func-danger;
+  }
 
   .c-toast--info {
     @apply border-brand-accent/20;
@@ -409,7 +419,9 @@
   .c-toast--info::before {
     background-color: #fefae9;
   }
-  .c-toast--info i { @apply text-brand-accent; }
+  .c-toast--info i {
+    @apply text-brand-accent;
+  }
 
   /* Toast Progress Animation */
   @keyframes toast-progress {

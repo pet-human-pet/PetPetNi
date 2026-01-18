@@ -68,12 +68,7 @@ function handleRefresh() {
 <template>
   <div :ref="(el) => registerRef(PANEL_ID, el)" class="relative">
     <!-- header -->
-    <button
-      type="button"
-      class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F]"
-      title="通知"
-      @click="toggle"
-    >
+    <button type="button" class="c-header-btn" title="通知" @click="toggle">
       <i class="fa-regular fa-bell"></i>
       <span
         v-if="unreadCount > 0"
