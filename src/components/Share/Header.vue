@@ -2,9 +2,9 @@
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
-import { useFavoritesStore } from '@/stores/favorites'
 import MenuButton from '@/components/Button/MenuButton.vue'
-import NotificationPanel from './NotificationPanel.vue'
+import NotificationPanel from './HeaderPanel/NotificationPanel.vue'
+import EventPanel from './HeaderPanel/EventPanel.vue'
 
 // Props
 const props = defineProps({
@@ -18,7 +18,6 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const uiStore = useUIStore()
-const fav = useFavoritesStore()
 
 // 判斷是否為首頁（只有首頁使用 MainFrame 藍色框架）
 const isHomePage = computed(() => route.name === 'home')
@@ -30,7 +29,6 @@ const isLoggedIn = ref(true)
 const defaultAvatar =
   'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=100&q=60'
 
-const favOpen = ref(false)
 const menuOpen = computed(() => uiStore.isMenuOpen)
 
 // 計算屬性
@@ -62,24 +60,6 @@ function goProfile() {
 
 function goChat() {
   router.push({ name: 'chat-test' })
-}
-
-function toggleFavPanel() {
-  if (menuOpen.value) return
-  favOpen.value = !favOpen.value
-}
-
-function closeFavPanel() {
-  favOpen.value = false
-}
-
-function onBackdropClose() {
-  closeFavPanel()
-}
-
-function onSelectFavorite(evt) {
-  router.push({ name: 'Event', query: { eventId: evt.id } })
-  closeFavPanel()
 }
 </script>
 
@@ -116,125 +96,7 @@ function onSelectFavorite(evt) {
       <div v-else class="flex items-center gap-3">
         <div v-show="!uiStore.isMenuOpen" class="flex items-center gap-3">
           <!-- 收藏：桌機 dropdown、手機 modal -->
-          <div class="relative" :class="{ 'pointer-events-none opacity-40': menuOpen }">
-            <button
-              class="hover:text-brand-primary hover:bg-btn-secondary text-btn-accent relative flex h-10 w-10 items-center justify-center rounded-full transition max-[800px]:hidden"
-              title="收藏"
-              type="button"
-              aria-label="收藏的活動"
-              @click="toggleFavPanel"
-            >
-              <i
-                :class="fav.count ? 'fa-solid fa-heart text-brand-accent' : 'fa-regular fa-heart'"
-              ></i>
-            </button>
-
-            <!-- Desktop dropdown -->
-            <div v-if="favOpen" class="c-popover absolute right-0 mt-2 w-72 max-md:hidden">
-              <div
-                class="border-border-default flex items-center justify-between border-b px-3 py-2"
-              >
-                <div class="text-fg-primary text-sm font-semibold">已收藏</div>
-                <div class="flex items-center gap-2">
-                  <button
-                    v-if="fav.count"
-                    type="button"
-                    class="c-meta text-fg-muted hover:text-brand-primary font-semibold"
-                    @click="fav.clear()"
-                  >
-                    清空
-                  </button>
-                  <button
-                    type="button"
-                    class="c-meta text-fg-muted hover:text-fg-primary font-semibold"
-                    @click="closeFavPanel"
-                  >
-                    關閉
-                  </button>
-                </div>
-              </div>
-
-              <div v-if="!fav.count" class="text-fg-muted p-3 text-sm">目前沒有收藏活動</div>
-
-              <ul v-else class="no-scrollbar max-h-80 overflow-y-auto p-2">
-                <li v-for="e in fav.items" :key="e.id" class="c-list-item">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                      <div class="text-fg-primary truncate text-sm font-semibold">
-                        {{ e.title || `活動 #${e.id}` }}
-                      </div>
-                      <div class="text-fg-muted truncate text-sm">
-                        {{ e.desc || '（沒有描述）' }}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      class="rounded-btn text-brand-primary hover:bg-bg-base shrink-0 px-3 py-1 text-sm font-semibold"
-                      @click="onSelectFavorite(e)"
-                    >
-                      查看
-                    </button>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Mobile modal -->
-            <teleport to="body">
-              <div v-if="favOpen" class="md:hidden">
-                <div class="fixed inset-0 z-40 bg-black/30" @click="onBackdropClose"></div>
-
-                <div class="c-sheet fixed top-15 right-3 left-3 z-50">
-                  <div
-                    class="border-border-default flex items-center justify-between border-b px-4 py-3"
-                  >
-                    <div class="text-fg-primary text-sm font-semibold">已收藏</div>
-                    <div class="flex items-center gap-3">
-                      <button
-                        v-if="fav.count"
-                        type="button"
-                        class="c-meta text-fg-muted hover:text-brand-primary font-semibold"
-                        @click="fav.clear()"
-                      >
-                        清空
-                      </button>
-                      <button
-                        type="button"
-                        class="c-meta text-fg-muted hover:text-fg-primary font-semibold"
-                        @click="closeFavPanel"
-                      >
-                        關閉
-                      </button>
-                    </div>
-                  </div>
-
-                  <div v-if="!fav.count" class="text-fg-muted p-4 text-sm">目前沒有收藏活動</div>
-
-                  <ul v-else class="no-scrollbar max-h-[60vh] overflow-y-auto p-2">
-                    <li v-for="e in fav.items" :key="e.id" class="c-list-item">
-                      <div class="flex items-start justify-between gap-3">
-                        <div class="min-w-0">
-                          <div class="text-fg-primary truncate text-sm font-semibold">
-                            {{ e.title || `活動 #${e.id}` }}
-                          </div>
-                          <div class="text-fg-muted mt-1 line-clamp-2 text-sm">
-                            {{ e.desc || '（沒有描述）' }}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          class="rounded-btn text-brand-primary hover:bg-bg-base shrink-0 px-3 py-1.5 text-sm font-semibold"
-                          @click="onSelectFavorite(e)"
-                        >
-                          查看
-                        </button>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </teleport>
-          </div>
+          <EventPanel />
 
           <!-- 訊息 -->
 
