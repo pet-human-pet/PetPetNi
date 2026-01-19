@@ -62,7 +62,7 @@ function handleLogoClick() {
       <!-- TODO: 之後應該會換成logo圖片檔 -->
       <button
         class="pointer-events-auto flex cursor-pointer items-center border-none bg-transparent p-0 no-underline transition-opacity duration-300"
-        :class="{ 'opacity-40 select-none': menuOpen }"
+        :class="{ 'pointer-events-none opacity-0': uiStore.isMenuOpen }"
         @click="handleLogoClick"
       >
         <span
