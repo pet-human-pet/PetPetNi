@@ -16,6 +16,8 @@ import PostCard from '@/components/Social/PostCard.vue'
 import IconGear from '@/components/icons/IconGear.vue'
 import TagSelector from '@/components/Share/TagSelector.vue'
 import ImageCropper from '@/components/Share/ImageCropper.vue'
+import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
+import { useImagePreview } from '@/composables/useImagePreview'
 
 // const BRAND_ORANGE = '#f48e31' // 已移除
 const activeTab = ref('posts')
@@ -52,6 +54,25 @@ const {
 const syncTagsToProfile = () => {
   const { requiredTags, optionalTags: optional } = getSubmitData()
   profile.hashtags = [...requiredTags, ...optional]
+}
+
+// 圖片預覽功能
+const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
+
+// 貼文互動功能
+const toggleLike = (postId) => {
+  const posts = activeSubTab.value === 'my' ? myPosts : savedPosts
+  const post = posts.find((p) => p.id === postId)
+  if (!post) return
+  post.isLiked = !post.isLiked
+  post.likeCount += post.isLiked ? 1 : -1
+}
+
+const toggleBookmark = (postId) => {
+  const posts = activeSubTab.value === 'my' ? myPosts : savedPosts
+  const post = posts.find((p) => p.id === postId)
+  if (!post) return
+  post.isBookmarked = !post.isBookmarked
 }
 
 // --- Mock Data ---
@@ -372,7 +393,15 @@ onUnmounted(() => {
                 v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
                 :key="post.id"
                 :post="post"
+                @like="toggleLike" @bookmark="toggleBookmark" @preview-image="openPreview"
               />
+            </div>
+            <ImagePreviewModal
+              v-model:index="previewIndex"
+              :open="previewOpen"
+              :images="previewImages"
+              @close="closePreview"
+            />
             </div>
             <div v-if="activeTab === 'events'" class="grid gap-4 pb-10 md:gap-5">
               <div
