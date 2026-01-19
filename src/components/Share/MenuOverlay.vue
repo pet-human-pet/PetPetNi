@@ -51,7 +51,7 @@ const getIconUrl = (name) => {
                 探索寵物
               </button>
               <button
-                class="text--brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
+                class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
               >
                 開始配對
               </button>
