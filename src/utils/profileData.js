@@ -198,11 +198,11 @@ export const followingList = [
   }
 ]
 export const createdEvents = [
-  { id: 201, name: '布偶貓聚會', location: '中山區', status: '招募中', content: '交流！' }
+  { id: 201, name: '布偶貓聚會', location: '中山區', status: 'recruiting', content: '交流！' }
 ]
 export const followedEvents = [
-  { id: 301, name: '寵物展覽', location: '世貿一館', status: '已收藏', content: '必去！' }
+  { id: 301, name: '寵物展覽', location: '世貿一館', status: 'ongoing', content: '必去！' }
 ]
 export const historyEvents = [
-  { id: 401, name: '冬季健檢', location: '台大醫院', status: '已結束', content: '健康。' }
+  { id: 401, name: '冬季健檢', location: '台大醫院', status: 'ended', content: '健康。' }
 ]
