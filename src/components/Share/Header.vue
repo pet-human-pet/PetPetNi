@@ -5,6 +5,8 @@ import { useUIStore } from '@/stores/ui'
 import MenuButton from '@/components/Button/MenuButton.vue'
 import NotificationPanel from './HeaderPanel/NotificationPanel.vue'
 import EventPanel from './HeaderPanel/EventPanel.vue'
+import ChatButton from './HeaderPanel/ChatButton.vue'
+import ProfileButton from './HeaderPanel/ProfileButton.vue'
 
 // Props
 const props = defineProps({
@@ -23,25 +25,20 @@ const uiStore = useUIStore()
 const isHomePage = computed(() => route.name === 'home')
 
 // TODO: 後續整合真實的 auth store (useAuthStore)
+// 目前為了開發方便預設為已登入
 const isLoggedIn = ref(true)
-
-// 常數與狀態
-const defaultAvatar =
-  'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=100&q=60'
 
 const menuOpen = computed(() => uiStore.isMenuOpen)
 
-// 判斷是否顯示頭像 (首頁與個人頁面隱藏)
-const shouldShowAvatar = computed(() => !['home', 'Profile'].includes(route.name))
-
 // 計算屬性
 const headerClasses = computed(() => [
-  'h-(--header-h) fixed left-0 z-50 w-full',
+  'h-(--header-h) fixed left-0 z-50 w-full transition-all duration-300',
   props.transparent || uiStore.isMenuOpen
     ? 'bg-transparent border-none shadow-none'
     : 'bg-white border-b border-border-default shadow-shadow-card',
   // TODO: top-[36px] 為跑馬燈高度，考慮抽成 CSS 變數 --marquee-h
   isHomePage.value ? 'top-[36px]' : 'top-0',
+  // Menu 開啟時讓 Header 背景不擋住點擊，但 MenuButton 需設為 auto
   uiStore.isMenuOpen ? 'pointer-events-none' : ''
 ])
 
@@ -56,24 +53,16 @@ function handleLogoClick() {
   uiStore.closeMenu()
   router.push({ name: 'home' })
 }
-
-function goProfile() {
-  router.push({ name: 'Profile' })
-}
-
-function goChat() {
-  router.push({ name: 'chat-test' })
-}
 </script>
 
 <template>
-  <header v-show="!uiStore.isMenuOpen" :class="headerClasses">
+  <header :class="headerClasses">
     <div :class="containerClasses">
       <!-- Logo -->
       <!-- TODO: 之後應該會換成logo圖片檔 -->
       <button
-        class="flex cursor-pointer items-center border-none bg-transparent p-0 no-underline"
-        :class="{ 'pointer-events-none opacity-40': menuOpen }"
+        class="pointer-events-auto flex cursor-pointer items-center border-none bg-transparent p-0 no-underline transition-opacity duration-300"
+        :class="{ 'opacity-40 select-none': menuOpen }"
         @click="handleLogoClick"
       >
         <span
@@ -85,7 +74,7 @@ function goChat() {
       </button>
 
       <!-- 登入前：只顯示登入按鈕 + Menu -->
-      <div v-if="!isLoggedIn" class="flex items-center gap-3">
+      <div v-if="!isLoggedIn" class="pointer-events-auto flex items-center gap-3">
         <div class="flex items-center gap-3 md:absolute md:left-1/2 md:-translate-x-1/2">
           <router-link
             v-show="!uiStore.isMenuOpen"
@@ -106,44 +95,24 @@ function goChat() {
       </div>
 
       <!-- 登入後：完整功能按鈕 -->
-      <div v-else class="flex items-center gap-1 md:gap-3">
-        <div v-show="!uiStore.isMenuOpen" class="flex items-center gap-1 md:gap-3">
+      <div v-else class="pointer-events-auto flex items-center gap-1 md:gap-3">
+        <div class="flex items-center gap-1 md:gap-3">
           <!-- 收藏：桌機 dropdown、手機 modal -->
           <EventPanel />
 
           <!-- 訊息 -->
-          <button
-            class="c-header-btn"
-            title="訊息"
-            type="button"
-            :class="{ 'pointer-events-none opacity-40': menuOpen }"
-            @click="goChat"
-          >
-            <i class="fa-regular fa-comment-dots"></i>
-
-            <span
-              class="bg-brand-accent absolute top-2 right-2 h-2 w-2 rounded-full border border-white"
-            />
-          </button>
+          <ChatButton />
 
           <!-- 通知 -->
           <NotificationPanel />
 
           <!-- Avatar：點擊導向個人頁面 -->
-          <button
-            v-if="shouldShowAvatar"
-            type="button"
-            class="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-white p-0"
-            title="個人頁面"
-            :class="{ 'pointer-events-none opacity-40': menuOpen }"
-            @click="goProfile"
-          >
-            <img :src="defaultAvatar" class="h-full w-full object-cover" alt="avatar" />
-          </button>
+          <ProfileButton />
         </div>
 
         <!-- Menu 按鈕 -->
-        <MenuButton class="ml-1 md:ml-2" />
+        <!-- 當 Header 為 pointer-events-none 時，需確保按鈕可點擊 -->
+        <MenuButton class="pointer-events-auto ml-1 md:ml-2" />
       </div>
     </div>
   </header>
