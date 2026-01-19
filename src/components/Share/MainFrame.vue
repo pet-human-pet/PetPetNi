@@ -13,7 +13,7 @@ defineProps({
 
 <template>
   <div
-    class="relative grid h-dvh w-full grid-cols-[30px_1fr_30px] grid-rows-[auto_1fr_auto] overflow-hidden bg-[#EBE7D9] md:grid-cols-[40px_1fr_40px]"
+    class="bg-bg-base relative grid h-dvh w-full grid-cols-[30px_1fr_30px] grid-rows-[auto_1fr_auto] overflow-hidden md:grid-cols-[40px_1fr_40px]"
   >
     <!-- Background Slot (Spans fully, lowest z-index) -->
     <div class="pointer-events-none z-0 col-span-full row-span-full">
@@ -21,10 +21,10 @@ defineProps({
     </div>
 
     <!-- 1. Top Marquee (Row 1, Full Width) -->
-    <div class="bg-mayekawa z-20 col-span-full row-start-1">
+    <div class="bg-brand-secondary z-20 col-span-full row-start-1">
       <MarqueeBorder
-        text="PAWS·PAWS"
-        bg-color="bg-mayekawa"
+        text="AI時代要把網站切那麼醜，也是不容易。"
+        bg-color="bg-brand-secondary"
         text-color="text-white"
         :duration="50"
       />
@@ -32,7 +32,7 @@ defineProps({
 
     <!-- 2. Left Marquee (Col 1, Full Height, Highest Z-Index) -->
     <div
-      class="bg-mayekawa pointer-events-none relative z-30 col-start-1 row-span-full h-full overflow-hidden"
+      class="bg-brand-secondary pointer-events-none relative z-30 col-start-1 row-span-full h-full overflow-hidden"
     >
       <!-- Rotated Marquee Wrapper -->
       <div
@@ -40,7 +40,7 @@ defineProps({
       >
         <MarqueeBorder
           text="PAWS·PAWS"
-          bg-color="transparent"
+          bg-color="bg-brand-secondary"
           text-color="text-white"
           :duration="50"
         />
@@ -48,15 +48,13 @@ defineProps({
     </div>
 
     <!-- 3. Content (Row 2, Col 2) -->
-    <div
-      class="col-start-2 row-start-2 relative w-full h-full min-w-0 min-h-0 z-10"
-    >
+    <div class="relative z-10 col-start-2 row-start-2 h-full min-h-0 w-full min-w-0">
       <slot></slot>
     </div>
 
     <!-- 4. Right Marquee (Col 3, Full Height, Highest Z-Index) -->
     <div
-      class="bg-mayekawa pointer-events-none relative z-30 col-start-3 row-span-full h-full overflow-hidden"
+      class="bg-brand-secondary pointer-events-none relative z-30 col-start-3 row-span-full h-full overflow-hidden"
     >
       <!-- Rotated Marquee Wrapper -->
       <div
@@ -64,7 +62,7 @@ defineProps({
       >
         <MarqueeBorder
           text="PAWS·PAWS"
-          bg-color="transparent"
+          bg-color="bg-brand-secondary"
           text-color="text-white"
           :duration="50"
         />
