@@ -3,12 +3,15 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 // 1. 導入路徑與服務 (New Structure)
 import chatRoutes from './routes/chat.js'
 import { chatService } from './services/chatService.js'
 
-dotenv.config()
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+dotenv.config({ path: path.resolve(__dirname, '../.env') })
 const app = express()
 const httpServer = createServer(app)
 
