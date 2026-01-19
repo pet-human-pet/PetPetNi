@@ -12,57 +12,28 @@ const route = useRoute()
 const isHomePage = computed(() => route.name === 'home' || route.path === '/')
 
 // 跑馬燈文字內容
-const marqueeTextLight = '繁體。中文字。測試'
-const marqueeTextDark = '繁體。中文字。測試'
+const marqueeTextLight = '這個網站真的很隨興，弄得溝追溝追的， 一點都不專業'
+const marqueeTextDark = 'ＢＹ高見龍'
 </script>
 
 <template>
   <footer class="pointer-events-auto z-20 flex w-full flex-col">
     <div
-      class="flex w-full items-end justify-between px-[50px] py-4 text-xs font-medium tracking-wide text-black md:pb-4"
+      v-if="isHomePage"
+      class="bg-brand-primary flex w-full items-center border-t border-white/20"
     >
-      <div class="opacity-80">&copy; PETPETNI</div>
-
-      <div class="flex items-center gap-6">
-        <div class="flex gap-3">
-          <img
-            src="@/assets/icons/icon-social-instagram.svg"
-            class="h-6 w-6 cursor-pointer hover:opacity-80"
-          />
-          <img
-            src="@/assets/icons/icon-social-tiktok.svg"
-            class="h-6 w-6 cursor-pointer hover:opacity-80"
-          />
-          <img
-            src="@/assets/icons/icon-social-youtube.svg"
-            class="h-6 w-6 cursor-pointer hover:opacity-80"
-          />
-        </div>
-        <div class="hidden gap-4 md:flex">
-          <a href="#" class="flex items-center gap-1 hover:underline">
-            官方網站 <span class="text-xs">↗</span>
-          </a>
-          <a href="#" class="flex items-center gap-1 hover:underline">
-            隱私權政策
-            <span class="text-xs">↗</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="isHomePage" class="border-mayekawa/20 flex w-full items-center border-t bg-white">
       <MarqueeBorder
         :text="marqueeTextLight"
         bg-color="bg-white"
-        text-color="text-mayekawa"
+        text-color="text-brand-secondary"
         :duration="45"
       />
     </div>
 
-    <div v-if="isHomePage" class="bg-mayekawa w-full">
+    <div v-if="isHomePage" class="bg-brand-secondary w-full">
       <MarqueeBorder
         :text="marqueeTextDark"
-        bg-color="bg-mayekawa"
+        bg-color="bg-brand-secondary"
         text-color="text-white"
         :reverse="true"
         :duration="45"
