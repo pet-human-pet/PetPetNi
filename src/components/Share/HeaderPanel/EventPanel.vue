@@ -5,13 +5,11 @@ import { useFavoritesStore } from '@/stores/favorites'
 import { useActiveItem } from '@/composables/useActiveItem'
 import { useScreen } from '@/composables/useScreen'
 import { useScrollLock } from '@/composables/useScrollLock'
-import { useUIStore } from '@/stores/ui'
 
 const router = useRouter()
 const fav = useFavoritesStore()
 const { activeId, activate, deactivate, registerRef } = useActiveItem()
 const { breakpoints } = useScreen()
-const uiStore = useUIStore()
 
 const PANEL_ID = 'favorite-panel'
 const isOpen = computed(() => activeId.value === PANEL_ID)
@@ -20,10 +18,7 @@ const isOpen = computed(() => activeId.value === PANEL_ID)
 const isPanelMobile = breakpoints.smaller('md')
 useScrollLock(computed(() => isOpen.value && isPanelMobile.value))
 
-const menuOpen = computed(() => uiStore.isMenuOpen)
-
 const toggle = () => {
-  if (menuOpen.value) return
   if (isOpen.value) {
     deactivate()
   } else {
@@ -46,11 +41,7 @@ const onSelectFavorite = (evt) => {
 </script>
 
 <template>
-  <div
-    :ref="(el) => registerRef(PANEL_ID, el)"
-    class="relative"
-    :class="{ 'pointer-events-none opacity-40': menuOpen }"
-  >
+  <div :ref="(el) => registerRef(PANEL_ID, el)" class="relative">
     <!-- Trigger Button -->
     <button class="c-header-btn" title="收藏" type="button" aria-label="收藏的活動" @click="toggle">
       <i :class="fav.count ? 'fa-solid fa-heart text-brand-accent' : 'fa-regular fa-heart'"></i>

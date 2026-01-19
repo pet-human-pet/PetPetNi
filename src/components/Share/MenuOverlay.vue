@@ -2,7 +2,6 @@
 import { useUIStore } from '../../stores/ui'
 import NavIcon from './NavIcon.vue'
 import BackgroundGrid from './BackgroundGrid.vue'
-import MenuButton from '@/components/Button/MenuButton.vue'
 import { toRef } from 'vue'
 import { useScrollLock } from '@/composables/useScrollLock'
 
@@ -34,11 +33,6 @@ const getIconUrl = (name) => {
       @click.self="uiStore.closeMenu()"
     >
       <BackgroundGrid class="pointer-events-none fixed inset-0 opacity-40" />
-
-      <!-- 右上角 MenuButton -->
-      <div class="menu-button-wrapper pointer-events-auto fixed top-6 right-6 z-50">
-        <MenuButton />
-      </div>
 
       <!-- 手機版佈局 -->
       <div class="relative flex min-h-screen flex-col px-6 pt-24 pb-10 md:hidden">
