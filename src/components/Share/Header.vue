@@ -95,8 +95,11 @@ function handleLogoClick() {
       </div>
 
       <!-- 登入後：完整功能按鈕 -->
-      <div v-else class="pointer-events-auto flex items-center gap-1 md:gap-3">
-        <div class="flex items-center gap-1 md:gap-3">
+      <div v-else class="flex items-center gap-1 md:gap-3">
+        <div
+          class="flex items-center gap-1 transition-opacity duration-300 md:gap-3"
+          :class="{ 'pointer-events-none opacity-0': uiStore.isMenuOpen }"
+        >
           <!-- 收藏：桌機 dropdown、手機 modal -->
           <EventPanel />
 
