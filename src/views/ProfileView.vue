@@ -452,14 +452,12 @@ onUnmounted(() => {
       <!-- Modals -->
       <Teleport to="body">
         <ImageCropper
-          v-if="showCropper"
+          class="image-cropper-wrapper"
+          :class="{ 'is-visible': showCropper }"
           :image-src="tempImageSrc"
-          @confirm="handleCropConfirm"
-          @cancel="handleCropCancel"
+          @confirm="handleCropConfirm" @cancel="handleCropCancel"
         />
-      </Teleport>
-      
-      <ImagePreviewModal
+      </Teleport>      <ImagePreviewModal
         v-model:index="previewIndex"
         :open="previewOpen"
         :images="previewImages"
@@ -616,5 +614,25 @@ onUnmounted(() => {
 .fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+</style>
+
+<style>
+/* Global styles for Teleported ImageCropper */
+.image-cropper-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.image-cropper-wrapper.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>

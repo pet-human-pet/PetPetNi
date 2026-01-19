@@ -60,7 +60,7 @@ const onConfirm = () => {
           取消
         </button>
         <button 
-          class="flex-1 rounded-lg bg-mayekawa py-2.5 font-medium text-white hover:opacity-90"
+          class="flex-1 rounded-lg bg-orange-400 py-2.5 font-medium text-white hover:bg-orange-500"
           @click="onConfirm"
         >
           確認裁切
