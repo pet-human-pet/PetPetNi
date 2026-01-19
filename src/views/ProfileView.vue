@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import {
   profile as profileData,
   myPosts as myPostsData,
@@ -31,13 +31,23 @@ const eventTabs = [
   { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
 ]
 
+const myPosts = ref(myPostsData)
+const savedPosts = ref(savedPostsData)
+
 // 統一的 Modal 樣式
 const modalOverlayClass =
   'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
 
-// 响应式帖子数据
-const myPosts = ref(myPostsData)
-const savedPosts = ref(savedPostsData)
+const profile = reactive(profileData)
+
+// 寵物資訊欄位
+const petInfoFields = computed(() => [
+  { label: '品種', value: profile.petInfo.breed },
+  { label: '生日', value: profile.petInfo.birthday },
+  { label: '性別', value: profile.petInfo.gender }
+])
+
+console.log('petInfoFields:', petInfoFields.value) // <-- Debugging log
 
 // 基础 UI 状态
 const activeTab = ref('posts')
@@ -56,8 +66,6 @@ const showTagPicker = ref(false)
 const showUserList = ref(false)
 const userListTitle = ref('')
 const currentUserList = ref([])
-
-const profile = reactive(profileData)
 
 // 标签选择
 const {
@@ -306,39 +314,22 @@ onUnmounted(() => {
                       v-if="isAboutVisible"
                       class="flex w-full items-end border-t border-gray-50 pt-1 md:mt-6 md:pt-6"
                     >
-                      <div
-                        class="grid w-full grid-cols-3 items-center gap-0.5 text-center md:flex md:justify-around"
-                      >
-                        <div
-                          class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
-                        >
-                          <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
-                            >品種</span
-                          ><span
-                            class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
-                            >{{ profile.petInfo.breed }}</span
-                          >
-                        </div>
-                        <div
-                          class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
-                        >
-                          <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
-                            >生日</span
-                          ><span
-                            class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
-                            >{{ profile.petInfo.birthday }}</span
-                          >
-                        </div>
-                        <div class="flex flex-col items-center md:flex-1">
-                          <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
-                            >性別</span
-                          ><span
-                            class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
-                            >{{ profile.petInfo.gender }}</span
-                          >
-                        </div>
-                      </div>
-                    </div>
+                                          <div
+                                            class="grid w-full grid-cols-3 items-center gap-0.5 text-center md:flex md:justify-around"
+                                          >
+                                            <div
+                                              v-for="field in petInfoFields"
+                                              :key="field.label"
+                                              class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
+                                            >
+                                              <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
+                                                >{{ field.label }}</span
+                                              ><span
+                                                class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
+                                                >{{ field.value }}</span
+                                              >
+                                            </div>
+                                          </div>                    </div>
                   </Transition>
                 </div>
               </div>
