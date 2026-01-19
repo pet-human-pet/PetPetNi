@@ -423,6 +423,7 @@ onUnmounted(() => {
             <button
               type="button"
               class="flex-1 rounded-xl border-2 border-gray-300 bg-white py-3 font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+              @click="showTagPicker = false"
             >
               取消
             </button>
