@@ -274,7 +274,11 @@ onUnmounted(() => {
           class="md:c-card flex h-full flex-col overflow-visible bg-transparent md:overflow-hidden md:rounded-2xl md:bg-white"
         >
           <div
+<<<<<<< HEAD
             class="sticky top-(--header-h) flex-none border-b border-gray-100 bg-white md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
+=======
+            class="sticky top-(--header-h) z-30 flex-none border-b border-gray-100 bg-white md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
+>>>>>>> 9fda8f0 (style: 新增 z-30 確保 sticky 元素在滾動時正確層疊)
           >
             <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
               <button
@@ -392,6 +396,7 @@ onUnmounted(() => {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       @click.self="showTagPicker = false"
     >
+<<<<<<< HEAD
       <!-- 卡片容器 -->
       <div
         class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-xl md:h-[85vh]"
@@ -424,6 +429,48 @@ onUnmounted(() => {
               type="button"
               class="flex-1 rounded-xl border-2 border-gray-300 bg-white py-3 font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
               @click="showTagPicker = false"
+=======
+      <div class="c-card max-h-[90vh] w-full max-w-xl overflow-y-auto bg-white p-8">
+        <h2 class="mb-8 text-center text-2xl font-bold text-[#f48e31]">編輯寵物 Hashtags</h2>
+        <div class="space-y-8">
+          <div>
+            <div class="mb-4 flex items-center justify-between">
+              <label class="text-fg-secondary text-lg font-bold"
+                >目前已選標籤 ({{ profile.hashtags.length }}/5)</label
+              ><span
+                v-if="profile.hashtags.length >= 5"
+                class="animate-bounce text-sm font-bold text-red-500"
+                >已達上限！</span
+              >
+            </div>
+            <div
+              class="mb-6 flex flex-wrap gap-3 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 p-6"
+            >
+              <span
+                v-if="profile.hashtags.length === 0"
+                class="text-fg-muted col-span-3 py-4 text-center text-sm italic"
+                >點擊下方按鈕開始選擇</span
+              >
+              <div
+                v-for="(tag, index) in profile.hashtags"
+                :key="index"
+                class="flex cursor-pointer items-center justify-between rounded-full border border-orange-100 bg-white px-3 py-2 text-[10px] font-bold text-[#f48e31] shadow-sm"
+                @click="removeTag(index)"
+              >
+                <span class="truncate">{{ tag }}</span
+                ><span class="ml-1 shrink-0 text-[10px]">✕</span>
+              </div>
+            </div>
+            <button
+              class="w-full rounded-2xl bg-[#f48e31] py-4 font-bold text-white shadow-md transition-all active:scale-95"
+              :class="
+                profile.hashtags.length >= 5
+                  ? 'cursor-not-allowed grayscale'
+                  : 'hover:brightness-110'
+              "
+              :disabled="profile.hashtags.length >= 5"
+              @click="showTagPicker = true"
+>>>>>>> 9fda8f0 (style: 新增 z-30 確保 sticky 元素在滾動時正確層疊)
             >
               取消
             </button>
