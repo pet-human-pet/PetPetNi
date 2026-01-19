@@ -102,18 +102,6 @@ export function useChatMenus(options = {}) {
       store.replyingMsg = { id: msg.id, content: msg.content }
     }
 
-    if (action === 'delete') {
-      const isConfirmed = await showConfirm({
-        title: '刪除訊息',
-        message: '確定要收回這則訊息嗎？',
-        type: 'danger',
-        confirmText: '收回'
-      })
-      if (isConfirmed) {
-        success('訊息已收回')
-      }
-    }
-
     if (action === 'report') {
       if (!showReport) {
         return
