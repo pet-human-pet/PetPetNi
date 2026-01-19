@@ -402,7 +402,6 @@ onUnmounted(() => {
               :images="previewImages"
               @close="closePreview"
             />
-            </div>
             <div v-if="activeTab === 'events'" class="grid gap-4 pb-10 md:gap-5">
               <div
                 v-for="event in activeSubTab === 'create'
