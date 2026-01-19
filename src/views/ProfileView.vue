@@ -1,16 +1,18 @@
 <script setup>
-import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import {
-  profile as profileData,
   myPosts as myPostsData,
   savedPosts as savedPostsData,
   followersList,
-  followingList,
   createdEvents,
   followedEvents,
   historyEvents
 } from '@/utils/profileData.js'
+import { useProfileStore } from '@/stores/profileStore'
+import { useAuthStore } from '@/stores/auth'
 import { useTagSelection } from '@/composables/useTagSelection.js'
+import { useToast } from '@/composables/useToast'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import IconGear from '@/components/icons/IconGear.vue'
@@ -19,6 +21,53 @@ import ImageCropper from '@/components/Share/ImageCropper.vue'
 import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
 import { useImagePreview } from '@/composables/useImagePreview'
 import { getStatusBadge } from '@/utils/statusHelper'
+
+// 1. 初始化資料源
+const profileStore = useProfileStore()
+const authStore = useAuthStore()
+const toast = useToast()
+const route = useRoute()
+
+// 2. 定義核心響應式對象
+const profileId = computed(() => String(route.params.id || '1'))
+const isLoggedIn = computed(() => !!authStore.user)
+
+// 權限檢查工具
+const requireAuth = (callback) => {
+  if (!isLoggedIn.value) {
+    toast.info('請先登入後再進行操作')
+    return
+  }
+  callback()
+}
+
+const profile = computed(() => {
+  return profileStore.getProfileById(profileId.value)
+})
+
+const isMe = computed(() => profileId.value === '1')
+
+// 寵物資訊欄位
+const petInfoFields = computed(() => [
+  { label: '品種', value: profile.value.petInfo?.breed || '未知' },
+  { label: '生日', value: profile.value.petInfo?.birthday || '未知' },
+  { label: '性別', value: profile.value.petInfo?.gender || '未知' }
+])
+
+// 3. UI 狀態
+const activeTab = ref('posts')
+const activeSubTab = ref('my')
+const showDetail = ref(false)
+const selectedItem = ref(null)
+const fileInput = ref(null)
+const showCropper = ref(false)
+const tempImageSrc = ref('')
+const showTagPicker = ref(false)
+const showUserList = ref(false)
+const userListTitle = ref('')
+
+const myPosts = ref(myPostsData)
+const savedPosts = ref(savedPostsData)
 
 const postTabs = [
   { id: 'my', label: '我的貼文', padding: 'px-6 md:px-10' },
@@ -31,43 +80,7 @@ const eventTabs = [
   { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
 ]
 
-const myPosts = ref(myPostsData)
-const savedPosts = ref(savedPostsData)
-
-// 統一的 Modal 樣式
-const modalOverlayClass =
-  'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
-
-const profile = reactive(profileData)
-
-// 寵物資訊欄位
-const petInfoFields = computed(() => [
-  { label: '品種', value: profile.petInfo.breed },
-  { label: '生日', value: profile.petInfo.birthday },
-  { label: '性別', value: profile.petInfo.gender }
-])
-
-
-
-// 基础 UI 状态
-const activeTab = ref('posts')
-const activeSubTab = ref('my')
-const showDetail = ref(false)
-const selectedItem = ref(null)
-const fileInput = ref(null)
-const isAboutVisible = ref(true)
-
-// ImageCropper 状态
-const showCropper = ref(false)
-const tempImageSrc = ref('')
-
-// 其他 Modal 状态
-const showTagPicker = ref(false)
-const showUserList = ref(false)
-const userListTitle = ref('')
-const currentUserList = ref([])
-
-// 标签选择
+// 4. 標籤管理
 const {
   requiredSelections,
   optionalTags,
@@ -77,102 +90,111 @@ const {
   toggleOptionalTag,
   removeOptionalTag,
   getSubmitData
-} = useTagSelection(profile.hashtags)
+} = useTagSelection(profile.value.hashtags || [])
 
 const syncTagsToProfile = () => {
   const { requiredTags, optionalTags: optional } = getSubmitData()
-  profile.hashtags = [...requiredTags, ...optional]
+  profile.value.hashtags = [...requiredTags, ...optional]
 }
 
-// 图片预览
-const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
+const handleTagConfirm = () => {
+  syncTagsToProfile()
+  showTagPicker.value = false
+}
 
-// 贴文互动
+const handleOpenTagPicker = () => {
+  requireAuth(() => {
+    showTagPicker.value = true
+  })
+}
+
+// 5. 互動與業務邏輯
+const toggleFollow = () => {
+  requireAuth(() => {
+    profileStore.toggleFollow(profileId.value)
+  })
+}
+
 const toggleLike = (postId) => {
-  const posts = activeSubTab.value === 'my' ? myPosts.value : savedPosts.value
-  const post = posts.find((p) => p.id === postId)
-  if (!post) return
-  post.isLiked = !post.isLiked
-  post.likeCount += post.isLiked ? 1 : -1
+  requireAuth(() => {
+    const posts = activeSubTab.value === 'my' ? myPosts.value : savedPosts.value
+    const post = posts.find((p) => p.id === postId)
+    if (!post) return
+    post.isLiked = !post.isLiked
+    post.likeCount += post.isLiked ? 1 : -1
+  })
 }
 
 const toggleBookmark = (postId) => {
-  const posts = activeSubTab.value === 'my' ? myPosts.value : savedPosts.value
-  const postIndex = posts.findIndex((p) => p.id === postId)
-  
-  if (postIndex === -1) return
-
-  const post = posts[postIndex]
-  post.isBookmarked = !post.isBookmarked
-
-  // 如果在「儲存的貼文」分頁下取消收藏，則從列表中移除
-  if (activeSubTab.value === 'saved' && !post.isBookmarked) {
-    savedPosts.value.splice(postIndex, 1)
-  }
-}
-
-// 處理貼文更新
-const handleUpdatePost = ({ id, content, audience }) => {
-  const updatePost = (postsRef) => {
-    const index = postsRef.value.findIndex((p) => p.id === id)
-    if (index !== -1) {
-      postsRef.value[index].content = content
-      postsRef.value[index].audience = audience
+  requireAuth(() => {
+    const posts = activeSubTab.value === 'my' ? myPosts.value : savedPosts.value
+    const postIndex = posts.findIndex((p) => p.id === postId)
+    if (postIndex === -1) return
+    const post = posts[postIndex]
+    post.isBookmarked = !post.isBookmarked
+    if (!post.isBookmarked && activeSubTab.value === 'saved') {
+      posts.splice(postIndex, 1)
     }
-  }
-
-  updatePost(myPosts)
-  updatePost(savedPosts)
+  })
 }
 
-// 头像处理
+const handleUpdatePost = ({ id, content, audience }) => {
+  requireAuth(() => {
+    const updateArr = (arr) => {
+      const idx = arr.findIndex((p) => p.id === id)
+      if (idx !== -1) {
+        arr[idx].content = content
+        arr[idx].audience = audience
+      }
+    }
+    updateArr(myPosts.value)
+    updateArr(savedPosts.value)
+  })
+}
+
+// 6. 頭像與名單處理
 const handleAvatarClick = () => {
-  fileInput.value.click()
+  requireAuth(() => {
+    fileInput.value?.click()
+  })
 }
 
 const handleFileChange = (e) => {
   const file = e.target.files[0]
   if (file) {
-    // 在創建新的 blob URL 之前，先釋放舊的
-    if (tempImageSrc.value && tempImageSrc.value.startsWith('blob:')) {
-      URL.revokeObjectURL(tempImageSrc.value)
-    }
+    if (tempImageSrc.value) URL.revokeObjectURL(tempImageSrc.value)
     tempImageSrc.value = URL.createObjectURL(file)
     showCropper.value = true
     e.target.value = ''
   }
 }
 
-const cleanupTempImage = () => {
+const handleCropConfirm = (blob) => {
+  if (profile.value.avatar?.startsWith('blob:')) URL.revokeObjectURL(profile.value.avatar)
+  profile.value.avatar = URL.createObjectURL(blob)
+  showCropper.value = false
+}
+
+const handleCropCancel = () => {
+  showCropper.value = false
   if (tempImageSrc.value) {
     URL.revokeObjectURL(tempImageSrc.value)
     tempImageSrc.value = ''
   }
 }
 
-const handleCropConfirm = (blob) => {
-  if (profile.avatar?.startsWith('blob:')) {
-    URL.revokeObjectURL(profile.avatar)
-  }
-  profile.avatar = URL.createObjectURL(blob)
-  showCropper.value = false
-  cleanupTempImage()
-}
+const modalOverlayClass =
+  'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
 
-const handleCropCancel = () => {
-  showCropper.value = false
-  cleanupTempImage()
-}
-
-// 其他 UI 交互
-const handleTabChange = (tab) => {
-  activeTab.value = tab
-  activeSubTab.value = tab === 'posts' ? 'my' : 'create'
-}
+const activeUserListType = ref('followers')
+const currentUserList = computed(() => {
+  if (activeUserListType.value === 'followers') return followersList
+  return profileStore.state.myFollowingList
+})
 
 const openUserList = (type) => {
+  activeUserListType.value = type
   userListTitle.value = type === 'followers' ? '粉絲名單' : '追蹤中名單'
-  currentUserList.value = type === 'followers' ? followersList : followingList
   showUserList.value = true
 }
 
@@ -181,27 +203,21 @@ const openDetail = (item) => {
   showDetail.value = true
 }
 
-const handleTagConfirm = () => {
-  syncTagsToProfile()
-  showTagPicker.value = false
+const handleTabChange = (tab) => {
+  activeTab.value = tab
+  activeSubTab.value = tab === 'posts' ? 'my' : 'create'
 }
 
-// 生命周期钩子
-onMounted(() => {
-  document.body.classList.add('md:overflow-hidden')
-})
+const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
+
+// 7. 生命週期與清理
+onMounted(() => document.body.classList.add('md:overflow-hidden'))
 
 onBeforeUnmount(() => {
   document.body.classList.remove('md:overflow-hidden')
-})
-
-onUnmounted(() => {
-  if (profile.avatar && profile.avatar.startsWith('blob:')) {
-    URL.revokeObjectURL(profile.avatar)
-  }
-  if (tempImageSrc.value) {
-    URL.revokeObjectURL(tempImageSrc.value)
-  }
+  // 釋放記憶體中的 Blob URL
+  if (profile.value?.avatar?.startsWith('blob:')) URL.revokeObjectURL(profile.value.avatar)
+  if (tempImageSrc.value) URL.revokeObjectURL(tempImageSrc.value)
 })
 </script>
 
@@ -243,19 +259,23 @@ onUnmounted(() => {
                     >
                       <img :src="profile.avatar" class="h-full w-full object-cover" />
                     </div>
-                    <input ref="fileInput" type="file" class="hidden" accept="image/*" @change="handleFileChange" />
+                    <input
+                      ref="fileInput"
+                      type="file"
+                      class="hidden"
+                      accept="image/*"
+                      @change="handleFileChange"
+                    />
                     <span
                       class="absolute -right-1 bottom-2.5 z-10 rounded-full border bg-white px-2 py-0.5 text-xs font-bold shadow-sm md:right-2 md:bottom-4 md:px-3 md:py-1 md:text-xs"
-                      >已驗證</span
+                      >{{ profile.role === 'owner' ? '飼主' : '一般會員' }}</span
                     >
                   </div>
                   <div
+                    v-if="profile.role === 'owner' && isMe"
                     class="hidden h-6 w-full items-end justify-center gap-1 pb-1 md:flex md:h-auto md:gap-2"
                   >
-                    <span class="text-fg-muted max-w-20 truncate text-xs md:max-w-none md:text-lg">{{
-                      profile.username
-                    }}</span>
-                    <button class="group shrink-0 cursor-pointer" @click="showTagPicker = true">
+                    <button class="group shrink-0 cursor-pointer" @click="handleOpenTagPicker">
                       <!-- TODO: Replace hover:text-[#f48e31] with CSS variable -->
                       <IconGear
                         class="text-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:text-[#f48e31] md:h-6 md:w-6"
@@ -267,9 +287,11 @@ onUnmounted(() => {
                 <div
                   class="flex w-full min-w-0 flex-1 flex-col justify-between md:block md:w-auto md:gap-0"
                 >
-                  <div class="flex items-center justify-center gap-2 pb-2 text-center md:hidden">
-                    <span class="text-fg-muted text-xs">{{ profile.username }}</span>
-                    <button class="group shrink-0 cursor-pointer" @click="showTagPicker = true">
+                  <div
+                    v-if="profile.role === 'owner' && isMe"
+                    class="flex items-center justify-center gap-2 pb-2 text-center md:hidden"
+                  >
+                    <button class="group shrink-0 cursor-pointer" @click="handleOpenTagPicker">
                       <!-- TODO: Replace hover:text-[#f48e31] with CSS variable -->
                       <IconGear
                         class="text-fg-muted h-3.5 w-3.5 transition-all group-hover:rotate-90 hover:text-[#f48e31]"
@@ -277,7 +299,7 @@ onUnmounted(() => {
                     </button>
                   </div>
                   <div
-                    class="flex items-start justify-between pt-0.5 text-center md:mb-6 md:flex-nowrap md:justify-center md:gap-10"
+                    class="flex items-start justify-between pt-0.5 text-center md:mb-6 md:flex-nowrap md:justify-center md:gap-8 lg:gap-10"
                   >
                     <div
                       class="group flex-1 cursor-pointer md:flex-none"
@@ -285,79 +307,103 @@ onUnmounted(() => {
                     >
                       <div class="relative">
                         <!-- TODO: Replace #f48e31 -->
-                        <p class="text-lg font-bold text-[#f48e31] md:text-3xl">2</p>
+                        <p class="text-lg font-bold text-[#f48e31] md:text-3xl">
+                          {{ profile.followersCount }}
+                        </p>
                       </div>
                       <p class="text-fg-muted text-xs font-medium md:text-sm">粉絲</p>
                     </div>
-                    <div class="flex flex-[1.5] justify-center md:flex-none">
-                      <!-- TODO: Replace #f48e31 -->
+
+                    <!-- 追蹤按鈕：僅在他人主頁顯示 -->
+                    <div v-if="!isMe" class="flex flex-1 items-center justify-center px-2">
                       <button
-                        class="c-btn w-full max-w-20 truncate rounded-full border py-1 text-xs font-bold whitespace-nowrap transition-all md:w-auto md:max-w-none md:px-6 md:py-1.5 md:text-sm"
-                        :class="[
-                          isAboutVisible
-                            ? 'border-[#f48e31] bg-[#f48e31] text-white'
-                            : 'border-[#f48e31] text-[#f48e31]'
-                        ]"
-                        @click="isAboutVisible = !isAboutVisible"
+                        class="c-btn h-8 w-full min-w-20 rounded-full px-4 text-xs font-bold transition-all md:h-10 md:min-w-24 md:text-sm"
+                        :class="
+                          profile.isFollowed
+                            ? 'text-fg-secondary bg-gray-100 hover:bg-gray-200'
+                            : 'bg-[#f48e31] text-white hover:bg-[#e07d2c]'
+                        "
+                        @click="toggleFollow"
                       >
-                        關於我
+                        {{ profile.isFollowed ? '追蹤中' : '追蹤' }}
                       </button>
                     </div>
+
                     <div
                       class="group flex-1 cursor-pointer md:flex-none"
                       @click="openUserList('following')"
                     >
                       <div class="relative">
                         <!-- TODO: Replace #f48e31 -->
-                        <p class="text-lg font-bold text-[#f48e31] md:text-3xl">6</p>
+                        <p class="text-lg font-bold text-[#f48e31] md:text-3xl">
+                          {{ profile.followingCount }}
+                        </p>
                       </div>
                       <p class="text-fg-muted text-xs font-medium md:text-sm">追蹤中</p>
                     </div>
                   </div>
-                  <Transition
-                    enter-active-class="transition-opacity duration-300 ease-out transform-gpu"
-                    leave-active-class="transition-opacity duration-300 ease-in transform-gpu"
-                    enter-from-class="opacity-0 -translate-y-[10px]"
-                    leave-to-class="opacity-0 -translate-y-[10px]"
+                  <!-- 一般會員 (cloud) 專用簡介區塊 (塊狀化設計) -->
+                  <div
+                    v-if="profile.role === 'cloud'"
+                    class="flex flex-col gap-5 border-t border-gray-100 pt-6 md:mt-8 md:items-center md:pt-8"
+                  >
+                    <div class="flex w-full flex-col gap-2 md:max-w-[280px]">
+                      <h3
+                        class="text-fg-muted pl-1 text-[10px] font-black tracking-widest uppercase md:text-center"
+                      >
+                        個人簡介
+                      </h3>
+                      <div class="bg-bg-base/60 rounded-2xl border border-black/5 p-4 shadow-xs">
+                        <p class="text-fg-secondary text-left text-sm leading-relaxed font-medium">
+                          {{ profile.bio }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="text-fg-muted/50 flex items-center gap-1.5">
+                      <span class="text-[10px] font-black tracking-tight uppercase">
+                        加入日期：{{ profile.joinDate }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="profile.role === 'owner'"
+                    class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none"
                   >
                     <div
-                      v-if="isAboutVisible"
-                      class="my-1 flex w-full flex-1 items-center md:my-0 md:block md:flex-none"
+                      class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden md:h-auto md:gap-2"
+                    >
+                      <span
+                        v-for="tag in profile.hashtags"
+                        :key="tag"
+                        class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-xs font-medium tracking-tighter md:px-2 md:py-1 md:text-xs"
+                        >{{ tag }}</span
+                      >
+                    </div>
+                  </div>
+                  <div
+                    v-if="profile.role === 'owner'"
+                    class="flex w-full items-end border-t border-gray-50 pt-1 md:mt-6 md:pt-6"
+                  >
+                    <div
+                      class="grid w-full grid-cols-3 items-center gap-0.5 text-center md:flex md:justify-around"
                     >
                       <div
-                        class="grid h-14 w-full grid-cols-3 content-center gap-1 overflow-hidden md:h-auto md:gap-2"
+                        v-for="field in petInfoFields"
+                        :key="field.label"
+                        class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
                       >
-                        <span
-                          v-for="tag in profile.hashtags"
-                          :key="tag"
-                          class="text-fg-muted truncate rounded-full bg-gray-100 px-1 py-1 text-center text-xs font-medium tracking-tighter md:px-2 md:py-1 md:text-xs"
-                          >{{ tag }}</span
+                        <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1">{{
+                          field.label
+                        }}</span
+                        ><span
+                          class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
+                          >{{ field.value }}</span
                         >
                       </div>
                     </div>
-                  </Transition>
-                  <Transition name="fade">
-                    <div
-                      v-if="isAboutVisible"
-                      class="flex w-full items-end border-t border-gray-50 pt-1 md:mt-6 md:pt-6"
-                    >
-                                          <div
-                                            class="grid w-full grid-cols-3 items-center gap-0.5 text-center md:flex md:justify-around"
-                                          >
-                                            <div
-                                              v-for="field in petInfoFields"
-                                              :key="field.label"
-                                              class="flex flex-col items-center border-r border-gray-100 last:border-0 md:flex-1 md:border-0"
-                                            >
-                                              <span class="text-fg-muted mb-0.5 text-xs font-bold uppercase md:mb-1"
-                                                >{{ field.label }}</span
-                                              ><span
-                                                class="text-fg-secondary w-full truncate text-xs font-bold tracking-tighter md:text-sm"
-                                                >{{ field.value }}</span
-                                              >
-                                            </div>
-                                          </div>                    </div>
-                  </Transition>
+                  </div>
                 </div>
               </div>
             </div>
@@ -369,15 +415,23 @@ onUnmounted(() => {
             <div
               class="sticky top-(--header-h) z-30 flex-none border-b border-gray-100 bg-white md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
             >
-              <div class="flex shrink-0 justify-around px-4 pt-4 md:px-6">
+              <div
+                class="flex shrink-0 px-4 pt-4 md:px-6"
+                :class="profile.role === 'owner' ? 'justify-around' : 'justify-center'"
+              >
                 <button
-                  v-for="tab in [
-                    { id: 'posts', n: '貼文' },
-                    { id: 'events', n: '活動' }
-                  ]"
+                  v-for="tab in profile.role === 'owner'
+                    ? [
+                        { id: 'posts', n: '貼文' },
+                        { id: 'events', n: '活動' }
+                      ]
+                    : [{ id: 'posts', n: '貼文' }]"
                   :key="tab.id"
-                  class="relative w-full pb-3 text-center text-base font-bold md:pb-5 md:text-lg"
-                  :class="{ 'text-[#f48e31]': activeTab === tab.id }"
+                  class="relative pb-3 text-center text-base font-bold md:pb-5 md:text-lg"
+                  :class="[
+                    profile.role === 'owner' ? 'w-full' : 'w-1/3',
+                    { 'text-[#f48e31]': activeTab === tab.id }
+                  ]"
                   @click="handleTabChange(tab.id)"
                 >
                   {{ tab.n }}
@@ -389,33 +443,40 @@ onUnmounted(() => {
                 </button>
               </div>
 
-                          <div class="px-4 py-4 md:px-6">
-                            <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
-                              <button
-                                v-for="tab in postTabs"
-                                :key="tab.id"
-                                class="c-btn rounded-xl py-2 text-xs font-bold shadow-sm md:py-2.5 md:text-sm"
-                                :class="[tab.padding, activeSubTab === tab.id ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                                @click="activeSubTab = tab.id"
-                              >
-                                {{ tab.label }}
-                              </button>
-                            </div>
-                            <div
-                              v-if="activeTab === 'events'"
-                              class="flex flex-wrap justify-center gap-2 md:gap-4"
-                            >
-                              <button
-                                v-for="tab in eventTabs"
-                                :key="tab.id"
-                                class="c-btn rounded-xl py-2 text-xs font-bold shadow-sm md:py-2.5 md:text-sm"
-                                :class="[tab.padding, activeSubTab === tab.id ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                                @click="activeSubTab = tab.id"
-                              >
-                                {{ tab.label }}
-                              </button>
-                            </div>
-                          </div>            </div>
+              <div class="px-4 py-4 md:px-6">
+                <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
+                  <button
+                    v-for="tab in postTabs"
+                    :key="tab.id"
+                    class="c-btn rounded-xl py-2 text-xs font-bold shadow-sm md:py-2.5 md:text-sm"
+                    :class="[
+                      tab.padding,
+                      activeSubTab === tab.id ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]'
+                    ]"
+                    @click="activeSubTab = tab.id"
+                  >
+                    {{ tab.label }}
+                  </button>
+                </div>
+                <div
+                  v-if="activeTab === 'events'"
+                  class="flex flex-wrap justify-center gap-2 md:gap-4"
+                >
+                  <button
+                    v-for="tab in eventTabs"
+                    :key="tab.id"
+                    class="c-btn rounded-xl py-2 text-xs font-bold shadow-sm md:py-2.5 md:text-sm"
+                    :class="[
+                      tab.padding,
+                      activeSubTab === tab.id ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]'
+                    ]"
+                    @click="activeSubTab = tab.id"
+                  >
+                    {{ tab.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <div
               class="custom-scrollbar h-full flex-1 overflow-y-auto bg-transparent p-4 pb-20 md:p-8 md:pb-8"
@@ -439,8 +500,8 @@ onUnmounted(() => {
                   v-for="event in activeSubTab === 'create'
                     ? createdEvents
                     : activeSubTab === 'follow'
-                    ? followedEvents
-                    : historyEvents"
+                      ? followedEvents
+                      : historyEvents"
                   :key="event.id"
                   class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-4 shadow-sm transition-all hover:shadow-md md:p-6"
                   @click="openDetail(event)"
@@ -450,11 +511,12 @@ onUnmounted(() => {
                     <p class="text-fg-muted text-xs md:text-sm">{{ event.location }}</p>
                   </div>
                   <!-- TODO: Replace #f48e31 -->
-                                  <span
-                                    class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
-                                    :class="getStatusBadge(event.status).cls"
-                                    >{{ getStatusBadge(event.status).text }}</span
-                                  >                </div>
+                  <span
+                    class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
+                    :class="getStatusBadge(event.status).cls"
+                    >{{ getStatusBadge(event.status).text }}</span
+                  >
+                </div>
               </div>
             </div>
           </main>
@@ -468,20 +530,18 @@ onUnmounted(() => {
           class="image-cropper-wrapper"
           :class="{ 'is-visible': showCropper }"
           :image-src="tempImageSrc"
-          @confirm="handleCropConfirm" @cancel="handleCropCancel"
+          @confirm="handleCropConfirm"
+          @cancel="handleCropCancel"
         />
-      </Teleport>      <ImagePreviewModal
+      </Teleport>
+      <ImagePreviewModal
         v-model:index="previewIndex"
         :open="previewOpen"
         :images="previewImages"
         @close="closePreview"
       />
 
-      <div
-        v-if="showTagPicker"
-        :class="modalOverlayClass"
-        @click.self="showTagPicker = false"
-      >
+      <div v-if="showTagPicker" :class="modalOverlayClass" @click.self="showTagPicker = false">
         <!-- 卡片容器 -->
         <div
           class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-xl md:h-[85vh]"
@@ -529,10 +589,7 @@ onUnmounted(() => {
         </div>
       </div>
       <Transition name="fade"
-        ><div
-          v-if="showUserList"
-          :class="modalOverlayClass"
-        >
+        ><div v-if="showUserList" :class="modalOverlayClass">
           <div class="c-card w-full max-w-md bg-white p-8 text-left">
             <div class="mb-6 flex items-center justify-between border-b pb-4">
               <!-- TODO: Replace #f48e31 -->
@@ -572,10 +629,7 @@ onUnmounted(() => {
         </div></Transition
       >
       <Transition name="fade"
-        ><div
-          v-if="showDetail"
-          :class="modalOverlayClass"
-        >
+        ><div v-if="showDetail" :class="modalOverlayClass">
           <div class="c-card w-full max-w-2xl bg-white p-8 text-left">
             <div v-if="selectedItem" class="space-y-6 text-left">
               <h2 class="text-left text-3xl font-bold text-[#f48e31]">
