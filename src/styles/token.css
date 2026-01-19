@@ -106,7 +106,7 @@
 
   /* Brand */
   --color-brand-primary: #ffa75f; /* 橘：主品牌（主按鈕/選中/自己訊息） */
-  --color-brand-secondary: #ffd19d; /* 首頁跑馬燈 */
+  --color-brand-secondary: #ffc480; /* 首頁跑馬燈 */
   --color-brand-tertiary: #ffd9ad; /* 淺橘：登入頁背景 */
   --color-brand-accent: #ff655d; /* 淡紅：強調（badge/小CTA） */
   --color-func-danger: #ff4d4f; /* 紅：危險/錯誤/收藏 */
