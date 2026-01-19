@@ -99,12 +99,12 @@ const getIconUrl = (name) => {
             <!-- 文字 (傾斜) -->
             <div :class="['absolute z-10 flex flex-col', item.textPosition, item.textRotate]">
               <h3
-                class="text-bg-surface font-sans text-base font-bold tracking-widest uppercase opacity-90 drop-shadow-md"
+                class="text-fg-muted font-sans text-base font-bold tracking-widest uppercase opacity-90 drop-shadow-md"
               >
                 {{ item.labelEn }}
               </h3>
               <h2
-                class="text-bg-surface text-base leading-tight font-bold tracking-wide drop-shadow-md"
+                class="text-fg-muted text-base leading-tight font-bold tracking-wide drop-shadow-md"
               >
                 {{ item.labelZh }}
               </h2>
