@@ -18,6 +18,7 @@ import TagSelector from '@/components/Share/TagSelector.vue'
 import ImageCropper from '@/components/Share/ImageCropper.vue'
 import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
 import { useImagePreview } from '@/composables/useImagePreview'
+import { getStatusBadge } from '@/utils/statusHelper'
 
 // 响应式帖子数据
 const myPosts = ref(myPostsData)
@@ -438,11 +439,11 @@ onUnmounted(() => {
                     <p class="text-fg-muted text-xs md:text-sm">{{ event.location }}</p>
                   </div>
                   <!-- TODO: Replace #f48e31 -->
-                  <span
-                    class="rounded-full border border-orange-100 bg-orange-50 px-3 py-0.5 text-xs font-bold text-[#f48e31] md:px-4 md:py-1 md:text-xs"
-                    >{{ activeSubTab === 'history' ? '已結束' : '進行中' }}</span
-                  >
-                </div>
+                                  <span
+                                    class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
+                                    :class="getStatusBadge(event.status).cls"
+                                    >{{ getStatusBadge(event.status).text }}</span
+                                  >                </div>
               </div>
             </div>
           </main>
