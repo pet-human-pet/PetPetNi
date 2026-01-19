@@ -37,8 +37,7 @@ const headerClasses = computed(() => [
   'h-(--header-h) fixed left-0 z-50 w-full',
   props.transparent || uiStore.isMenuOpen
     ? 'bg-transparent border-none shadow-none'
-    : // TODO: 將 border-[#eee] 改為 border-border-default，shadow 改為 tokens
-      'bg-white border-b border-[#eee] shadow-[0_2px_10px_rgba(0,0,0,0.03)]',
+    : 'bg-white border-b border-border-default shadow-shadow-card',
   // TODO: top-[36px] 為跑馬燈高度，考慮抽成 CSS 變數 --marquee-h
   isHomePage.value ? 'top-[36px]' : 'top-0',
   uiStore.isMenuOpen ? 'pointer-events-none' : ''
@@ -92,9 +91,8 @@ function onSelectFavorite(evt) {
         :class="{ 'pointer-events-none opacity-40': menuOpen }"
         @click="handleLogoClick"
       >
-        <!-- TODO: text-[#FFA75F] 改為 text-brand-primary -->
         <span
-          class="text-2xl font-semibold text-[#FFA75F] max-[800px]:text-xl"
+          class="text-brand-primary text-2xl font-semibold max-[800px]:text-xl"
           style="font-family: 'Fredoka', sans-serif"
         >
           PetPetNi
@@ -118,9 +116,8 @@ function onSelectFavorite(evt) {
         <div v-show="!uiStore.isMenuOpen" class="flex items-center gap-3">
           <!-- 收藏：桌機 dropdown、手機 modal -->
           <div class="relative" :class="{ 'pointer-events-none opacity-40': menuOpen }">
-            <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
             <button
-              class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
+              class="hover:text-brand-primary hover:bg-btn-secondary text-btn-accent relative flex h-10 w-10 items-center justify-center rounded-full transition max-[800px]:hidden"
               title="收藏"
               type="button"
               aria-label="收藏的活動"
@@ -239,25 +236,25 @@ function onSelectFavorite(evt) {
           </div>
 
           <!-- 訊息 -->
-          <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
+
           <button
-            class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
+            class="text-btn-accent hover:text-color-brand-primary hover:bg-btn-secondary relative flex h-10 w-10 items-center justify-center rounded-full transition max-[800px]:hidden"
             title="訊息"
             type="button"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
             @click="goChat"
           >
             <i class="fa-regular fa-comment-dots"></i>
-            <!-- TODO: bg-[#ff5e57] 改為 bg-status-error 或定義 notification token -->
+
             <span
-              class="absolute top-2 right-2 h-2 w-2 rounded-full border border-white bg-[#ff5e57]"
+              class="bg-brand-accent absolute top-2 right-2 h-2 w-2 rounded-full border border-white"
             />
           </button>
 
           <!-- 通知 -->
-          <!-- TODO: text-[#666] 改為 text-fg-secondary，hover 色改為 tokens -->
+
           <button
-            class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#666] transition hover:bg-[#fffcf7] hover:text-[#FFA75F] max-[800px]:hidden"
+            class="text-btn-accent hover:text-brand-primary hover:bg-btn-secondary relative flex h-10 w-10 items-center justify-center rounded-full transition max-[800px]:hidden"
             title="通知"
             type="button"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
@@ -266,10 +263,9 @@ function onSelectFavorite(evt) {
           </button>
 
           <!-- Avatar：點擊導向個人頁面 -->
-          <!-- TODO: border-[#eee] 改為 border-border-default -->
           <button
             type="button"
-            class="h-10 w-10 overflow-hidden rounded-full border-2 border-[#eee] p-0"
+            class="border-border-default h-10 w-10 overflow-hidden rounded-full border-2 p-0"
             title="個人頁面"
             :class="{ 'pointer-events-none opacity-40': menuOpen }"
             @click="goProfile"
