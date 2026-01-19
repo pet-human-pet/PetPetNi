@@ -163,7 +163,7 @@ const handleMore = async () => {
         </button>
       </div>
     </div>
-    <p v-else class="md:text-m text-fg-secondary mt-3 leading-6 sm:text-base">
+    <p v-else class="md:text-m mt-3 leading-6 text-fg-secondary sm:text-base">
       {{ post.content }}
     </p>
 

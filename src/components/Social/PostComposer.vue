@@ -193,7 +193,7 @@ const audience = ref('public')
               <!-- 移除按鈕 -->
               <button
                 type="button"
-                class="absolute top-1 right-1 z-30 grid h-6 w-6 place-items-center rounded-full bg-black/50 text-white hover:bg-black/70"
+                class="absolute top-1 right-1 z-30 grid h-6 w-6 cursor-pointer place-items-center rounded-full bg-black/50 text-white hover:bg-black/70"
                 @click.stop="removeImage(index)"
               >
                 <span class="text-xs font-bold">✕</span>
@@ -202,21 +202,14 @@ const audience = ref('public')
           </div>
 
           <div class="mt-3 flex items-center justify-between">
-            <div class="flex items-center gap-5 text-zinc-700">
+            <div class="flex items-center text-zinc-700">
               <button
                 type="button"
-                class="grid h-9 w-9 place-items-center rounded-full hover:bg-zinc-100"
+                class="text-fg-secondary/70 hover:text-brand-primary cursor-pointer place-items-center rounded-full text-lg"
                 aria-label="Image"
                 @click="triggerImageUpload"
               >
-                🖼️
-              </button>
-              <button
-                type="button"
-                class="grid h-9 w-9 place-items-center rounded-full hover:bg-zinc-100"
-                aria-label="Hashtag"
-              >
-                <span class="text-xl font-semibold">#</span>
+                <i class="fa-regular fa-image"></i>
               </button>
             </div>
 

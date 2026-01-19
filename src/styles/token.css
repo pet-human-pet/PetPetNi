@@ -124,6 +124,7 @@
 
   /* Button */
   --color-btn-primary: #ff953f; /* 橘：主要按鈕背景 */
+  --color-btn-primary-dark: #ff841f; /* 深橘*/
   --color-btn-secondary: #ffffff; /* 白：次要按鈕背景 */
   --color-btn-accent: #949494; /* 灰：輔助按鈕背景 */
 

@@ -42,13 +42,13 @@ const select = (v) => {
 
     <div
       v-if="open"
-      class="absolute top-11 right-0 z-10 w-40 rounded-xl border bg-white p-1 shadow"
+      class="absolute top-11 right-0 z-10 w-40 rounded-xl border border-gray-200 bg-white p-1 shadow"
     >
       <button
         v-for="o in options"
         :key="o.value"
         type="button"
-        class="w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm hover:bg-zinc-100"
+        class="hover:bg-brand-primary w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm"
         @click="select(o.value)"
       >
         {{ o.label }}
