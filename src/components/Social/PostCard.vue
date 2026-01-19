@@ -68,6 +68,21 @@ const saveEdit = () => {
 const editAudience = ref('public')
 
 const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}`)
+
+import { useReport } from '@/composables/useReport'
+import { useToast } from '@/composables/useToast'
+
+const { showReport } = useReport()
+const { success } = useToast()
+
+const handleMore = async () => {
+  const result = await showReport()
+  if (result.confirmed) {
+    // 這裡未來可以串接後端 API，目前僅顯示成功提示
+    // console.log('Report confirmed:', result.reason)
+    success('檢舉已送出，我們會盡快審核')
+  }
+}
 </script>
 
 <template>
@@ -105,7 +120,7 @@ const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}
         <button
           v-if="post.isMine"
           type="button"
-          class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
+          class="text-fg-secondary/70 grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
           aria-label="Edit"
           @click="startEdit"
         >
@@ -114,10 +129,11 @@ const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}
 
         <!--更多按鈕-->
         <button
-          class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
+          class="text-fg-secondary/70 grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
           aria-label="More"
+          @click="handleMore"
         >
-          <i class="fa-solid fa-ellipsis"></i>
+          <i class="fa-solid fa-triangle-exclamation"></i>
         </button>
       </div>
     </div>
@@ -147,7 +163,7 @@ const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}
         </button>
       </div>
     </div>
-    <p v-else class="md:text-m mt-3 leading-6 text-zinc-800 sm:text-base">
+    <p v-else class="md:text-m text-fg-secondary mt-3 leading-6 sm:text-base">
       {{ post.content }}
     </p>
 
