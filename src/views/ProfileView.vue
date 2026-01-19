@@ -31,6 +31,10 @@ const eventTabs = [
   { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
 ]
 
+// 統一的 Modal 樣式
+const modalOverlayClass =
+  'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
+
 // 响应式帖子数据
 const myPosts = ref(myPostsData)
 const savedPosts = ref(savedPostsData)
@@ -455,7 +459,7 @@ onUnmounted(() => {
 
       <div
         v-if="showTagPicker"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+        :class="modalOverlayClass"
         @click.self="showTagPicker = false"
       >
         <!-- 卡片容器 -->
@@ -507,7 +511,7 @@ onUnmounted(() => {
       <Transition name="fade"
         ><div
           v-if="showUserList"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+          :class="modalOverlayClass"
         >
           <div class="c-card w-full max-w-md bg-white p-8 text-left">
             <div class="mb-6 flex items-center justify-between border-b pb-4">
@@ -550,7 +554,7 @@ onUnmounted(() => {
       <Transition name="fade"
         ><div
           v-if="showDetail"
-          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
+          :class="modalOverlayClass"
         >
           <div class="c-card w-full max-w-2xl bg-white p-8 text-left">
             <div v-if="selectedItem" class="space-y-6 text-left">
