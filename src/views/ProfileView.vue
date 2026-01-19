@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
+import { ref, reactive, onUnmounted, onMounted, onBeforeUnmount, computed } from 'vue'
 import {
   profile as profileData,
   myPosts as myPostsData,
