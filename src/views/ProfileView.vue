@@ -15,6 +15,7 @@ import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import PostCard from '@/components/Social/PostCard.vue'
 import IconGear from '@/components/icons/IconGear.vue'
 import TagSelector from '@/components/Share/TagSelector.vue'
+import ImageCropper from '@/components/Share/ImageCropper.vue'
 
 // const BRAND_ORANGE = '#f48e31' // 已移除
 const activeTab = ref('posts')
@@ -24,6 +25,9 @@ const showDetail = ref(false)
 const selectedItem = ref(null)
 const fileInput = ref(null)
 const isAboutVisible = ref(true)
+
+const showCropper = ref(false)
+const tempImageSrc = ref('')
 
 const showTagPicker = ref(false)
 const showUserList = ref(false)
@@ -55,11 +59,21 @@ const handleAvatarClick = () => fileInput.value.click()
 const handleFileChange = (e) => {
   const file = e.target.files[0]
   if (file) {
-    if (profile.avatar && profile.avatar.startsWith('blob:')) {
-      URL.revokeObjectURL(profile.avatar)
-    }
-    profile.avatar = URL.createObjectURL(file)
+    tempImageSrc.value = URL.createObjectURL(file)
+    showCropper.value = true
   }
+}
+const handleCropConfirm = (blob) => {
+  if (profile.avatar?.startsWith('blob:')) {
+    URL.revokeObjectURL(profile.avatar)
+  }
+  profile.avatar = URL.createObjectURL(blob)
+  showCropper.value = false
+  URL.revokeObjectURL(tempImageSrc.value)
+}
+const handleCropCancel = () => {
+  showCropper.value = false
+  URL.revokeObjectURL(tempImageSrc.value)
 }
 const handleTabChange = (tab) => {
   activeTab.value = tab
@@ -538,3 +552,9 @@ onUnmounted(() => {
   transform: translateY(-10px);
 }
 </style>
+
+<ImageCropper
+  v-if="showCropper"
+  :image-src="tempImageSrc"
+  @confirm="handleCropConfirm" @cancel="handleCropCancel"
+/>
