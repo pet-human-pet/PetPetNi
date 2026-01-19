@@ -94,9 +94,7 @@ const handleAction = (action) => {
           <div class="c-chat-opt" @click.stop="handleAction('reply')">
             <i class="fa-solid fa-reply"></i> 回覆
           </div>
-          <div v-if="isMe" class="c-chat-opt" @click.stop="handleAction('delete')">
-            <i class="fa-solid fa-trash-can"></i> 收回
-          </div>
+
           <div v-if="!isMe" class="c-chat-opt" @click.stop="handleAction('report')">
             <i class="fa-solid fa-triangle-exclamation"></i> 檢舉
           </div>
