@@ -62,7 +62,15 @@ const handleAction = (action) => {
           </div>
 
           <!-- Message Content -->
-          <span>{{ msg.content }}</span>
+          <div v-if="msg.messageType === 'image' || msg.imageUrl || msg.image" class="mt-1">
+            <img
+              :src="msg.imageUrl || msg.image"
+              alt="Sent image"
+              class="max-h-60 max-w-full cursor-pointer rounded-lg object-contain transition-transform hover:scale-105"
+              @click.stop="() => {}"
+            />
+          </div>
+          <span v-else>{{ msg.content }}</span>
         </div>
 
         <!-- Context Menu (Abstracted classes in components.css) -->
