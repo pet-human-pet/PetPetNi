@@ -39,7 +39,7 @@ export const usePostComposerImages = (maxCount = 4) => {
       return
     }
 
-    const validFiles = files.filter(f => f.type.startsWith('image/'))
+    const validFiles = files.filter((f) => f.type.startsWith('image/'))
     if (validFiles.length > 0) {
       isReCropping.value = false
       cropQueue.value.push(...validFiles)
@@ -52,9 +52,9 @@ export const usePostComposerImages = (maxCount = 4) => {
   // 確認裁切
   const onCropConfirm = (blob) => {
     const previewUrl = URL.createObjectURL(blob)
-    
+
     if (isReCropping.value && reCropTargetId.value) {
-      const index = images.value.findIndex(img => img.id === reCropTargetId.value)
+      const index = images.value.findIndex((img) => img.id === reCropTargetId.value)
       if (index !== -1) {
         URL.revokeObjectURL(images.value[index].url)
         images.value[index].url = previewUrl
@@ -100,16 +100,18 @@ export const usePostComposerImages = (maxCount = 4) => {
   const uploadAllImages = async () => {
     if (images.value.length === 0) return []
 
-    images.value.forEach(img => img.status = 'uploading')
+    images.value.forEach((img) => (img.status = 'uploading'))
 
     const uploadPromises = images.value.map(async (img) => {
       try {
-        const { blob: compressedBlob } = await compressImage(new File([img.file], 'image.jpg', { type: 'image/jpeg' }))
-        const result = await uploadToCloudinary(compressedBlob)
+        const { blob: compressedBlob } = await compressImage(
+          new File([img.file], 'image.jpg', { type: 'image/jpeg' })
+        )
+        const result = await uploadToCloudinary(compressedBlob, { folder: 'petpetni/posts' })
         img.status = 'success'
         return result.url
       } catch {
-        img.status = 'success'
+        img.status = 'error'
         return img.url
       }
     })
@@ -119,7 +121,7 @@ export const usePostComposerImages = (maxCount = 4) => {
 
   // 清空所有狀態
   const clearImages = () => {
-    images.value.forEach(img => URL.revokeObjectURL(img.url))
+    images.value.forEach((img) => URL.revokeObjectURL(img.url))
     images.value = []
     cropQueue.value = []
   }
