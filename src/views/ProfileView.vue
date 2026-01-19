@@ -20,6 +20,17 @@ import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
 import { useImagePreview } from '@/composables/useImagePreview'
 import { getStatusBadge } from '@/utils/statusHelper'
 
+const postTabs = [
+  { id: 'my', label: '我的貼文', padding: 'px-6 md:px-10' },
+  { id: 'saved', label: '儲存的貼文', padding: 'px-6 md:px-10' }
+]
+
+const eventTabs = [
+  { id: 'create', label: '發起活動', padding: 'px-4 md:px-8' },
+  { id: 'follow', label: '收藏活動', padding: 'px-4 md:px-8' },
+  { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
+]
+
 // 响应式帖子数据
 const myPosts = ref(myPostsData)
 const savedPosts = ref(savedPostsData)
@@ -356,56 +367,33 @@ onUnmounted(() => {
                 </button>
               </div>
 
-              <div class="px-4 py-4 md:px-6">
-                <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
-                  <!-- TODO: Replace #f48e31 -->
-                  <button
-                    class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
-                    :class="[activeSubTab === 'my' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                    @click="activeSubTab = 'my'"
-                  >
-                    我的貼文
-                  </button>
-                  <!-- TODO: Replace #f48e31 -->
-                  <button
-                    class="c-btn rounded-xl px-6 py-2 text-xs font-bold shadow-sm md:px-10 md:py-2.5 md:text-sm"
-                    :class="[activeSubTab === 'saved' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                    @click="activeSubTab = 'saved'"
-                  >
-                    儲存的貼文
-                  </button>
-                </div>
-                <div
-                  v-if="activeTab === 'events'"
-                  class="flex flex-wrap justify-center gap-2 md:gap-4"
-                >
-                  <!-- TODO: Replace #f48e31 -->
-                  <button
-                    class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                    :class="[activeSubTab === 'create' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                    @click="activeSubTab = 'create'"
-                  >
-                    發起活動
-                  </button>
-                  <!-- TODO: Replace #f48e31 -->
-                  <button
-                    class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                    :class="[activeSubTab === 'follow' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                    @click="activeSubTab = 'follow'"
-                  >
-                    收藏活動
-                  </button>
-                  <!-- TODO: Replace #f48e31 -->
-                  <button
-                    class="c-btn rounded-xl px-4 py-2 text-xs font-bold shadow-sm md:px-8 md:py-2.5 md:text-sm"
-                    :class="[activeSubTab === 'history' ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
-                    @click="activeSubTab = 'history'"
-                  >
-                    歷史活動
-                  </button>
-                </div>
-              </div>
-            </div>
+                          <div class="px-4 py-4 md:px-6">
+                            <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
+                              <button
+                                v-for="tab in postTabs"
+                                :key="tab.id"
+                                class="c-btn rounded-xl py-2 text-xs font-bold shadow-sm md:py-2.5 md:text-sm"
+                                :class="[tab.padding, activeSubTab === tab.id ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
+                                @click="activeSubTab = tab.id"
+                              >
+                                {{ tab.label }}
+                              </button>
+                            </div>
+                            <div
+                              v-if="activeTab === 'events'"
+                              class="flex flex-wrap justify-center gap-2 md:gap-4"
+                            >
+                              <button
+                                v-for="tab in eventTabs"
+                                :key="tab.id"
+                                class="c-btn rounded-xl py-2 text-xs font-bold shadow-sm md:py-2.5 md:text-sm"
+                                :class="[tab.padding, activeSubTab === tab.id ? 'bg-[#f48e31] text-white' : 'bg-[#f3f4f6]']"
+                                @click="activeSubTab = tab.id"
+                              >
+                                {{ tab.label }}
+                              </button>
+                            </div>
+                          </div>            </div>
 
             <div
               class="custom-scrollbar h-full flex-1 overflow-y-auto bg-transparent p-4 pb-20 md:p-8 md:pb-8"
