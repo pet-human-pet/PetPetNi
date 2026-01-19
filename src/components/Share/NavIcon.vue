@@ -77,7 +77,7 @@ const getIconUrl = (name) => {
 
     <!-- Arrow Button Circle -->
     <div
-      class="flex items-center justify-center rounded-full bg-white shadow transition-transform duration-300 group-hover:bg-red-100"
+      class="flex items-center justify-center rounded-full bg-white shadow transition-transform duration-300 group-hover:bg-gray-100"
       :class="[
         isList ? 'ml-2 h-6 w-6 group-hover:translate-x-1' : 'mt-2 h-8 w-8 group-hover:scale-110'
       ]"
@@ -88,7 +88,7 @@ const getIconUrl = (name) => {
         viewBox="0 0 24 24"
         stroke-width="3"
         stroke="currentColor"
-        class="text-red-600"
+        class="text-brand-primary"
         :class="[isList ? 'h-3 w-3' : 'h-4 w-4']"
       >
         <path
