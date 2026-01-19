@@ -34,7 +34,7 @@ function handleClick() {
         "
       ></span>
       <span
-        class="menu-line bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
+        class="bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
           uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'group-hover:scale-0 group-hover:opacity-0'
         "

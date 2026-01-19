@@ -66,18 +66,21 @@ function handleRefresh() {
 </script>
 
 <template>
-  <div :ref="(el) => registerRef(PANEL_ID, el)" class="relative">
-    <!-- header -->
+  <div
+    :ref="(el) => registerRef(PANEL_ID, el)"
+    class="relative"
+    :class="{ 'pointer-events-none opacity-40': false /* Handled by parent */ }"
+  >
     <button type="button" class="c-header-btn" title="通知" @click="toggle">
       <i class="fa-regular fa-bell"></i>
       <span
         v-if="unreadCount > 0"
-        class="absolute top-2 right-2 h-2 w-2 rounded-full border border-white bg-[#ff5e57]"
+        class="bg-brand-accent absolute top-2 right-2 h-2 w-2 rounded-full border border-white"
       />
     </button>
 
     <div v-if="isOpen">
-      <div class="fixed inset-0 z-2000 flex flex-col bg-gray-100 md:hidden">
+      <div class="fixed inset-0 z-50 flex flex-col bg-gray-100 md:hidden">
         <!-- Mobile Header -->
         <div class="flex items-center justify-between bg-white px-4 py-3 shadow-sm">
           <button
