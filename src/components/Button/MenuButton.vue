@@ -14,20 +14,19 @@ function handleClick() {
     type="button"
     @click="handleClick"
   >
-    <!-- TODO: #FFA75F 為品牌主色，待整合 CSS 變數 var(--color-brand-primary) -->
     <!-- 背景動畫層 -->
     <div
       class="absolute inset-0 origin-center rounded-full bg-white transition-all duration-300"
       :class="uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'scale-0 group-hover:scale-150'"
     ></div>
 
-    <!-- 漢堡圖標（3 條線） -->
-    <!-- TODO: #FFA75F 為品牌主色，待整合 CSS 變數 var(--color-brand-primary) -->
+    <!-- 漢堡圖標(3 條線) -->
+
     <div
-      class="relative z-10 flex h-3 w-5 flex-col items-center justify-between transition-all duration-300 md:h-4 md:w-6"
+      class="menu-icon relative z-10 flex h-3 w-5 flex-col items-center justify-between transition-all duration-300 md:h-4 md:w-6"
     >
       <span
-        class="h-0.5 w-full origin-center rounded-full bg-[#FFA75F] transition-all duration-300"
+        class="menu-line bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
           uiStore.isMenuOpen
             ? 'translate-y-[5px] rotate-45 md:translate-y-[7px]'
@@ -35,13 +34,13 @@ function handleClick() {
         "
       ></span>
       <span
-        class="h-0.5 w-full origin-center rounded-full bg-[#FFA75F] transition-all duration-300"
+        class="menu-line bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
           uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'group-hover:scale-0 group-hover:opacity-0'
         "
       ></span>
       <span
-        class="h-0.5 w-full origin-center rounded-full bg-[#FFA75F] transition-all duration-300"
+        class="menu-line bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
           uiStore.isMenuOpen
             ? '-translate-y-[5px] -rotate-45 md:-translate-y-[7px]'
@@ -51,6 +50,6 @@ function handleClick() {
     </div>
 
     <!-- 文字標籤 -->
-    <span class="relative z-10 mt-1 text-xs font-bold text-[#FFA75F]"> MENU </span>
+    <span class="menu-text text-brand-primary relative z-10 mt-1 text-xs font-bold"> MENU </span>
   </button>
 </template>
