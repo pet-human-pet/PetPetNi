@@ -47,7 +47,7 @@ const petInfoFields = computed(() => [
   { label: '性別', value: profile.petInfo.gender }
 ])
 
-console.log('petInfoFields:', petInfoFields.value) // <-- Debugging log
+
 
 // 基础 UI 状态
 const activeTab = ref('posts')
