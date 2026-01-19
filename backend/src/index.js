@@ -54,6 +54,7 @@ io.on('connection', async (socket) => {
       socket.emit('history_messages', history)
     } catch (error) {
       console.error('❌ Error in join_room:', error)
+      socket.emit('error', { message: '無法加入房間', details: error.message })
     }
   })
 
@@ -74,9 +75,13 @@ io.on('connection', async (socket) => {
 
       if (savedMessage) {
         socket.to(roomId).emit('new_message', savedMessage)
+      } else {
+        console.error('❌ Failed to save message: saveMessage returned null')
+        socket.emit('error', { message: '訊息儲存失敗', details: 'Database insertion failed' })
       }
     } catch (error) {
       console.error('❌ Error in send_message:', error)
+      socket.emit('error', { message: '訊息傳送失敗', details: error.message })
     }
   })
 
