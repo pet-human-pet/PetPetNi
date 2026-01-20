@@ -98,9 +98,17 @@ const toggleLike = (postId) => {
 
 const toggleBookmark = (postId) => {
   const posts = activeSubTab.value === 'my' ? myPosts.value : savedPosts.value
-  const post = posts.find((p) => p.id === postId)
-  if (!post) return
+  const postIndex = posts.findIndex((p) => p.id === postId)
+  
+  if (postIndex === -1) return
+
+  const post = posts[postIndex]
   post.isBookmarked = !post.isBookmarked
+
+  // 如果在「儲存的貼文」分頁下取消收藏，則從列表中移除
+  if (activeSubTab.value === 'saved' && !post.isBookmarked) {
+    savedPosts.value.splice(postIndex, 1)
+  }
 }
 
 // 头像处理
