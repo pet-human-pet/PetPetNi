@@ -63,13 +63,15 @@ export const aiService = {
         await this.saveMessage(sessionId, 'model', replyText)
 
         // 同步更新 session 的最後訊息快照
-        await supabase
+        const { error: updateError } = await supabase
           .from('ai_sessions')
           .update({
             last_message: replyText.substring(0, 50),
             updated_at: new Date().toISOString()
           })
           .eq('id', sessionId)
+
+        if (updateError) throw updateError
       }
 
       return replyText
@@ -102,7 +104,10 @@ export const aiService = {
       role,
       content
     })
-    if (error) console.error('❌ Failed to save AI message:', error)
+    if (error) {
+      console.error('❌ Failed to save AI message:', error)
+      throw error
+    }
   },
 
   /**
