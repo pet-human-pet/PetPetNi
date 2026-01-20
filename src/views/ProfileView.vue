@@ -449,9 +449,9 @@ onUnmounted(() => {
       <!-- Modals -->
       <Teleport to="body">
         <ImageCropper
+          :key="tempImageSrc"
           class="image-cropper-wrapper"
           :class="{ 'is-visible': showCropper }"
-          :key="tempImageSrc"
           :image-src="tempImageSrc"
           @confirm="handleCropConfirm" @cancel="handleCropCancel"
         />
