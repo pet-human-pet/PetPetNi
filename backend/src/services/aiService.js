@@ -26,13 +26,15 @@ export const aiService = {
   async getChatResponse(message, history = [], sessionId = null) {
     try {
       const apiKey = process.env.GEMINI_API_KEY?.trim()
+      const modelName = process.env.GEMINI_MODEL_NAME || 'gemini-flash-latest'
+
       if (!apiKey) {
         throw new Error('找不到 GEMINI_API_KEY，請檢查 backend/.env 檔案。')
       }
 
       // 1. 初始化 Gemini
       const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' })
+      const model = genAI.getGenerativeModel({ model: modelName })
 
       // 2. 組合歷史紀錄 (用於 Gemini)
       const systemMsg = {
