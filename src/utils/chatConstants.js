@@ -4,8 +4,7 @@ import IconMatch from '@/components/icons/IconMatch.vue'
 export const NAV_ITEMS = [
   { key: 'match', icon: 'fa-comments', label: '聊天' },
   { key: 'event', icon: 'fa-calendar-check', label: '活動揪團' },
-  { key: 'community', icon: 'fa-users', label: '社群' },
-  { key: 'ai', icon: 'fa-robot', label: 'AI 溝通師' }
+  { key: 'community', icon: 'fa-users', label: '社群' }
 ]
 
 export const PAGE_NAV_ITEMS = [
@@ -19,7 +18,6 @@ export const PAGE_NAV_ITEMS = [
 export const MOBILE_BOTTOM_NAV = [
   { key: 'friendList', icon: 'fa-address-book', label: '好友' },
   { key: 'match', icon: 'fa-comments', label: '訊息' },
-  { key: 'ai', icon: 'fa-robot', label: 'AI' },
   { key: 'Social', icon: 'fa-hashtag', label: '動態牆', isRoute: true },
   { key: 'more', icon: 'fa-paw', label: '更多', isAction: true }
 ]
