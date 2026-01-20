@@ -19,12 +19,11 @@ app.use('/api/auth', authRoutes)
 // 測試群組 1：註冊 API
 // ==========================================
 describe('POST /api/auth/register', () => {
-  // ✅ 測試案例 1：成功註冊新用戶
   it('應該成功註冊新用戶並回傳 201', async () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send({
-        email: `test${Date.now()}@example.com`, // 使用時間戳避免重複
+        email: `newuser${Date.now()}@example.com`, // 使用時間戳避免重複
         password: 'Test123!@#'
       })
 
@@ -115,16 +114,11 @@ describe('POST /api/auth/register', () => {
 // 測試群組 2：登入 API
 // ==========================================
 describe('POST /api/auth/login', () => {
-  // 測試用的用戶資料
+  // 測試用的用戶資料（使用已存在的用戶）
   const testUser = {
-    email: `login${Date.now()}@example.com`,
+    email: 'testuser@example.com',
     password: 'Test123!@#'
   }
-
-  // 在所有登入測試前，先註冊一個測試用戶
-  beforeAll(async () => {
-    await request(app).post('/api/auth/register').send(testUser)
-  })
 
   // ✅ 測試案例 1：成功登入
   it('使用正確的帳密應該成功登入並回傳 200', async () => {
