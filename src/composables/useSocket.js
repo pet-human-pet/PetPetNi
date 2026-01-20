@@ -20,7 +20,8 @@ export function useSocket() {
       socket.value = null
     }
 
-    socket.value = io('http://localhost:3000', {
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+    socket.value = io(baseUrl, {
       auth: { userId } // 連線時帶上 userId，讓後端自動加入房間
     })
 
