@@ -26,19 +26,17 @@ const goToPage = (routeName) => {
 </script>
 
 <template>
-  <div class="bg-bg-surface relative flex h-dvh w-screen flex-col overflow-hidden overscroll-none font-sans md:flex-row">
+  <div
+    class="bg-bg-surface relative flex h-dvh w-screen flex-col overflow-hidden overscroll-none font-sans md:flex-row"
+  >
     <button
-      v-if="!(store.currentCategory === 'ai' && store.isAiDrawerOpen)"
       class="text-fg-secondary hover:bg-bg-base hover:text-brand-primary absolute top-4 right-4 z-90 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md transition-all"
       @click="router.back()"
     >
       <i class="fa-solid fa-xmark text-lg"></i>
     </button>
 
-    <ChatNavigation
-      v-model:is-more-menu-open="isMoreMenuOpen"
-      @go-to-page="goToPage"
-    />
+    <ChatNavigation v-model:is-more-menu-open="isMoreMenuOpen" @go-to-page="goToPage" />
 
     <ChatListSection />
 

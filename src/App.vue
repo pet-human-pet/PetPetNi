@@ -7,6 +7,7 @@ import MenuOverlay from './components/Share/MenuOverlay.vue'
 import ConfirmDialog from './components/Share/ConfirmDialog.vue'
 import ReportDialog from './components/Share/ReportDialog.vue'
 import SimpleToast from './components/Share/SimpleToast.vue'
+import AIAssistantDrawer from './components/Chat/AIAssistantDrawer.vue'
 
 const route = useRoute()
 
@@ -29,6 +30,7 @@ const mainClasses = computed(() => [
     <ConfirmDialog />
     <ReportDialog />
     <MenuOverlay />
+    <AIAssistantDrawer />
 
     <!-- Main App Header -->
     <MainHeader v-if="showHeader" :transparent="route.meta.transparentHeaderBg" />
