@@ -1,103 +1,183 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-export const useAuthStore = defineStore('auth', () => {
-  // State
-  const user = ref(null)
-  const token = ref(null)
+import { authApi } from '@/api/auth'
 
-  // 暫存第三方登入回傳的資料 (尚未綁定的新用戶)
+export const useAuthStore = defineStore('auth', () => {
+  // ==========================================
+  // State（狀態）
+  // ==========================================
+  const user = ref(null) // 用戶資料
+  const token = ref(null) // JWT Token
+  const isLoading = ref(false) // 載入狀態
+  const error = ref(null) // 錯誤訊息
+
+  // 暫存第三方登入資料（OAuth 用，暫時保留）
   const tempOAuthData = ref(null)
 
-  // Actions
+  // ==========================================
+  // Actions（方法）
+  // ==========================================
 
   /**
-   * 模擬發起 OAuth 登入
+   * 初始化認證狀態
+   * 從 localStorage 恢復登入狀態
+   */
+  const initAuth = () => {
+    const savedToken = localStorage.getItem('token')
+    if (savedToken) {
+      token.value = savedToken
+      // TODO: 可以呼叫 API 驗證 token 並取得用戶資料
+      // 目前先簡單恢復 token
+    }
+  }
+
+  /**
+   * 用戶註冊
+   * @param {string} email - Email
+   * @param {string} password - 密碼
+   */
+  const register = async (email, password) => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      // 呼叫註冊 API
+      const response = await authApi.register({ email, password })
+
+      // 儲存用戶資料和 Token
+      user.value = response.data.user
+      token.value = response.data.session.access_token
+      localStorage.setItem('token', token.value)
+
+      console.log('✅ 註冊成功:', user.value.email)
+      return response.data
+    } catch (err) {
+      console.error('❌ 註冊失敗:', err)
+      error.value = err.response?.data?.error || '註冊失敗，請稍後再試'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 用戶登入
+   * @param {string} email - Email
+   * @param {string} password - 密碼
+   */
+  const login = async (email, password) => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      // 呼叫登入 API
+      const response = await authApi.login({ email, password })
+
+      // 儲存用戶資料和 Token
+      user.value = response.data.user
+      token.value = response.data.session.access_token
+      localStorage.setItem('token', token.value)
+
+      console.log('✅ 登入成功:', user.value.email)
+      return response.data
+    } catch (err) {
+      console.error('❌ 登入失敗:', err)
+      error.value = err.response?.data?.error || '登入失敗，請檢查帳號密碼'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 用戶登出
+   */
+  const logout = async () => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      // 呼叫登出 API
+      await authApi.logout()
+
+      // 清除本地狀態
+      user.value = null
+      token.value = null
+      localStorage.removeItem('token')
+
+      console.log('✅ 登出成功')
+    } catch (err) {
+      console.error('❌ 登出失敗:', err)
+      // 即使 API 失敗，也要清除本地狀態
+      user.value = null
+      token.value = null
+      localStorage.removeItem('token')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 清除錯誤訊息
+   */
+  const clearError = () => {
+    error.value = null
+  }
+
+  // ==========================================
+  // OAuth 相關（暫時保留，之後實作）
+  // ==========================================
+
+  /**
+   * 發起 OAuth 登入
    * TODO: 整合真實的 OAuth API
-   * 正式環境需要：
-   * 1. 串接後端 /api/auth/{provider}
-   * 2. 處理真實的 OAuth callback
-   * 3. 驗證 access token
    */
   const initiateOAuthLogin = (provider) => {
     console.log(`[AuthStore] Initiating ${provider} login...`)
-    // 模擬跳轉至 Callback 頁面 (帶上假的 code)
-    const mockCode = `mock_code_${Date.now()}`
-    window.location.href = `/auth/callback?code=${mockCode}&provider=${provider}`
+    // TODO: 之後實作
+    alert(`${provider} 登入功能即將開放！`)
   }
 
   /**
    * 處理 OAuth Callback
-   * TODO: 替換為真實 API 呼叫
-   * 目前使用 setTimeout 模擬，需改為 axios 請求：
-   * await axios.post('/api/auth/callback', { code, provider })
+   * TODO: 整合真實的 OAuth API
    */
   const handleOAuthCallback = async (code, provider) => {
-    console.log(`[AuthStore] Handling callback with code: ${code}`)
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // 模擬：隨機決定是「新用戶」還是「老用戶」
-        // 這裡為了演示 Onboarding 流程，我們強制模擬為「新用戶」
-        const isNewUser = true
-
-        if (isNewUser) {
-          // 新用戶：存入暫存資料，準備引導註冊
-          tempOAuthData.value = {
-            provider,
-            email: 'test_user@example.com',
-            name: 'Test OAuth User',
-            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
-          }
-          resolve({ status: 'NEW_USER' })
-        } else {
-          // 老用戶：直接登入成功
-          token.value = 'mock_jwt_token'
-          user.value = {
-            id: 1,
-            name: 'Old User',
-            role: 'OWNER'
-          }
-          resolve({ status: 'SUCCESS' })
-        }
-      }, 1500) // 模擬網路延遲
-    })
+    console.log(`[AuthStore] Handling OAuth callback for ${provider}`)
+    // TODO: 之後實作
+    return { status: 'NOT_IMPLEMENTED' }
   }
 
   /**
-   * 完成 Email 綁定，正式註冊
-   * TODO: 整合真實 API
-   * 需串接: POST /api/auth/register { email, oauthData }
+   * Email 註冊（OAuth 用）
+   * TODO: 整合真實的 OAuth API
    */
   const registerWithEmail = async (email) => {
     console.log('[AuthStore] Registering with email:', email)
-    if (!tempOAuthData.value) {
-      throw new Error('No OAuth data found')
-    }
-
-    // 模擬註冊 API
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // 註冊成功，寫入用戶狀態
-        user.value = {
-          ...tempOAuthData.value,
-          email, // 使用 Email 而非 phone
-          role: 'PENDING' // 等待選擇身分
-        }
-        // 清除暫存
-        tempOAuthData.value = null
-        token.value = 'new_user_token'
-
-        resolve()
-      }, 1000)
-    })
+    // TODO: 之後實作
   }
 
+  // ==========================================
+  // 暴露給外部使用
+  // ==========================================
   return {
+    // State
     user,
     token,
+    isLoading,
+    error,
     tempOAuthData,
+
+    // Actions
+    initAuth,
+    register,
+    login,
+    logout,
+    clearError,
+
+    // OAuth (暫時保留)
     initiateOAuthLogin,
     handleOAuthCallback,
-    registerWithEmail // 已更名為 registerWithEmail
+    registerWithEmail
   }
 })
