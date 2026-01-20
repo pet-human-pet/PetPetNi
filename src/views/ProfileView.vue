@@ -129,24 +129,25 @@ const handleFileChange = (e) => {
   }
 }
 
-const handleCropConfirm = (blob) => {
-  if (profile.avatar?.startsWith('blob:')) {
-    URL.revokeObjectURL(profile.avatar)
-  }
-  profile.avatar = URL.createObjectURL(blob)
-  showCropper.value = false
+const cleanupTempImage = () => {
   if (tempImageSrc.value) {
     URL.revokeObjectURL(tempImageSrc.value)
     tempImageSrc.value = ''
   }
 }
 
+const handleCropConfirm = (blob) => {
+  if (profile.avatar?.startsWith('blob:')) {
+    URL.revokeObjectURL(profile.avatar)
+  }
+  profile.avatar = URL.createObjectURL(blob)
+  showCropper.value = false
+  cleanupTempImage()
+}
+
 const handleCropCancel = () => {
   showCropper.value = false
-  if (tempImageSrc.value) {
-    URL.revokeObjectURL(tempImageSrc.value)
-    tempImageSrc.value = ''
-  }
+  cleanupTempImage()
 }
 
 // 其他 UI 交互
