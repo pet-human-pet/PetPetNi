@@ -10,6 +10,8 @@ import aiRoutes from './routes/ai.js'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
 import eventRoutes from './routes/event.js'
+import socialRoutes from './routes/social.js'
+import { chatService } from './services/chatService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
@@ -28,6 +30,7 @@ app.use('/api/ai', aiRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/events', eventRoutes)
+app.use('/api/social', socialRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {

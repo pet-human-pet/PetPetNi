@@ -138,9 +138,35 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const handleOAuthCallback = async (code, provider) => {
-    console.log(`[AuthStore] Handling OAuth callback for ${provider}`)
-    // TODO: 之後實作
-    return { status: 'NOT_IMPLEMENTED' }
+    console.log(`[AuthStore] Handling callback with code: ${code}`)
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // 模擬：隨機決定是「新用戶」還是「老用戶」
+        // 這裡為了演示 Onboarding 流程，我們強制模擬為「新用戶」
+        const isNewUser = true
+
+        if (isNewUser) {
+          // 新用戶：存入暫存資料，準備引導註冊
+          tempOAuthData.value = {
+            provider,
+            email: 'test_user@example.com',
+            name: 'Test OAuth User',
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
+          }
+          resolve({ status: 'NEW_USER' })
+        } else {
+          // 老用戶：直接登入成功
+          token.value = 'mock_jwt_token'
+          user.value = {
+            id: '86367eb0-40bb-41a3-b937-f36079845ff1',
+            name: 'Old User',
+            role: 'OWNER'
+          }
+          resolve({ status: 'SUCCESS' })
+        }
+      }, 1500) // 模擬網路延遲
+    })
   }
 
   const registerWithEmail = async (email) => {
