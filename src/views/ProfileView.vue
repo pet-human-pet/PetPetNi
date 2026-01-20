@@ -450,8 +450,8 @@ onUnmounted(() => {
         <ImageCropper
           class="image-cropper-wrapper"
           :class="{ 'is-visible': showCropper }"
-          :image-src="tempImageSrc"
           :key="tempImageSrc"
+          :image-src="tempImageSrc"
           @confirm="handleCropConfirm" @cancel="handleCropCancel"
         />
       </Teleport>      <ImagePreviewModal
