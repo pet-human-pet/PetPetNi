@@ -48,7 +48,7 @@ const select = (v) => {
         v-for="o in options"
         :key="o.value"
         type="button"
-        class="hover:bg-brand-primary w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm"
+        class="hover:bg-brand-primary/20 w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm"
         @click="select(o.value)"
       >
         {{ o.label }}

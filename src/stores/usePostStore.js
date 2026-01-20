@@ -49,49 +49,35 @@ export const usePostStore = defineStore('post', () => {
   }
 
   const createPost = async (content, imageUrls = [], audience = 'public') => {
-    // 建構暫時的貼文物件
-    const tempPost = {
-      id: Date.now(),
-      author: authStore.user?.name || 'Me',
-      authorId: authStore.user?.id,
-      content,
-      images: imageUrls,
-      audience,
-      isLiked: false,
-      likeCount: 0,
-      commentCount: 0,
-      isBookmarked: false,
-      createdAt: new Date().toISOString(),
-      isNew: true
-    }
-
     try {
-      const res = await socialApi.createPost({ content, imageUrls, audience })
-      if (res.data) {
-        posts.value.unshift(res.data)
+      if (!authStore.user?.id) {
+        throw new Error('User not authenticated')
+      }
+      const res = await socialApi.createPost({
+        content,
+        imageUrls,
+        audience,
+        userId: authStore.user.id
+      })
 
-        const addedPost = posts.value[0]
+      // Backend returns the created post directly (or inside data)
+      const newPost = res.data || res
 
-        if (addedPost && addedPost.isNew) {
+      if (newPost) {
+        posts.value.unshift(newPost)
+
+        // New post animation handling
+        if (newPost.isNew) {
           setTimeout(() => {
-            addedPost.isNew = false
+            const p = posts.value.find((x) => x.id === newPost.id)
+            if (p) p.isNew = false
           }, 3000)
         }
-
-        return addedPost
+        return newPost
       }
     } catch (error) {
-      console.warn('API createPost failed, using local fallback:', error)
-
-      posts.value.unshift(tempPost)
-      const addedPost = posts.value[0]
-      setTimeout(() => {
-        if (addedPost) {
-          addedPost.isNew = false
-        }
-      }, 3000)
-
-      return addedPost
+      console.error('API createPost failed:', error)
+      throw error // Let component handle error toast
     }
   }
 
