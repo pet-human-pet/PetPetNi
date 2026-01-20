@@ -1,11 +1,15 @@
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { useAIStore } from '@/stores/ai'
 import { useChatStore } from '@/stores/chat'
 import { useTextareaAutosize, useDraggable, useWindowSize } from '@vueuse/core'
 
 const aiStore = useAIStore()
 const chatStore = useChatStore() // 用於取得個人資料 (頭像/名稱)
+
+onMounted(() => {
+  aiStore.loadSessions()
+})
 
 const messageInput = ref('')
 const msgContainer = ref(null)
@@ -241,6 +245,22 @@ const selectSession = (id) => {
                   "
                 >
                   {{ msg.content }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading 狀態 -->
+            <div v-if="aiStore.isLoading" class="flex gap-3">
+              <div
+                class="mt-1 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-black/5 bg-gray-100"
+              >
+                <img :src="aiStore.aiDb.agent.avatar" class="h-full w-full object-cover" />
+              </div>
+              <div class="max-w-[80%] space-y-1">
+                <div
+                  class="bg-bg-base text-fg-muted inline-block rounded-2xl rounded-tl-none px-4 py-2.5 text-sm shadow-sm"
+                >
+                  <i class="fa-solid fa-sparkles fa-spin mr-2"></i>波波正在通靈中...
                 </div>
               </div>
             </div>
