@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { INITIAL_DB } from '@/utils/chatMockData'
 import { useSocket } from '@/composables/useSocket'
+import { checkSensitiveContent } from '@/utils/validators'
 
 export const useChatStore = defineStore('chat', () => {
   // --- 0. Socket.IO 整合 ---
@@ -165,13 +166,38 @@ export const useChatStore = defineStore('chat', () => {
     if (!activeChat.value) return { success: false, error: 'No active chat' }
 
     const mode = chatMode.value
+    const chat = activeChat.value
 
+    // 1. LOCKED 模式檢查
     if (mode === 'LOCKED') {
       return { success: false, error: '請先接受敲敲門請求才能回覆喔！' }
     }
 
+    // 2. PET_MODE 特殊限制
+    if (mode === 'PET_MODE' && !isImage) {
+      // (1) 檢查是否輪發 (不能連傳兩句)
+      const lastMsg = chat.msgs[chat.msgs.length - 1]
+      if (lastMsg && lastMsg.sender === 'me') {
+        return { success: false, error: '輪到對方說話囉！PET_MODE 期間請保持輪流發言 🐾' }
+      }
+
+      // (2) 檢查字數限制 (PET_MODE 限制 20 字)
+      if (text.length > 20) {
+        return { success: false, error: '汪！話太多啦！PET_MODE 期間每句限 20 字以內 🐶' }
+      }
+
+      // (3) 檢查敏感資訊 (Email, 手機, Line 等)
+      if (checkSensitiveContent(text)) {
+        return {
+          success: false,
+          error: '感應到敏感資訊！PET_MODE 期間請交換寵物心聲，禁止交換個資喔 🔮'
+        }
+      }
+    }
+
+    // 3. 互動次數上限檢查
     if (isLimitReached.value) {
-      const limit = activeChat.value.type === 'knock' ? 3 : 10
+      const limit = chat.type === 'knock' ? 3 : 10
       return { success: false, error: `已達到 ${limit} 句互動上限，請升級為好友繼續聊天！` }
     }
 
@@ -185,10 +211,10 @@ export const useChatStore = defineStore('chat', () => {
       replyTo: replyTo
     }
 
-    activeChat.value.msgs.push(newMsg)
+    chat.msgs.push(newMsg)
 
     sendSocketMessage({
-      roomId: activeChat.value.id,
+      roomId: chat.id,
       content: newMsg.content,
       messageType: isImage ? 'image' : 'text',
       imageUrl: isImage ? text : null,
