@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 
 // 1. 導入路徑與服務 (New Structure)
 import chatRoutes from './routes/chat.js'
+import aiRoutes from './routes/ai.js'
 import { chatService } from './services/chatService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -24,6 +25,7 @@ app.use(express.json())
 
 // 2. 註冊路由
 app.use('/api/chat', chatRoutes)
+app.use('/api/ai', aiRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {
