@@ -1,6 +1,11 @@
 <script setup>
 import { ref, watch } from 'vue'
 import BaseInput from '@/components/Form/BaseInput.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const authStore = useAuthStore()
+const router = useRouter()
 
 defineEmits(['switch', 'forgot'])
 
@@ -46,7 +51,7 @@ const handleSocialLogin = async (provider) => {
   }
 }
 
-const handleLogin = () => {
+const handleLogin = async () => {
   // 清空錯誤訊息
   emailError.value = ''
   passwordError.value = ''
@@ -70,8 +75,20 @@ const handleLogin = () => {
     return
   }
 
-  // TODO: Implement Login Logic
-  console.log('Login:', { email: email.value, password: password.value })
+  // 呼叫登入 API
+  try {
+    await authStore.login(email.value, password.value)
+
+    // 登入成功，導向首頁
+    router.push('/')
+  } catch (error) {
+    // 顯示錯誤訊息
+    if (error.response?.data?.error) {
+      emailError.value = error.response.data.error
+    } else {
+      emailError.value = '登入失敗，請檢查帳號密碼'
+    }
+  }
 }
 </script>
 

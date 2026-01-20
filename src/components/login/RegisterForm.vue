@@ -2,6 +2,9 @@
 import { ref, watch } from 'vue'
 import BaseInput from '@/components/Form/BaseInput.vue'
 import { usePasswordValidator, isASCIIPassword } from '@/composables/usePasswordValidator'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 
 const emit = defineEmits(['switch', 'success'])
 
@@ -56,7 +59,7 @@ const handleSocialLogin = async (provider) => {
   }
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   // 清空之前的錯誤訊息
   emailError.value = ''
   passwordError.value = ''
@@ -93,10 +96,20 @@ const handleRegister = () => {
     return
   }
 
-  // TODO: Implement Register Logic
+  // 呼叫註冊 API
+  try {
+    await authStore.register(email.value, password.value)
 
-  // 註冊成功，通知父組件進入下一步
-  emit('success', { email: email.value })
+    // 註冊成功，通知父組件進入下一步
+    emit('success', { email: email.value })
+  } catch (error) {
+    // 顯示錯誤訊息
+    if (error.response?.data?.error) {
+      emailError.value = error.response.data.error
+    } else {
+      emailError.value = '註冊失敗，請稍後再試'
+    }
+  }
 }
 </script>
 

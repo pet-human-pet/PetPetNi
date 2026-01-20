@@ -8,7 +8,6 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "vitest",
-    "test:ui": "vitest --ui",
     "test:once": "vitest run",
     "test:coverage": "vitest run --coverage",
     "cleanup": "node scripts/cleanup-test-users.js"

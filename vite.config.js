@@ -9,18 +9,18 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    vue(), 
+    vue(),
     vueDevTools(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate', 
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-      manifest: { 
-        name: '我的專案名稱', 
+      manifest: {
+        name: '我的專案名稱',
         short_name: '專案簡稱',
         description: '一個專屬於寵物的社群平台',
-        theme_color: '#ffffff', 
-        icons: [ 
+        theme_color: '#ffffff',
+        icons: [
           {
             src: 'pwa-192x192.png', // 之後記得在public資料夾放圖
             sizes: '192x192',
@@ -37,14 +37,21 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    environment: 'jsdom', // 指定 jsdom
+    environment: 'jsdom' // 指定 jsdom
   },
 
-  resolve: { 
-    alias: { 
+  server: {
+    proxy: {
+      // 將所有 /api 請求代理到後端
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
+  },
+  resolve: {
+    alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   }
 })
-
-
