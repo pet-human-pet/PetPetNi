@@ -119,6 +119,10 @@ const handleAvatarClick = () => {
 const handleFileChange = (e) => {
   const file = e.target.files[0]
   if (file) {
+    // 在創建新的 blob URL 之前，先釋放舊的
+    if (tempImageSrc.value && tempImageSrc.value.startsWith('blob:')) {
+      URL.revokeObjectURL(tempImageSrc.value)
+    }
     tempImageSrc.value = URL.createObjectURL(file)
     showCropper.value = true
     e.target.value = ''
@@ -447,6 +451,7 @@ onUnmounted(() => {
           class="image-cropper-wrapper"
           :class="{ 'is-visible': showCropper }"
           :image-src="tempImageSrc"
+          :key="tempImageSrc"
           @confirm="handleCropConfirm" @cancel="handleCropCancel"
         />
       </Teleport>      <ImagePreviewModal
