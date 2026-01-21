@@ -1,7 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useUIStore } from '@/stores/ui'
+import { useAuthStore } from '@/stores/auth'
 import MenuButton from '@/components/Button/MenuButton.vue'
 import NotificationPanel from './HeaderPanel/NotificationPanel.vue'
 import EventPanel from './HeaderPanel/EventPanel.vue'
@@ -20,23 +22,23 @@ const props = defineProps({
 const router = useRouter()
 const route = useRoute()
 const uiStore = useUIStore()
+const authStore = useAuthStore()
+
+// 使用 storeToRefs 保持 user/token 的響應性
+const { token } = storeToRefs(authStore)
+const isLoggedIn = computed(() => !!token.value)
 
 // 判斷是否為首頁（只有首頁使用 MainFrame 藍色框架）
 const isHomePage = computed(() => route.name === 'home')
 
-// TODO: 後續整合真實的 auth store (useAuthStore)
-// 目前為了開發方便預設為已登入
-const isLoggedIn = ref(true)
-
-const menuOpen = computed(() => uiStore.isMenuOpen)
-
 // 計算屬性
 const headerClasses = computed(() => [
+  // TODO: --header-h 目前是 CSS 變數，未來可考慮整合進 tailwind config
   'h-(--header-h) fixed left-0 z-50 w-full transition-all duration-300',
   props.transparent || uiStore.isMenuOpen
     ? 'bg-transparent border-none shadow-none'
     : 'bg-white border-b border-border-default shadow-shadow-card',
-  // TODO: top-[36px] 為跑馬燈高度，考慮抽成 CSS 變數 --marquee-h
+  // TODO: Magic Number: top-[36px] 為跑馬燈高度，應抽成 CSS 變數 --marquee-h
   isHomePage.value ? 'top-[36px]' : 'top-0',
   // Menu 開啟時讓 Header 背景不擋住點擊，但 MenuButton 需設為 auto
   uiStore.isMenuOpen ? 'pointer-events-none' : ''
@@ -44,7 +46,7 @@ const headerClasses = computed(() => [
 
 const containerClasses = computed(() => [
   'h-(--header-h) w-full mx-auto flex items-center justify-between relative',
-  // TODO: px-[30px]/px-[50px] 為 MainFrame 對齊邊距，考慮抽成 CSS 變數
+  // TODO: Magic Number: px-[30px], px-[50px], max-w-300 違反 Guide 5.3 (Magic Numbers)
   isHomePage.value ? 'w-full px-[30px] md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
 ])
 
