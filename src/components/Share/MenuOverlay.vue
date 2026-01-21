@@ -1,16 +1,44 @@
 <script setup>
+import { computed, toRef, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useUIStore } from '../../stores/ui'
+import { useAuthStore } from '@/stores/auth'
+import { useScrollLock } from '@/composables/useScrollLock'
 import NavIcon from './NavIcon.vue'
 import BackgroundGrid from './BackgroundGrid.vue'
-import { toRef } from 'vue'
-import { useScrollLock } from '@/composables/useScrollLock'
 
 const props = defineProps({
-  open: Boolean
+  open: {
+    type: Boolean,
+    default: false
+  }
 })
 
-useScrollLock(toRef(props, 'open'))
+// 因為 MenuOverlay 是用 v-if 控制且獨立佔滿全螢幕
+// 這裡直接傳入 ref(true) 來鎖定，因為只要元件存在就是打開的 (.vue 前端邏輯)
+const isLocked = ref(true)
+useScrollLock(isLocked)
+
+// Stores
 const uiStore = useUIStore()
+const authStore = useAuthStore()
+const router = useRouter()
+
+// Auth state
+const { token } = storeToRefs(authStore)
+const isLoggedIn = computed(() => !!token.value)
+
+// Logout handler
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+    uiStore.closeMenu()
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout failed:', error)
+  }
+}
 
 // 選單項目
 const menuItems = [
@@ -42,12 +70,14 @@ const getIconUrl = (name) => {
               <button
                 class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
               >
-                探索寵物
+                github
               </button>
               <button
+                v-if="isLoggedIn"
                 class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
+                @click="handleLogout"
               >
-                開始配對
+                登出
               </button>
             </div>
           </div>
@@ -89,33 +119,6 @@ const getIconUrl = (name) => {
             </template>
           </NavIcon>
         </div>
-
-        <!-- 社群連結與頁尾 (手機版) -->
-        <div class="pointer-events-auto z-10 mt-8 flex flex-col gap-4">
-          <div class="mb-4 flex gap-4">
-            <a
-              v-for="social in socialLinks"
-              :key="social.name"
-              :href="social.url"
-              class="flex h-8 w-8 items-center justify-center text-white opacity-80 hover:opacity-100"
-            >
-              <img :src="getIconUrl(social.icon)" class="h-full w-full" :alt="social.name" />
-            </a>
-          </div>
-          <div class="flex flex-col gap-2 text-[10px] text-white opacity-80">
-            <div class="flex gap-4">
-              <a
-                v-for="link in footerLinks"
-                :key="link.label"
-                :href="link.url"
-                class="hover:underline"
-              >
-                {{ link.label }} ↗
-              </a>
-            </div>
-            <div class="mt-2 opacity-60">© PETPETNI</div>
-          </div>
-        </div>
       </div>
 
       <!-- 桌面版佈局 -->
@@ -141,12 +144,14 @@ const getIconUrl = (name) => {
             <button
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
             >
+              <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
               <span>探索寵物</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </button>
             <button
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
             >
+              <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
               <span class="tracking-widest">開始配對</span>
               <span class="text-xs font-normal text-gray-400">尋找你的寵物夥伴</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
