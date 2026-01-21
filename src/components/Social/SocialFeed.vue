@@ -141,7 +141,7 @@ onMounted(() => {
         v-if="postStore.isLoading"
         class="h-8 w-8 animate-spin rounded-full border-2 border-zinc-300 border-t-transparent"
       ></div>
-      <span v-else-if="!postStore.pagination.hasMore">沒有更多貼文了</span>
+      <span v-else-if="!postStore.pagination.hasMore">沒有更多貼文了🐾</span>
     </div>
 
     <!-- 圖片預覽 Modal -->
