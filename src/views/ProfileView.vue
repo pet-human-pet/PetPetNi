@@ -111,6 +111,20 @@ const toggleBookmark = (postId) => {
   }
 }
 
+// 處理貼文更新
+const handleUpdatePost = ({ id, content, audience }) => {
+  const updatePost = (postsRef) => {
+    const index = postsRef.value.findIndex((p) => p.id === id)
+    if (index !== -1) {
+      postsRef.value[index].content = content
+      postsRef.value[index].audience = audience
+    }
+  }
+
+  updatePost(myPosts)
+  updatePost(savedPosts)
+}
+
 // 头像处理
 const handleAvatarClick = () => {
   fileInput.value.click()
@@ -417,6 +431,7 @@ onUnmounted(() => {
                   @like="toggleLike"
                   @bookmark="toggleBookmark"
                   @preview-image="openPreview"
+                  @update="handleUpdatePost"
                 />
               </div>
               <div v-if="activeTab === 'events'" class="grid gap-4 pb-10 md:gap-5">
