@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 
 export const useEventMapStore = defineStore('event', () => {
   const baseLocations = {
-    1: { name: '101 區域', x: 280, y: 410 },
+    1: { name: '101 區域', x: 240, y: 420 },
     2: { name: '國父紀念館', x: 750, y: 300 },
     3: { name: '松菸區域', x: 1050, y: 250 },
     4: { name: '象山區域', x: 1490, y: 815 },
