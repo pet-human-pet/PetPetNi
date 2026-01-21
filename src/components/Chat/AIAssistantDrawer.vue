@@ -24,12 +24,14 @@ const { height: windowHeight } = useWindowSize()
 // 初始化位置在螢幕中間偏下
 const { y, isDragging } = useDraggable(handleRef, {
   initialValue: { x: 0, y: window.innerHeight * 0.4 },
-  axis: 'y', // 限制只能垂直拖動
+  axis: 'y',
   preventDefault: true,
-  // 增加邊界保護
-  onEnd: (pos) => {
-    if (pos.y < 20) y.value = 20
-    if (pos.y > windowHeight.value - 100) y.value = windowHeight.value - 100
+  onMove: (pos) => {
+    // 拖動中即時攔截：上方 0px，下方保留手柄高度
+    const minY = 0
+    const maxY = windowHeight.value - 60
+    if (pos.y < minY) pos.y = minY
+    if (pos.y > maxY) pos.y = maxY
   }
 })
 
