@@ -31,7 +31,7 @@ export const socialService = {
       .select(
         `
         *,
-        profiles ( name ),
+        profiles:profiles!posts_user_id_fkey ( name ),
         post_images ( image_url )
       `,
         { count: 'exact' }
