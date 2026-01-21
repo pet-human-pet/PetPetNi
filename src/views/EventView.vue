@@ -76,9 +76,11 @@ function selectEvent(evt, { scrollCard = false } = {}) {
 }
 
 function createEvent(payload) {
-  eventStore.addEvent(payload)
+  const newEvent = eventStore.addEvent(payload)
   // 活動建立後直接返回地圖，可立即在列表看到新活動
   rightView.value = 'map'
+  // 並自動選取新建立的活動且捲動到該張卡片
+  selectEvent(newEvent, { scrollCard: true })
 }
 
 function showEventForm() {
