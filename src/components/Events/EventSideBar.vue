@@ -9,7 +9,7 @@ const props = defineProps({
   selectedId: { type: [Number, String, null], default: null }
 })
 
-const emit = defineEmits(['select', 'open-comments', 'open-form'])
+const emit = defineEmits(['select', 'open-detail', 'open-form'])
 
 // 3. Store / State
 const fav = useFavoritesStore()
@@ -139,9 +139,9 @@ function eventBadge(status) {
           <button
             type="button"
             class="text-fg-secondary h-8 flex-1 rounded-[17px] bg-gray-100 text-[12px] font-bold md:h-8.5"
-            @click.stop="emit('open-comments', evt)"
+            @click.stop="emit('open-detail', evt)"
           >
-            <i class="fa-regular fa-comment-dots"></i>
+            <i class="fa-solid fa-circle-info"></i>
           </button>
         </div>
       </li>

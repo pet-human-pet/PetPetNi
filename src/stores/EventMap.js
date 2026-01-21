@@ -37,12 +37,14 @@ export const useEventMapStore = defineStore('event', () => {
     }
   ])
 
-  const visibleEvents = computed(() => events.value.filter((e) => e.status !== 'pending'))
+  const visibleEvents = computed(() =>
+    events.value.filter((e) => e.status !== 'pending' && e.status !== 'ended')
+  )
 
   function addEvent(payload) {
     const newEvt = {
       id: Date.now(),
-      status: 'pending',
+      status: 'open',
       initiator: { id: 'me', name: '我', avatar: '' },
       ...payload
     }

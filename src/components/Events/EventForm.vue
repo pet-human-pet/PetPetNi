@@ -45,7 +45,7 @@ function submit() {
     endAt: form.endAt,
     contact: form.contact.trim(),
     desc: form.desc.trim(),
-    status: 'pending'
+    status: 'open'
   }
 
   lastSubmitted.value = { ...payload, locLabel: locLabel.value }
@@ -68,10 +68,10 @@ function createAnother() {
     <div class="mb-4 flex items-start justify-between gap-3">
       <div>
         <h2 class="text-fg-primary text-[18px] font-bold">
-          {{ submittedOpen ? '已提交活動發起' : '建立新活動' }}
+          {{ submittedOpen ? '活動已發起' : '建立新活動' }}
         </h2>
         <p v-if="!submittedOpen" class="text-fg-secondary mt-1 text-[12px]">
-          送出後會進入待審核狀態，通過後才會公開顯示。
+          填寫活動資訊，發起後會直接顯示在地圖上。
         </p>
       </div>
 
@@ -90,8 +90,8 @@ function createAnother() {
       <div
         class="border-border-default bg-bg-base text-fg-secondary rounded-xl border p-3 text-[13px]"
       >
-        <div class="text-brand-accent mb-1 font-bold">狀態：待審核</div>
-        <div>你的活動已送出，管理員審核通過後會公開顯示在地圖與列表中。</div>
+        <div class="text-brand-accent mb-1 font-bold">狀態：已發起</div>
+        <div>你的活動已成功發起！現在可以在活動列表中看到。</div>
       </div>
 
       <div
@@ -229,7 +229,7 @@ function createAnother() {
       </div>
 
       <!-- 送出按鈕 -->
-      <button class="c-btn c-btn--primary" type="button" @click="submit">送出審核</button>
+      <button class="c-btn c-btn--primary" type="button" @click="submit">立即發起</button>
 
       <!-- 取消按鈕 -->
       <button class="c-btn c-btn--secondary" type="button" @click="handleCancel">取消返回</button>

@@ -4,18 +4,16 @@ import { storeToRefs } from 'pinia'
 import { useScrollLock } from '@vueuse/core'
 import { useScreen } from '@/composables/useScreen.js'
 import { useEventMapStore } from '@/stores/EventMap'
-// import { useEventCommentStore } from '@/stores/EventComment'
 
 import EventSideBar from '@/components/Events/EventSideBar.vue'
 import EventMap from '@/components/Events/EventMap.vue'
 import EventForm from '@/components/Events/EventForm.vue'
-import EventComments from '@/components/Events/EventComments.vue'
+import EventDetail from '@/components/Events/EventDetail.vue'
 import mapImg from '@/assets/EventMapFinal.jpg'
 
 const eventStore = useEventMapStore()
 
 const { events, visibleEvents } = storeToRefs(eventStore)
-// 評論 Store 直接使用 actions/getters
 
 // 滾動鎖定邏輯
 const isLocked = useScrollLock(document.body)
@@ -55,7 +53,7 @@ const locations = computed(() => {
 })
 
 // 導航邏輯
-const rightView = ref('map') // 'map' | 'comments' | 'eventForm'
+const rightView = ref('map') // 'map' | 'detail' | 'eventForm'
 
 const selectedEventId = ref(null)
 
@@ -63,14 +61,13 @@ const selectedEvent = computed(
   () => events.value.find((e) => String(e.id) === String(selectedEventId.value)) || null
 )
 
-const isMobileOverlayOpen = computed(() => ['eventForm', 'comments'].includes(rightView.value))
+const isMobileOverlayOpen = computed(() => ['eventForm', 'detail'].includes(rightView.value))
 
 const eventSidebarRef = ref(null)
 
 function selectEvent(evt, { scrollCard = false } = {}) {
-  const keepComments = rightView.value === 'comments'
-  if (!keepComments) rightView.value = 'map'
-
+  // 點擊卡片時總是回到地圖畫面
+  rightView.value = 'map'
   selectedEventId.value = evt.id
 
   if (scrollCard) {
@@ -80,10 +77,8 @@ function selectEvent(evt, { scrollCard = false } = {}) {
 
 function createEvent(payload) {
   eventStore.addEvent(payload)
-
-  // 留在 EventForm，讓 submittedOpen 成功畫面顯示
-  rightView.value = 'eventForm'
-  alert('活動已送出審核！可在此頁查看送出內容')
+  // 活動建立後直接返回地圖，可立即在列表看到新活動
+  rightView.value = 'map'
 }
 
 function showEventForm() {
@@ -94,9 +89,9 @@ function cancelEventForm() {
   rightView.value = 'map'
 }
 
-function openEventComments(evt) {
+function openEventDetail(evt) {
   selectedEventId.value = evt.id
-  rightView.value = 'comments'
+  rightView.value = 'detail'
 }
 
 function backToMap() {
@@ -124,7 +119,7 @@ onMounted(() => {
           :selected-id="selectedEventId"
           @select="selectEvent"
           @open-form="showEventForm"
-          @open-comments="openEventComments"
+          @open-detail="openEventDetail"
         />
       </aside>
 
@@ -142,8 +137,8 @@ onMounted(() => {
           :map-src="mapImg"
           @pin-click="(evt) => selectEvent(evt, { scrollCard: true })"
         />
-        <!--視圖 2: 評論-->
-        <EventComments v-show="rightView === 'comments'" :event="selectedEvent" @back="backToMap" />
+        <!-- 視圖 2: 活動詳情 -->
+        <EventDetail v-show="rightView === 'detail'" :event="selectedEvent" @back="backToMap" />
         <!--視圖 3: 活動表單-->
         <EventForm
           v-show="rightView === 'eventForm'"
