@@ -19,7 +19,10 @@ const httpServer = createServer(app)
 
 // 配置
 const PORT = process.env.PORT || 3000
-const FRONTEND_URL = 'http://localhost:5173'
+const FRONTEND_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://www.petpetni.com' // 生產環境：正式網域
+    : 'http://localhost:5173' // 開發環境：本地 Port
 
 app.use(cors({ origin: FRONTEND_URL }))
 app.use(express.json())
