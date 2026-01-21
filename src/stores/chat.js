@@ -343,6 +343,29 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  function createAiChat(title = '新對話') {
+    const newChatId = 'ai_' + Date.now()
+    const newChat = {
+      id: newChatId,
+      name: '波波',
+      title: title,
+      avatar: '/src/assets/images/ai-avatar.webp',
+      type: 'ai',
+      pinned: false,
+      msgs: [],
+      timestamp: Date.now()
+    }
+    // 這裡我們暫時用 mock 資料模擬，實務上會呼叫 aiStore
+    currentCategory.value = 'ai'
+    activeChatId.value = newChatId
+    return newChatId
+  }
+
+  function startAiFeature(featureText) {
+    const title = featureText.split('：')[0]
+    createAiChat(title)
+  }
+
   return {
     currentCategory,
     activeChatId,
@@ -362,6 +385,8 @@ export const useChatStore = defineStore('chat', () => {
     switchCategory,
     openChat,
     sendMessage,
+    createAiChat,
+    startAiFeature,
     acceptStranger,
     rejectStranger,
     becomeFriend,
