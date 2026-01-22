@@ -18,7 +18,7 @@ export const authApi = {
    * @returns {Promise} API 回應
    */
   register(data) {
-    return api.post('/auth/register', data)
+    return api.post('/api/auth/register', data)
   },
 
   /**
@@ -29,7 +29,7 @@ export const authApi = {
    * @returns {Promise} API 回應
    */
   login(data) {
-    return api.post('/auth/login', data)
+    return api.post('/api/auth/login', data)
   },
 
   /**
@@ -37,7 +37,7 @@ export const authApi = {
    * @returns {Promise} API 回應
    */
   logout() {
-    return api.post('/auth/logout')
+    return api.post('/api/auth/logout')
   }
 }
 
