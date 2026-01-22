@@ -13,12 +13,14 @@ import mapImg from '@/assets/EventMapFinal.jpg'
 
 const eventStore = useEventMapStore()
 
-const { events, visibleEvents } = storeToRefs(eventStore)
+const { events, visibleEvents, isLoading, error } = storeToRefs(eventStore)
 
 // 滾動鎖定邏輯
 const isLocked = useScrollLock(document.body)
-onMounted(() => {
+onMounted(async () => {
   isLocked.value = true // 鎖定
+  // 載入活動資料
+  await eventStore.fetchEvents()
 })
 
 onBeforeUnmount(() => {
@@ -75,12 +77,17 @@ function selectEvent(evt, { scrollCard = false } = {}) {
   }
 }
 
-function createEvent(payload) {
-  const newEvent = eventStore.addEvent(payload)
-  // 活動建立後直接返回地圖，可立即在列表看到新活動
-  rightView.value = 'map'
-  // 並自動選取新建立的活動且捲動到該張卡片
-  selectEvent(newEvent, { scrollCard: true })
+async function createEvent(payload) {
+  try {
+    const newEvent = await eventStore.addEvent(payload)
+    // 活動建立後直接返回地圖，可立即在列表看到新活動
+    rightView.value = 'map'
+    // 並自動選取新建立的活動且捲動到該張卡片
+    selectEvent(newEvent, { scrollCard: true })
+  } catch (err) {
+    console.error('建立活動失敗:', err)
+    alert('建立活動失敗，請稍後再試')
+  }
 }
 
 function showEventForm() {
