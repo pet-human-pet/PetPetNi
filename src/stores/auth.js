@@ -1,51 +1,47 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { authApi } from '@/api/auth'
+import authApi from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
-  // ==========================================
-  // State（狀態）
-  // ==========================================
-  const user = ref(null) // 用戶基本資料
+  //State
+  const user = ref(null)
   const userIdInt = ref(null) // 用戶自增 ID（主要識別碼）
-  const token = ref(null) // JWT Token
-  const isLoading = ref(false) // 載入狀態
-  const error = ref(null) // 錯誤訊息
-
-  // 暫存第三方登入資料（OAuth 用，暫時保留）
+  const token = ref(null)
+  const isLoading = ref(false)
+  const error = ref(null)
   const tempOAuthData = ref(null)
 
-  // ==========================================
-  // Actions（方法）
-  // ==========================================
-
-  /**
-   * 初始化認證狀態
-   * 從 localStorage 恢復登入狀態
-   */
-  const initAuth = () => {
+  // Actions
+  const initAuth = async () => {
     const savedToken = localStorage.getItem('token')
     if (savedToken) {
       token.value = savedToken
-      // TODO: 可以呼叫 API 驗證 token 並取得用戶資料
-      // 目前先簡單恢復 token
+
+      try {
+        // 呼叫 API 驗證 token 並取得用戶資料
+        const response = await authApi.getCurrentUser()
+        user.value = response.data.user
+        userIdInt.value = response.data.profile.user_id_int
+
+        console.log('✅ Token 驗證成功，已恢復登入狀態')
+      } catch {
+        // Token 無效，清除狀態
+        console.warn('⚠️ Token 無效或已過期，清除登入狀態')
+        user.value = null
+        userIdInt.value = null
+        token.value = null
+        localStorage.removeItem('token')
+      }
     }
   }
 
-  /**
-   * 用戶註冊
-   * @param {string} email - Email
-   * @param {string} password - 密碼
-   */
   const register = async (email, password) => {
     try {
       isLoading.value = true
       error.value = null
 
-      // 呼叫註冊 API
       const response = await authApi.register({ email, password })
 
-      // 儲存用戶資料和 Token
       user.value = response.data.user
       token.value = response.data.session.access_token
       localStorage.setItem('token', token.value)
@@ -64,20 +60,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 用戶登入
-   * @param {string} email - Email
-   * @param {string} password - 密碼
-   */
   const login = async (email, password) => {
     try {
       isLoading.value = true
       error.value = null
 
-      // 呼叫登入 API
       const response = await authApi.login({ email, password })
 
-      // 儲存用戶資料和 Token
       user.value = response.data.user
       token.value = response.data.session.access_token
       localStorage.setItem('token', token.value)
@@ -96,107 +85,66 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 用戶登出
-   */
   const logout = async () => {
     try {
       isLoading.value = true
       error.value = null
 
-      // 呼叫登出 API
       await authApi.logout()
-
-      // 清除本地狀態
-      user.value = null
-      userIdInt.value = null
-      token.value = null
-      localStorage.removeItem('token')
-
       console.log('✅ 登出成功')
     } catch (err) {
       console.error('❌ 登出失敗:', err)
       error.value = err.response?.data?.error || '登出失敗，請稍後再試'
-      // 即使 API 失敗，也要清除本地狀態
+    } finally {
+      // 無論 API 成功或失敗，都清除本地狀態
       user.value = null
       userIdInt.value = null
       token.value = null
       localStorage.removeItem('token')
-    } finally {
       isLoading.value = false
     }
   }
 
-  /**
-   * 清除錯誤訊息
-   */
   const clearError = () => {
     error.value = null
   }
 
-  /**
-   * 設定用戶自增 ID
-   * @param {number} id - 用戶自增 ID
-   */
   const setUserIdInt = (id) => {
     userIdInt.value = id
     console.log('📊 已設定 User ID (Int):', id)
   }
 
-  // ==========================================
-  // OAuth 相關（暫時保留，之後實作）
-  // ==========================================
-
-  /**
-   * 發起 OAuth 登入
-   * TODO: 整合真實的 OAuth API
-   */
+  // OAuth (TODO)
   const initiateOAuthLogin = (provider) => {
     console.log(`[AuthStore] Initiating ${provider} login...`)
     // TODO: 之後實作
     alert(`${provider} 登入功能即將開放！`)
   }
 
-  /**
-   * 處理 OAuth Callback
-   * TODO: 整合真實的 OAuth API
-   */
   const handleOAuthCallback = async (code, provider) => {
     console.log(`[AuthStore] Handling OAuth callback for ${provider}`)
     // TODO: 之後實作
     return { status: 'NOT_IMPLEMENTED' }
   }
 
-  /**
-   * Email 註冊（OAuth 用）
-   * TODO: 整合真實的 OAuth API
-   */
   const registerWithEmail = async (email) => {
     console.log('[AuthStore] Registering with email:', email)
     // TODO: 之後實作
   }
 
-  // ==========================================
-  // 暴露給外部使用
-  // ==========================================
   return {
-    // State
     user,
     userIdInt,
     token,
     isLoading,
     error,
     tempOAuthData,
-
-    // Actions
     initAuth,
     register,
     login,
     logout,
     clearError,
     setUserIdInt,
-
-    // OAuth (暫時保留)
     initiateOAuthLogin,
     handleOAuthCallback,
     registerWithEmail

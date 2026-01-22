@@ -173,5 +173,73 @@ export const authController = {
         error: '伺服器錯誤，請稍後再試'
       })
     }
+  },
+
+  // ==========================================
+  // 📝 取得當前用戶資料 API（用於驗證 token）
+  // ==========================================
+  getCurrentUser: async (req, res) => {
+    try {
+      // 1. 從 Authorization header 取得 token
+      const authHeader = req.headers.authorization
+
+      // 2. 驗證 token 是否存在
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          error: '未提供授權 token'
+        })
+      }
+
+      // 3. 提取 token
+      const token = authHeader.split(' ')[1]
+
+      // 4. 驗證 token 並取得用戶資料
+      const { data: authData, error: authError } = await supabase.auth.getUser(token)
+
+      if (authError || !authData.user) {
+        console.error('❌ Token 驗證失敗:', authError)
+        return res.status(401).json({
+          error: 'Token 無效或已過期'
+        })
+      }
+
+      // 5. 從 profiles 表取得完整用戶資料（包含 user_id_int）
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', authData.user.id)
+        .single()
+
+      if (profileError) {
+        console.error('❌ 取得 profile 失敗:', profileError)
+        return res.status(404).json({
+          error: '找不到用戶資料'
+        })
+      }
+
+      // 6. 成功回傳
+      console.log('✅ 取得用戶資料成功:', authData.user.email)
+
+      res.status(200).json({
+        user: {
+          id: authData.user.id,
+          email: authData.user.email,
+          created_at: authData.user.created_at
+        },
+        profile: {
+          user_id_int: profile.user_id_int,
+          nick_name: profile.nick_name,
+          avatar_url: profile.avatar_url,
+          phone: profile.phone,
+          birthday: profile.birthday,
+          gender: profile.gender
+        }
+      })
+    } catch (error) {
+      console.error('❌ 取得用戶資料 API 發生錯誤:', error)
+      res.status(500).json({
+        error: '伺服器錯誤，請稍後再試'
+      })
+    }
   }
 }

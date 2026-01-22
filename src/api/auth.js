@@ -38,6 +38,14 @@ export const authApi = {
    */
   logout() {
     return api.post('/api/auth/logout')
+  },
+
+  /**
+   * 取得當前用戶資料（用於驗證 token）
+   * @returns {Promise} API 回應
+   */
+  getCurrentUser() {
+    return api.get('/api/auth/me')
   }
 }
 
