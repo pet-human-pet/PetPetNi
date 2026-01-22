@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url'
 import chatRoutes from './routes/chat.js'
 import aiRoutes from './routes/ai.js'
 import authRoutes from './routes/auth.js'
+import userRoutes from './routes/user.js'
 import { chatService } from './services/chatService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -19,10 +20,7 @@ const httpServer = createServer(app)
 
 // 配置
 const PORT = process.env.PORT || 3000
-const FRONTEND_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://www.petpetni.com' // 生產環境：正式網域
-    : 'http://localhost:5173' // 開發環境：本地 Port
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 app.use(cors({ origin: FRONTEND_URL }))
 app.use(express.json())
@@ -31,6 +29,7 @@ app.use(express.json())
 app.use('/api/chat', chatRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/user', userRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -44,6 +43,9 @@ const io = new Server(httpServer, {
 
 io.on('connection', async (socket) => {
   try {
+    // TODO: [資安協定] Socket.io 零信任原則 - 嚴禁信任客戶端傳入的 userId
+    // 必須從 Server Session/JWT 驗證後取得真實的 socket.userId
+    // 參考: 全域規則 3. 資安防護協定 - Socket.io 零信任
     const userId = socket.handshake.auth?.userId
     socket.userId = userId
 
@@ -71,6 +73,8 @@ io.on('connection', async (socket) => {
   // 發送訊息
   socket.on('send_message', async (data) => {
     try {
+      // TODO: [資安協定] 嚴禁信任客戶端 data 中的 senderId，必須使用 socket.userId
+      // TODO: [資安協定] 必須驗證用戶是否有權限在該 roomId 中發送訊息（防止 IDOR）
       const { roomId, content, messageType, imageUrl, replyTo } = data
 
       const messagePayload = {
