@@ -34,7 +34,7 @@ const handleLogout = async () => {
   try {
     await authStore.logout()
     uiStore.closeMenu()
-    router.push('/login')
+    router.push('/home')
   } catch (error) {
     console.error('Logout failed:', error)
   }
@@ -145,15 +145,17 @@ const getIconUrl = (name) => {
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
             >
               <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
-              <span>探索寵物</span>
+              <span> github</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </button>
             <button
+              v-if="isLoggedIn"
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
+              @click="handleLogout"
             >
               <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
-              <span class="tracking-widest">開始配對</span>
-              <span class="text-xs font-normal text-gray-400">尋找你的寵物夥伴</span>
+              <span class="tracking-widest">登出</span>
+
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </button>
           </div>
