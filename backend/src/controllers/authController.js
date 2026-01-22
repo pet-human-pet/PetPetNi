@@ -141,8 +141,14 @@ export const authController = {
         })
       }
 
-      // 3. 提取 token（格式：Bearer xxxxxx）
-      const token = authHeader.split(' ')[1]
+      // 3. 提取 token
+      const parts = authHeader.split(' ')
+      if (parts.length !== 2 || parts[0] !== 'Bearer') {
+        // 如果格式不對，直接回傳 401 錯誤，告訴前端格式錯誤
+        return res.status(401).json({ error: '授權 token 格式不正確' })
+      }
+
+      const token = parts[1]
 
       // 4. 驗證 token 是否有效
       const { data, error } = await supabase.auth.getUser(token)
