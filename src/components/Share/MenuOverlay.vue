@@ -1,5 +1,5 @@
 <script setup>
-import { computed, toRef, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUIStore } from '../../stores/ui'
@@ -7,13 +7,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useScrollLock } from '@/composables/useScrollLock'
 import NavIcon from './NavIcon.vue'
 import BackgroundGrid from './BackgroundGrid.vue'
-
-const props = defineProps({
-  open: {
-    type: Boolean,
-    default: false
-  }
-})
 
 // 因為 MenuOverlay 是用 v-if 控制且獨立佔滿全螢幕
 // 這裡直接傳入 ref(true) 來鎖定，因為只要元件存在就是打開的 (.vue 前端邏輯)
@@ -28,14 +21,18 @@ const router = useRouter()
 // Auth state
 const { token } = storeToRefs(authStore)
 const isLoggedIn = computed(() => !!token.value)
-// Logout handler
+
+// ✅ Logout handler - 使用 finally 消除重複代碼
 const handleLogout = async () => {
   try {
     await authStore.logout()
-    uiStore.closeMenu()
-    router.push('/home')
   } catch (error) {
-    console.error('Logout failed:', error)
+    // 登出失敗記錄錯誤，但仍繼續執行關閉流程
+    console.error('登出失敗:', error)
+  } finally {
+    // 無論成功或失敗都執行
+    uiStore.closeMenu()
+    router.push('/')
   }
 }
 
@@ -66,19 +63,24 @@ const getIconUrl = (name) => {
         <div class="pointer-events-auto mb-8 flex flex-col gap-6">
           <div class="flex items-center justify-end">
             <div class="mr-12 flex gap-2">
-              <button
-                class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
-              >
-                github
-              </button>
+              <!-- ✅ GitHub 連結 -->
               <a
                 href="https://github.com/pet-human-pet/PetPetNi"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
                 class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
               >
                 GitHub
               </a>
+              <!-- ✅ 登出按鈕（已登入時顯示） -->
+              <button
+                v-if="isLoggedIn"
+                type="button"
+                class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
+                @click="handleLogout"
+              >
+                登出
+              </button>
             </div>
           </div>
         </div>
@@ -141,6 +143,7 @@ const getIconUrl = (name) => {
 
           <!-- 桌面版按鈕 -->
           <div class="flex flex-col gap-4">
+            <!-- ✅ GitHub 連結 -->
             <a
               href="https://github.com/pet-human-pet/PetPetNi"
               target="_blank"
@@ -148,17 +151,18 @@ const getIconUrl = (name) => {
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
             >
               <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
-              <span>Github</span>
+              <span>GitHub</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </a>
+            <!-- ✅ 登出按鈕（已登入時顯示） -->
             <button
               v-if="isLoggedIn"
+              type="button"
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
               @click="handleLogout"
             >
               <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
               <span class="tracking-widest">登出</span>
-
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
             </button>
           </div>
