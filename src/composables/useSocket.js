@@ -20,9 +20,13 @@ export function useSocket() {
       socket.value = null
     }
 
+    // 將 userId 轉為適當的型別（數字優先，因為後端支援自動判斷）
+    const socketUserId =
+      typeof userId === 'number' || !isNaN(parseInt(userId)) ? parseInt(userId) : userId
+
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
     socket.value = io(baseUrl, {
-      auth: { userId } // 連線時帶上 userId，讓後端自動加入房間
+      auth: { userId: socketUserId } // 連線時帶上 userId，讓後端自動加入房間
     })
 
     socket.value.on('connect', () => {

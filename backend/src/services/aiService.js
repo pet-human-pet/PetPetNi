@@ -88,11 +88,12 @@ export const aiService = {
    * 建立新的對話 Session
    */
   async createSession(userId = null, title = '新對話') {
-    const { data, error } = await supabase
-      .from('ai_sessions')
-      .insert({ user_id: userId, title })
-      .select()
-      .single()
+    const sessionData = {
+      title,
+      user_id_int: userId
+    }
+
+    const { data, error } = await supabase.from('ai_sessions').insert(sessionData).select().single()
 
     if (error) throw error
     return data
@@ -129,12 +130,13 @@ export const aiService = {
 
   /**
    * 取得使用者的所有對話列表
+   * @param {number} userId - 用戶自增 ID
    */
   async getUserSessions(userId = null) {
     const query = supabase.from('ai_sessions').select('*').order('updated_at', { ascending: false })
 
     if (userId) {
-      query.eq('user_id', userId)
+      query.eq('user_id_int', userId)
     }
 
     const { data, error } = await query

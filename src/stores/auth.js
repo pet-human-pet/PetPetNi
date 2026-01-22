@@ -6,7 +6,8 @@ export const useAuthStore = defineStore('auth', () => {
   // ==========================================
   // State（狀態）
   // ==========================================
-  const user = ref(null) // 用戶資料
+  const user = ref(null) // 用戶基本資料
+  const userIdInt = ref(null) // 用戶自增 ID（主要識別碼）
   const token = ref(null) // JWT Token
   const isLoading = ref(false) // 載入狀態
   const error = ref(null) // 錯誤訊息
@@ -49,6 +50,9 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.session.access_token
       localStorage.setItem('token', token.value)
 
+      // user_id_int 需在 profile 建立後才會有，先設為 null
+      userIdInt.value = null
+
       console.log('✅ 註冊成功:', user.value.email)
       return response.data
     } catch (err) {
@@ -78,6 +82,9 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.session.access_token
       localStorage.setItem('token', token.value)
 
+      // TODO: 從 profile API 取得 user_id_int
+      userIdInt.value = null
+
       console.log('✅ 登入成功:', user.value.email)
       return response.data
     } catch (err) {
@@ -102,6 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // 清除本地狀態
       user.value = null
+      userIdInt.value = null
       token.value = null
       localStorage.removeItem('token')
 
@@ -111,6 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = err.response?.data?.error || '登出失敗，請稍後再試'
       // 即使 API 失敗，也要清除本地狀態
       user.value = null
+      userIdInt.value = null
       token.value = null
       localStorage.removeItem('token')
     } finally {
@@ -123,6 +132,15 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const clearError = () => {
     error.value = null
+  }
+
+  /**
+   * 設定用戶自增 ID
+   * @param {number} id - 用戶自增 ID
+   */
+  const setUserIdInt = (id) => {
+    userIdInt.value = id
+    console.log('📊 已設定 User ID (Int):', id)
   }
 
   // ==========================================
@@ -164,6 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     // State
     user,
+    userIdInt,
     token,
     isLoading,
     error,
@@ -175,6 +194,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     clearError,
+    setUserIdInt,
 
     // OAuth (暫時保留)
     initiateOAuthLogin,
