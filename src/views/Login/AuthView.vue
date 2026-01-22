@@ -186,8 +186,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="flex h-screen items-center justify-center overflow-hidden p-4 lg:p-8"
-    style="background-color: var(--brand-tertiary)"
+    class="bg-brand-tertiary flex h-screen items-center justify-center overflow-hidden p-4 lg:p-8"
   >
     <div class="grid w-full max-w-5xl grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
       <!-- Branding Section (Left/Top) - 垂直居中固定 -->
