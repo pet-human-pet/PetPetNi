@@ -1,6 +1,7 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import MainHeader from './components/Share/Header.vue'
 import AppFooter from './components/Share/AppFooter.vue'
 import MenuOverlay from './components/Share/MenuOverlay.vue'
@@ -10,6 +11,12 @@ import SimpleToast from './components/Share/SimpleToast.vue'
 import AIAssistantDrawer from './components/Chat/AIAssistantDrawer.vue'
 
 const route = useRoute()
+const authStore = useAuthStore()
+
+// 應用啟動時驗證 token
+onMounted(() => {
+  authStore.initAuth()
+})
 
 // 判斷是否為首頁
 const isHomePage = computed(() => route.name === 'home')
