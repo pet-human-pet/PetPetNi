@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+const authStore = useAuthStore()
 
 const router = useRouter()
 const route = useRoute()
@@ -13,7 +15,8 @@ const defaultAvatar =
 const shouldShowAvatar = computed(() => !['Profile'].includes(route.name))
 
 function goProfile() {
-  router.push({ name: 'Profile' })
+  const userId = authStore.user?.id || '1'
+  router.push(`/profile/${userId}`)
 }
 </script>
 
