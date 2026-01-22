@@ -18,9 +18,7 @@ async function cleanupTestUsers() {
   console.log(`📊 總共有 ${users.length} 個用戶`)
 
   // 篩選測試用戶（email 包含 @example.com）
-  const testUsers = users.filter(
-    (user) => user.email.includes('@example.com') && user.email !== 'testuser@example.com' // 保留固定的測試用戶
-  )
+  const testUsers = users.filter((user) => user.email.includes('@example.com'))
 
   console.log(`🎯 找到 ${testUsers.length} 個測試用戶需要清理`)
 

@@ -219,6 +219,7 @@ export const userController = {
       res.status(500).json({
         error: '伺服器錯誤，請稍後再試',
         code: 'INTERNAL_ERROR',
+        // 僅在開發環境回傳詳細錯誤資訊，確保生產環境安全
         ...(process.env.NODE_ENV === 'development' && {
           details: error.message
         })
