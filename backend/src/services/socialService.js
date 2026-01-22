@@ -189,5 +189,79 @@ export const socialService = {
       throw error
     }
     return { success: true }
+  },
+
+  // 更新貼文
+  updatePost: async (userId, postId, { content, images, audience }) => {
+    // 1. Update Post Content
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .update({ content, audience })
+      .eq('id', postId)
+      // .eq('user_id', userId) // Enforce owner check
+      .select()
+      .single()
+
+    if (postError) throw postError
+
+    // 2. Sync Images
+    // Get current DB images
+    const { data: currentImages } = await supabase
+      .from('post_images')
+      .select('image_url')
+      .eq('post_id', postId)
+
+    const currentUrls = currentImages?.map((i) => i.image_url) || []
+
+    // Determine images to delete (present in DB but not in new list)
+    // images is the new list of URLs
+    const imagesToDelete = currentUrls.filter((url) => !images.includes(url))
+
+    // Note: We currently only support deleting existing images during edit, not adding new ones via this flow yet.
+    // If we wanted to support adding, we would find diff in the other direction.
+
+    if (imagesToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('post_images')
+        .delete()
+        .eq('post_id', postId)
+        .in('image_url', imagesToDelete)
+
+      if (deleteError) {
+        console.error('❌ Error deleting post images:', deleteError)
+        throw deleteError
+      }
+    }
+
+    // Return updated post structure
+    // Reuse formatPostForFrontend logic or construct manually
+    // Fetch profile for completeness
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name, avatar')
+      .eq('id', post.user_id)
+      .single()
+
+    // Re-fetch final images to be sure
+    const { data: finalImages } = await supabase
+      .from('post_images')
+      .select('image_url')
+      .eq('post_id', postId)
+
+    return {
+      id: post.id,
+      author: profile?.name || 'Unknown',
+      authorId: post.user_id,
+      authorAvatar: profile?.avatar || '',
+      content: post.content,
+      images: finalImages?.map((i) => i.image_url) || [],
+      audience: post.audience,
+      isLiked: false, // preserving previous state in frontend ideally
+      likeCount: 0,
+      commentCount: 0,
+      isBookmarked: false,
+      createdAt: post.created_at,
+      isNew: false
+    }
   }
 }
