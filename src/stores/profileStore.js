@@ -8,35 +8,44 @@ import {
 
 export const useProfileStore = defineStore('profile', () => {
   // 1. 初始化從 LocalStorage 讀取 (解決 Store 重啟重設問題)
-  const savedFollowState = localStorage.getItem('follow_status_2') === 'true'
+  // 1. 初始化從 LocalStorage 讀取 (支援所有使用者的動態追蹤狀態)
+  const getInitialFollowState = (id) => localStorage.getItem(`follow_status_${id}`) === 'true'
 
   const state = reactive({
     profiles: {
       1: {
         ...initialProfile,
         id: '1',
-        followingCount: initialProfile.followingCount + (savedFollowState ? 1 : 0)
+        // 計算總追蹤數 (模擬動態加總)
+        followingCount: initialProfile.followingCount
       },
       2: {
         ...initialOtherProfile,
         id: '2',
-        isFollowed: savedFollowState,
-        followersCount: initialOtherProfile.followersCount + (savedFollowState ? 1 : 0)
+        isFollowed: getInitialFollowState('2'),
+        followersCount: initialOtherProfile.followersCount + (getInitialFollowState('2') ? 1 : 0)
       }
     },
-    myFollowingList: [
-      ...initialFollowingList.map((u) => ({ ...u, id: String(u.id) })),
-      ...(savedFollowState
-        ? [
-            {
-              id: '2',
-              name: initialOtherProfile.name,
-              avatar: initialOtherProfile.avatar,
-              breed: initialOtherProfile.petInfo?.breed || '未知品種'
-            }
-          ]
-        : [])
-    ]
+    myFollowingList: [...initialFollowingList.map((u) => ({ ...u, id: String(u.id) }))]
+  })
+
+  // 1.1 根據初始追蹤狀態補足名單與計數 (支援通用化)
+  Object.keys(state.profiles).forEach((id) => {
+    if (id === '1') return
+    const isFollowed = getInitialFollowState(id)
+    if (isFollowed) {
+      if (!state.myFollowingList.some((u) => u.id === id)) {
+        const p = state.profiles[id]
+        state.myFollowingList.push({
+          id: p.id,
+          name: p.name,
+          avatar: p.avatar,
+          breed: p.petInfo?.breed || '未知品種'
+        })
+      }
+      // 確保我的追蹤數正確
+      state.profiles['1'].followingCount++
+    }
   })
 
   // 快捷訪問
@@ -49,36 +58,39 @@ export const useProfileStore = defineStore('profile', () => {
     return p
   }
 
-  // 追蹤邏輯 (增加硬跳轉持久化)
+  /**
+   * 通用追蹤邏輯
+   * @param {string|number} targetId - 目標使用者 ID
+   */
   const toggleFollow = (targetId) => {
     const tId = String(targetId)
-    if (tId === '2') {
-      const target = state.profiles['2']
-      const me = state.profiles['1']
+    const target = state.profiles[tId]
+    const me = state.profiles['1']
 
-      target.isFollowed = !target.isFollowed
-      const isNowFollowed = target.isFollowed
+    if (!target || tId === '1') return
 
-      // 同步數字
-      target.followersCount += isNowFollowed ? 1 : -1
-      me.followingCount += isNowFollowed ? 1 : -1
+    target.isFollowed = !target.isFollowed
+    const isNowFollowed = target.isFollowed
 
-      // 持久化到磁碟
-      localStorage.setItem('follow_status_2', isNowFollowed)
+    // 同步數字
+    target.followersCount += isNowFollowed ? 1 : -1
+    me.followingCount += isNowFollowed ? 1 : -1
 
-      // 同步名單
-      if (isNowFollowed) {
-        if (!state.myFollowingList.some((user) => user.id === tId)) {
-          state.myFollowingList.push({
-            id: target.id,
-            name: target.name,
-            avatar: target.avatar,
-            breed: target.petInfo?.breed || '未知品種'
-          })
-        }
-      } else {
-        state.myFollowingList = state.myFollowingList.filter((user) => user.id !== tId)
+    // 持久化到磁碟 (動態鍵值)
+    localStorage.setItem(`follow_status_${tId}`, isNowFollowed)
+
+    // 同步名單
+    if (isNowFollowed) {
+      if (!state.myFollowingList.some((user) => user.id === tId)) {
+        state.myFollowingList.push({
+          id: target.id,
+          name: target.name,
+          avatar: target.avatar,
+          breed: target.petInfo?.breed || '未知品種'
+        })
       }
+    } else {
+      state.myFollowingList = state.myFollowingList.filter((user) => user.id !== tId)
     }
   }
 
