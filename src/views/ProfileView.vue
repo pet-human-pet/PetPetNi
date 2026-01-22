@@ -173,6 +173,10 @@ const handleCropConfirm = (blob) => {
   if (profile.value.avatar?.startsWith('blob:')) URL.revokeObjectURL(profile.value.avatar)
   profile.value.avatar = URL.createObjectURL(blob)
   showCropper.value = false
+  if (tempImageSrc.value) {
+    URL.revokeObjectURL(tempImageSrc.value)
+    tempImageSrc.value = ''
+  }
 }
 
 const handleCropCancel = () => {
