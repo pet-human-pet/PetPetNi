@@ -108,6 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('✅ 登出成功')
     } catch (err) {
       console.error('❌ 登出失敗:', err)
+      error.value = err.response?.data?.error || '登出失敗，請稍後再試'
       // 即使 API 失敗，也要清除本地狀態
       user.value = null
       token.value = null
