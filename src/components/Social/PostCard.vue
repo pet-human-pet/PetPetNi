@@ -4,11 +4,15 @@ import { ref, computed, watch, nextTick } from 'vue'
 import AudiencePicker from './AudiencePicker.vue'
 import { useRouter } from 'vue-router'
 import CommentSection from './CommentSection.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   post: { type: Object, required: true },
   showComments: { type: Boolean, default: false }
 })
+
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => !!authStore.user)
 
 const emit = defineEmits([
   'edit',
@@ -103,7 +107,7 @@ const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}
       <div class="flex items-center gap-2">
         <!--貼文編輯-->
         <button
-          v-if="post.isMine"
+          v-if="post.isMine && isLoggedIn"
           type="button"
           class="grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
           aria-label="Edit"

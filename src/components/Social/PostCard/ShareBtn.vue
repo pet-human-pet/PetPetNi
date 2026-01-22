@@ -1,4 +1,7 @@
 <script setup>
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
 const props = defineProps({
   shareUrl: { type: String, default: '' },
   shareTitle: { type: String, default: '' },
@@ -7,6 +10,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['share'])
+
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => !!authStore.user)
 
 const handleShare = async () => {
   const url = props.shareUrl || window.location.href
@@ -32,8 +38,9 @@ const handleShare = async () => {
   <div>
     <button
       type="button"
-      class="action-btn flex cursor-pointer items-center gap-2"
+      class="action-btn flex cursor-pointer items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
       aria-label="Share"
+      :disabled="!isLoggedIn"
       @click="handleShare"
     >
       <span class="action-icon inline-flex items-center justify-center text-xl leading-none"
