@@ -31,6 +31,7 @@ const toProfile = () => router.push({ path: '/profile' })
 
 const isEditing = ref(false)
 const editContent = ref('')
+const editImages = ref([])
 const editTextareaRef = ref(null)
 
 const autoResizeEdit = () => {
@@ -43,6 +44,7 @@ const autoResizeEdit = () => {
 const startEdit = async () => {
   isEditing.value = true
   editContent.value = props.post.content
+  editImages.value = [...(props.post.images || [])]
   editAudience.value = props.post.audience || 'public'
 
   await nextTick()
@@ -57,6 +59,7 @@ watch(editContent, () => {
 const cancelEdit = () => {
   isEditing.value = false
   editContent.value = ''
+  editImages.value = []
   editAudience.value = 'public'
 }
 
@@ -65,7 +68,8 @@ const saveEdit = () => {
   emit('update', {
     id: props.post.id,
     content: editContent.value,
-    audience: editAudience.value
+    audience: editAudience.value,
+    images: editImages.value
   })
   isEditing.value = false
 }
@@ -111,6 +115,10 @@ const handleDelete = async () => {
     emit('delete', props.post.id)
   }
 }
+
+const removeEditImage = (index) => {
+  editImages.value.splice(index, 1)
+}
 </script>
 
 <template>
@@ -119,10 +127,10 @@ const handleDelete = async () => {
     :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
   >
     <div class="flex items-start justify-between">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1">
         <div class="flex cursor-pointer items-center gap-3" @click="toProfile">
           <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
-          <a class="text-m cursor-pointer font-semibold text-blue-800">{{ post.author }}</a>
+          <a class="cursor-pointer text-sm font-semibold text-blue-800">{{ post.author }}</a>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-xs text-zinc-500">·</span>
@@ -131,7 +139,7 @@ const handleDelete = async () => {
           <AudiencePicker v-if="isEditing" v-model="editAudience" />
 
           <!-- 非編輯：只顯示目前 audience -->
-          <span v-else class="text-xs text-zinc-500">
+          <span v-else class="text-xs text-zinc-500 md:text-sm">
             {{
               post.audience === 'public'
                 ? '🌐 所有人'
@@ -162,7 +170,6 @@ const handleDelete = async () => {
             aria-label="More"
             @click="toggleMenu"
           >
-            <!-- 使用 fa-ellipsis-vertical 或 fa-ellipsis -->
             <i class="fa-solid fa-ellipsis"></i>
           </button>
 
@@ -201,8 +208,26 @@ const handleDelete = async () => {
         ref="editTextareaRef"
         v-model="editContent"
         class="w-full resize-none bg-transparent text-base leading-6 outline-none"
-        rows="3"
+        rows="1"
       ></textarea>
+
+      <!-- 編輯時的圖片列表 -->
+      <div v-if="editImages.length > 0" class="mt-2 flex flex-wrap gap-2">
+        <div
+          v-for="(img, idx) in editImages"
+          :key="img + idx"
+          class="relative aspect-square w-[80%] overflow-hidden rounded-lg border border-zinc-200"
+        >
+          <img :src="img" class="h-full w-full object-cover" />
+          <button
+            type="button"
+            class="absolute top-2 right-2 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-black/50 text-sm font-bold text-white hover:bg-black/70"
+            @click="removeEditImage(idx)"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
 
       <div class="mt-2 flex justify-end gap-2">
         <button
@@ -214,7 +239,7 @@ const handleDelete = async () => {
         </button>
         <button
           type="button"
-          class="cursor-pointer rounded-lg bg-btn-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-btn-primary-dark"
+          class="bg-btn-primary hover:bg-btn-primary-dark cursor-pointer rounded-lg px-3 py-1.5 text-sm font-semibold text-white"
           @click="saveEdit"
         >
           更新
@@ -236,7 +261,7 @@ const handleDelete = async () => {
       </a>
     </div>
 
-    <div v-if="post.images?.length" class="mt-3 min-w-0">
+    <div v-if="post.images?.length && !isEditing" class="mt-3 min-w-0">
       <div
         class="flex w-full min-w-0 snap-x snap-mandatory items-start gap-4 overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch]"
       >

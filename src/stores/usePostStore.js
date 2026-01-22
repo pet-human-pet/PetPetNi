@@ -89,10 +89,10 @@ export const usePostStore = defineStore('post', () => {
     }
 
     try {
-      await socialApi.updatePost(id, payload) // 假設有此 API
+      await socialApi.updatePost(id, payload)
     } catch (error) {
-      console.warn('Update post failed (Dev Mode - keeping local change):', error)
-      // 若是正式環境需 revert，但在開發測試(無後端)時，保持本地變更
+      console.error('Update post failed:', error)
+      // TODO: Revert logic if needed
     }
   }
 

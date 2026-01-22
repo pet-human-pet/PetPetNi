@@ -84,4 +84,23 @@ router.delete('/posts/:id', async (req, res) => {
   }
 })
 
+// 更新貼文
+router.put('/posts/:id', async (req, res) => {
+  try {
+    const postId = req.params.id
+    const userId = req.headers['x-user-id'] // TODO: Auth
+    const { content, images, audience } = req.body
+
+    const updatedPost = await socialService.updatePost(userId, postId, {
+      content,
+      images,
+      audience
+    })
+    res.json(updatedPost)
+  } catch (error) {
+    console.error('API update post error:', error)
+    res.status(500).json({ error: 'Failed to update post' })
+  }
+})
+
 export default router

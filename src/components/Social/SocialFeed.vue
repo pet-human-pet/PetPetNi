@@ -41,7 +41,8 @@ const toggleBookmark = async (postId) => {
 const handleUpdate = async (payload) => {
   await postStore.updatePost(payload.id, {
     content: payload.content,
-    audience: payload.audience
+    audience: payload.audience,
+    images: payload.images
   })
   success('貼文已更新')
 }
