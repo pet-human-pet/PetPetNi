@@ -15,6 +15,7 @@ const formatMessageForFrontend = (msg) => ({
 
 export const chatService = {
   // 取得用戶參與的所有聊天室 ID
+  // userId 為數字型的自增 ID
   getUserRooms: async (userId) => {
     const { data, error } = await supabase
       .from('chat_room_participants')
@@ -24,7 +25,7 @@ export const chatService = {
         chat_rooms ( id, type, name, avatar )
       `
       )
-      .eq('user_id', userId)
+      .eq('user_id_int', userId)
       .eq('is_blocked', false)
 
     if (error) {
@@ -55,7 +56,7 @@ export const chatService = {
       room_id: roomId,
       content: message.content,
       message_type: message.messageType || 'text',
-      sender_id: message.senderId,
+      sender_id_int: message.senderId, // 直接使用數字 ID
       read: false,
       image_url: message.imageUrl || null,
       parent_id: message.replyTo || null

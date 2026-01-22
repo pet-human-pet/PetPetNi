@@ -152,12 +152,14 @@ export const userController = {
       }
 
       console.log('✅ Profile 建立成功:', profile.id)
+      console.log('📊 User ID (UUID):', user.id)
+      console.log('📊 User ID (Int):', profile.user_id_int)
 
       // ========== 6. 建立 Pet ==========
       const { data: petData, error: petError } = await supabase
         .from('pets')
         .insert({
-          user_id: user.id,
+          user_id_int: profile.user_id_int, // 只使用自增 ID
           name: sanitizeString(pet.name),
           type: pet.type,
           breed: pet.breed ? sanitizeString(pet.breed) : null,
@@ -170,8 +172,16 @@ export const userController = {
       if (petError) {
         console.error('❌ Pet 建立失敗:', petError)
 
-        // 回滾：刪除已建立的 profile（可選）
-        // await supabase.from('profiles').delete().eq('user_id', user.id)
+        // 回滾：刪除已建立的 profile
+        const { error: rollbackError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('user_id', user.id)
+
+        if (rollbackError) {
+          console.error('⚠️ 回滾失敗:', rollbackError)
+          // 可以記錄到錯誤追蹤系統（如 Sentry）
+        }
 
         return res.status(400).json({
           error: '寵物資料建立失敗',

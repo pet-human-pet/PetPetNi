@@ -125,7 +125,7 @@ const handleGoBack = () => {
 const handleComplete = async () => {
   try {
     // 呼叫後端 API 建立 Profile
-    await userApi.createProfile({
+    const response = await userApi.createProfile({
       realName: ownerData.value.realName,
       nickName: ownerData.value.nickname,
       phone: ownerData.value.phone,
@@ -143,6 +143,14 @@ const handleComplete = async () => {
     })
 
     console.log('✅ Profile 建立成功')
+
+    // 從回應中取得 user_id_int 並儲存到 authStore
+    if (response.data?.profile?.user_id_int) {
+      const { useAuthStore } = await import('@/stores/auth')
+      const authStore = useAuthStore()
+      authStore.setUserIdInt(response.data.profile.user_id_int)
+      console.log('📊 User ID (Int) 已儲存:', response.data.profile.user_id_int)
+    }
 
     // 顯示註冊完成頁面，3秒後自動跳轉首頁
     authMode.value = 'success'
