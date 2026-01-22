@@ -56,6 +56,16 @@ const sharePost = async (payload) => {
   }
 }
 
+const handleDelete = async (postId) => {
+  try {
+    await postStore.deletePost(postId)
+    success('貼文已刪除')
+  } catch (error) {
+    console.error(error)
+    error('刪除失敗')
+  }
+}
+
 onMounted(() => {
   postStore.fetchPosts()
 
@@ -131,6 +141,7 @@ onMounted(() => {
           @close-comments="commentManager.deactivate()"
           @share="sharePost"
           @bookmark="toggleBookmark"
+          @delete="handleDelete"
         />
       </div>
     </section>

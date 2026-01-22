@@ -7,7 +7,7 @@ const visible = ref(false)
 const props = ref({
   title: '',
   message: '',
-  type: 'primary', // 'primary' | 'danger'
+  type: 'primary',
   confirmText: '確認',
   cancelText: '取消'
 })
@@ -18,7 +18,7 @@ const show = (options) => {
   props.value = {
     title: options.title || '提示',
     message: options.message || '',
-    type: options.type || 'primary',
+    type: options.type || 'primary', // 'primary' | 'danger' | 'blue'
     confirmText: options.confirmText || '確認',
     cancelText: options.cancelText || '取消'
   }
@@ -50,28 +50,39 @@ defineExpose({ show })
 
 <template>
   <Transition name="fade">
-    <div v-if="visible" class="c-dialog-overlay">
-      <div class="c-dialog-box">
-        <div class="px-6 pt-6 pb-2">
-          <h3 class="text-lg font-bold text-fg-primary">{{ props.title }}</h3>
+    <div v-if="visible" class="c-dialog-overlay z-50">
+      <div class="c-dialog-box relative w-full max-w-[400px] rounded-2xl bg-white shadow-xl">
+        <!-- Close Button -->
+        <button
+          class="cursor-pointer absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full bg-gray-100 hover:bg-gray-200"
+          @click="handleCancel"
+        >
+          <i class="fa-solid fa-xmark text-gray-500"></i>
+        </button>
+
+        <div class="px-6 pt-8 pb-2 text-center">
+          <h3 class="text-fg-secondary text-xl font-bold">{{ props.title }}</h3>
         </div>
 
         <div class="px-6 py-2">
-          <p class="text-sm text-fg-secondary leading-relaxed">{{ props.message }}</p>
+          <p class="text-fg-secondary/90 leading-relaxed">{{ props.message }}</p>
         </div>
 
         <div class="flex justify-end gap-3 px-6 py-6">
-          <button 
+          <button
             type="button"
-            class="rounded-lg px-4 py-2 text-sm font-medium text-fg-muted hover:bg-bg-base transition-colors"
+            class="hover:bg-bg-base text-fg-muted cursor-pointer rounded-lg px-4 py-2 text-sm font-bold transition-colors hover:bg-gray-100"
             @click="handleCancel"
           >
             {{ props.cancelText }}
           </button>
-          <button 
+          <button
             type="button"
-            class="rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm transition-transform active:scale-95"
-            :class="props.type === 'danger' ? 'bg-status-error hover:bg-red-600' : 'bg-brand-primary hover:bg-brand-primary/90'"
+            class="cursor-pointer rounded-lg px-8 py-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95"
+            :class="{
+              'bg-func-danger hover:bg-func-danger/90': props.type === 'danger',
+              'bg-brand-primary hover:bg-brand-primary/90': props.type !== 'danger'
+            }"
             @click="handleConfirm"
           >
             {{ props.confirmText }}

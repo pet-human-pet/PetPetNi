@@ -33,5 +33,10 @@ export const socialApi = {
 
   unbookmarkPost(id) {
     return api.delete(`api/social/posts/${id}/bookmark`)
+  },
+
+  // 刪除貼文
+  deletePost(id) {
+    return api.delete(`api/social/posts/${id}`)
   }
 }

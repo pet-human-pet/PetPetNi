@@ -4,6 +4,10 @@ import { useRouter } from 'vue-router'
 import ActionBar from './PostCard/ActionBar.vue'
 import AudiencePicker from './AudiencePicker.vue'
 import CommentSection from './CommentSection.vue'
+import { useReport } from '@/composables/useReport'
+import { useToast } from '@/composables/useToast'
+import { useConfirm } from '@/composables/useConfirm'
+import { onClickOutside } from '@vueuse/core'
 
 const props = defineProps({
   post: { type: Object, required: true },
@@ -18,7 +22,8 @@ const emit = defineEmits([
   'open-comments',
   'share',
   'bookmark',
-  'close-comments'
+  'close-comments',
+  'delete'
 ])
 
 const router = useRouter()
@@ -69,18 +74,41 @@ const editAudience = ref('public')
 
 const shareUrl = computed(() => `${window.location.origin}/post/${props.post.id}`)
 
-import { useReport } from '@/composables/useReport'
-import { useToast } from '@/composables/useToast'
-
 const { showReport } = useReport()
 const { success } = useToast()
+const { showConfirm } = useConfirm()
 
-const handleMore = async () => {
+const showMenu = ref(false)
+const menuRef = ref(null)
+
+onClickOutside(menuRef, () => {
+  showMenu.value = false
+})
+
+const toggleMenu = () => {
+  showMenu.value = !showMenu.value
+}
+
+const handleReport = async () => {
+  showMenu.value = false
   const result = await showReport()
   if (result.confirmed) {
-    // 這裡未來可以串接後端 API，目前僅顯示成功提示
-    // console.log('Report confirmed:', result.reason)
     success('檢舉已送出，我們會盡快審核')
+  }
+}
+
+const handleDelete = async () => {
+  showMenu.value = false
+  const confirmed = await showConfirm({
+    title: '刪除貼文？',
+    message: '刪除這則貼文後，即無法恢復顯示。',
+    confirmText: '刪除',
+    cancelText: '取消',
+    type: 'danger'
+  })
+
+  if (confirmed) {
+    emit('delete', props.post.id)
   }
 }
 </script>
@@ -127,14 +155,44 @@ const handleMore = async () => {
           <i class="fa-regular fa-pen-to-square"></i>
         </button>
 
-        <!--更多按鈕-->
-        <button
-          class="text-fg-secondary/70 grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
-          aria-label="More"
-          @click="handleMore"
-        >
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </button>
+        <!--更多按鈕 (Kebab Menu)-->
+        <div ref="menuRef" class="relative">
+          <button
+            class="text-fg-secondary/70 grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
+            aria-label="More"
+            @click="toggleMenu"
+          >
+            <!-- 使用 fa-ellipsis-vertical 或 fa-ellipsis -->
+            <i class="fa-solid fa-ellipsis"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            v-if="showMenu"
+            class="absolute top-full right-0 z-10 mt-1 w-32 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg"
+          >
+            <div class="flex flex-col py-1">
+              <template v-if="post.isMine">
+                <button
+                  class="text-func-danger flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm font-medium hover:bg-red-50"
+                  @click="handleDelete"
+                >
+                  <i class="fa-regular fa-trash-can"></i>
+                  刪除貼文
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                  @click="handleReport"
+                >
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  檢舉貼文
+                </button>
+              </template>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -149,21 +207,21 @@ const handleMore = async () => {
       <div class="mt-2 flex justify-end gap-2">
         <button
           type="button"
-          class="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 hover:bg-zinc-100"
+          class="cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-500 hover:bg-zinc-100"
           @click="cancelEdit"
         >
           取消
         </button>
         <button
           type="button"
-          class="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-zinc-700"
+          class="cursor-pointer rounded-lg bg-btn-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-btn-primary-dark"
           @click="saveEdit"
         >
           更新
         </button>
       </div>
     </div>
-    <p v-else class="md:text-m mt-3 leading-6 text-fg-secondary sm:text-base">
+    <p v-else class="md:text-m text-fg-secondary mt-3 leading-6 sm:text-base">
       {{ post.content }}
     </p>
 

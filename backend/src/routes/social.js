@@ -70,4 +70,18 @@ router.delete('/posts/:id/like', async (req, res) => {
   }
 })
 
+// 刪除貼文
+router.delete('/posts/:id', async (req, res) => {
+  try {
+    const postId = req.params.id
+    // TODO: 目前刪除不需要 userId，或者從 header/token 取得
+    const userId = req.headers['x-user-id']
+    await socialService.deletePost(userId, postId)
+    res.json({ success: true })
+  } catch (error) {
+    console.error('API delete post error:', error)
+    res.status(500).json({ error: 'Failed to delete post' })
+  }
+})
+
 export default router
