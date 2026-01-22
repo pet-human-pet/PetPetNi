@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { userApi } from '@/api/user'
 import LoginForm from '@/components/login/LoginForm.vue'
 import RegisterForm from '@/components/login/RegisterForm.vue'
 import ForgetPasswordForm from '@/components/login/ForgetPasswordForm.vue'
@@ -121,10 +122,36 @@ const handleGoBack = () => {
   authMode.value = backMap[authMode.value] || 'login'
 }
 
-const handleComplete = () => {
-  // 顯示註冊完成頁面，3秒後自動跳轉首頁
-  authMode.value = 'success'
-  startCountdown()
+const handleComplete = async () => {
+  try {
+    // 呼叫後端 API 建立 Profile
+    await userApi.createProfile({
+      realName: ownerData.value.realName,
+      nickName: ownerData.value.nickname,
+      phone: ownerData.value.phone,
+      city: ownerData.value.city,
+      district: ownerData.value.district,
+      gender: ownerData.value.gender, // 新增：傳遞性別
+      pet: {
+        name: petData.value.name,
+        type: petData.value.type,
+        breed: petData.value.breed,
+        birthday: petData.value.birthday,
+        gender: petData.value.gender
+      },
+      optionalTags: petTagsData.value?.optionalTags || []
+    })
+
+    console.log('✅ Profile 建立成功')
+
+    // 顯示註冊完成頁面，3秒後自動跳轉首頁
+    authMode.value = 'success'
+    startCountdown()
+  } catch (error) {
+    console.error('❌ Profile 建立失敗:', error)
+    // TODO: 顯示錯誤提示給用戶
+    // 可以考慮使用 Toast 或者在 UI 上顯示錯誤訊息
+  }
 }
 
 // 成功頁面相關邏輯
@@ -158,13 +185,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- TODO: Replace with CSS variable var(--app-bg) -->
   <div
     class="flex h-screen items-center justify-center overflow-hidden p-4 lg:p-8"
-    style="background-color: #ffd9ad"
+    style="background-color: var(--brand-tertiary)"
   >
-    <!-- TODO: Replace with CSS variable var(--app-bg) -->
-
     <div class="grid w-full max-w-5xl grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-16">
       <!-- Branding Section (Left/Top) - 垂直居中固定 -->
       <div class="flex flex-col items-center justify-center space-y-4 lg:self-center">
@@ -280,10 +304,8 @@ onUnmounted(() => {
 
             <!-- 標題 -->
             <h2 class="mb-2 text-center text-3xl font-bold text-gray-800">註冊完成！</h2>
-            <!-- TODO: Replace with CSS variable var(--app-primary) -->
-            <p class="mb-2 text-center text-xl font-medium" style="color: #ffa75f">
-              歡迎來到 PetPetNi
-            </p>
+
+            <p class="text-brand-primary mb-2 text-center text-xl font-medium">歡迎來到 PetPetNi</p>
 
             <!-- 訊息 -->
             <p class="mb-8 text-center text-sm text-gray-500">
@@ -293,18 +315,16 @@ onUnmounted(() => {
             <!-- 倒數計時 -->
             <div class="mb-6 text-center">
               <p class="text-sm text-gray-400">
-                <!-- TODO: Replace with CSS variable var(--app-primary) -->
-                <span class="text-2xl font-bold" style="color: #ffa75f">{{ countdown }}</span>
+                <span class="text-brand-primary text-2xl font-bold">{{ countdown }}</span>
                 秒後自動進入
               </p>
             </div>
 
             <!-- 立即進入按鈕 -->
-            <!-- TODO: Replace with CSS variable var(--app-primary) -->
+
             <button
               type="button"
-              class="w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
-              style="background-color: #ffa75f"
+              class="bg-brand-primary w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
               @click="goToHome"
             >
               立即進入
