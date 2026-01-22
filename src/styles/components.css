@@ -310,7 +310,7 @@
 
   /* Profile */
 
-  /* Event / GroupBuy 側邊欄卡片項目 */
+  /* Event 側邊欄卡片項目 */
   .c-event-card {
     @apply border-border-default bg-bg-surface shadow-card hover:shadow-card relative flex h-40 w-60 flex-none cursor-pointer snap-center flex-col justify-between overflow-hidden rounded-2xl border transition hover:-translate-y-0.5 md:h-auto md:w-full md:rounded-xl;
   }

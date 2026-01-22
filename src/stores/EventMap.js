@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 
 export const useEventMapStore = defineStore('event', () => {
-  const baseLocations = {
-    1: { name: '101 區域', x: 280, y: 410 },
-    2: { name: '國父紀念館', x: 750, y: 300 },
-    3: { name: '松菸區域', x: 1050, y: 250 },
-    4: { name: '象山區域', x: 1490, y: 815 },
-    5: { name: '市府區域', x: 900, y: 820 }
-  }
+  const baseLocations = reactive({
+    1: { name: '101 區域', x: 250, y: 515 },
+    2: { name: '國父紀念館', x: 750, y: 470 },
+    3: { name: '松菸區域', x: 1050, y: 380 },
+    4: { name: '象山區域', x: 1490, y: 939 },
+    5: { name: '市府區域', x: 845, y: 640 }
+  })
 
   const events = ref([
     {
@@ -26,27 +26,21 @@ export const useEventMapStore = defineStore('event', () => {
       desc: '歡迎各路飛盤好狗前來挑戰！',
       status: 'active',
       initiator: { id: 'u2', name: '李大華', avatar: '' }
-    },
-    {
-      id: 3,
-      locId: 3,
-      title: '松山菸廠攝影競賽',
-      desc: '歡迎拍攝好手，一起來參加攝影比賽!',
-      status: 'ended',
-      initiator: { id: 'u3', name: '張攝手', avatar: '' }
     }
   ])
 
-  const visibleEvents = computed(() => events.value.filter((e) => e.status !== 'pending'))
+  const visibleEvents = computed(() =>
+    events.value.filter((e) => e.status !== 'pending' && e.status !== 'ended')
+  )
 
   function addEvent(payload) {
     const newEvt = {
       id: Date.now(),
-      status: 'pending',
+      status: 'open',
       initiator: { id: 'me', name: '我', avatar: '' },
       ...payload
     }
-    events.value.push(newEvt)
+    events.value.unshift(newEvt)
     return newEvt
   }
 
