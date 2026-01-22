@@ -11,6 +11,7 @@ import chatRoutes from './routes/chat.js'
 import aiRoutes from './routes/ai.js'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
+import eventRoutes from './routes/event.js'
 import { chatService } from './services/chatService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -30,6 +31,7 @@ app.use('/api/chat', chatRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
+app.use('/api/events', eventRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {
