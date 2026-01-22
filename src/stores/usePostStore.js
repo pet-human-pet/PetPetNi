@@ -132,6 +132,22 @@ export const usePostStore = defineStore('post', () => {
     }
   }
 
+  // 刪除貼文
+  const deletePost = async (id) => {
+    // Optimistic update
+    const previousPosts = [...posts.value]
+    posts.value = posts.value.filter((p) => p.id !== id)
+
+    try {
+      await socialApi.deletePost(id)
+    } catch (error) {
+      console.error('Delete post failed:', error)
+      // Revert if failed
+      posts.value = previousPosts
+      throw error
+    }
+  }
+
   return {
     posts,
     postsWithAuth,
@@ -141,6 +157,7 @@ export const usePostStore = defineStore('post', () => {
     createPost,
     updatePost,
     likePost,
-    bookmarkPost
+    bookmarkPost,
+    deletePost
   }
 })
