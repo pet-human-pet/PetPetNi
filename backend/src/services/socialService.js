@@ -34,6 +34,7 @@ export const socialService = {
     } = await supabase
       .from('posts')
       .select('*', { count: 'exact' })
+      .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .range(from, to)
 
@@ -173,7 +174,7 @@ export const socialService = {
     return { success: true }
   },
 
-  // 刪除貼文
+  // 刪除貼文 (軟刪除)
   deletePost: async (userId, postId) => {
     // 驗證是否為作者 (安全檢查)
     const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).single()
@@ -182,7 +183,7 @@ export const socialService = {
     // 這裡我們暫時放寬權限檢查，或者假設 userId 必須匹配 (如果 userId 有傳入的話)
     // 嚴謹做法：if (post.user_id !== userId) throw new Error('Unauthorized')
 
-    const { error } = await supabase.from('posts').delete().eq('id', postId)
+    const { error } = await supabase.from('posts').update({ is_deleted: true }).eq('id', postId)
 
     if (error) {
       console.error('❌ Error deleting post:', error)
