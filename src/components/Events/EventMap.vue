@@ -56,7 +56,18 @@ async function recenter() {
   const loc = selectedLoc.value
   if (!loc) return
   await nextTick()
-  computeTransformByLoc(loc)
+
+  let attempts = 0
+  const tryFocus = () => {
+    const hasSize = mapBox.value?.offsetWidth > 0 && mapLayer.value?.offsetWidth > 0
+    if (hasSize) {
+      computeTransformByLoc(loc)
+    } else if (attempts < 5) {
+      attempts++
+      setTimeout(tryFocus, 150)
+    }
+  }
+  tryFocus()
 }
 
 watch(() => props.selectedId, recenter)
@@ -72,12 +83,12 @@ onUnmounted(() => window.removeEventListener('resize', onResize))
     <div ref="mapBox" class="relative h-full w-full">
       <div
         ref="mapLayer"
-        class="pointer-events-none absolute top-0 left-0 h-full w-387.5 transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
+        class="pointer-events-auto absolute top-0 left-0 h-250 w-387.5 transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
         :style="{ transform }"
       >
         <img
           :src="props.mapSrc"
-          class="block h-full w-full object-cover"
+          class="block h-full w-full object-fill"
           alt="Map"
           @load="recenter"
         />
