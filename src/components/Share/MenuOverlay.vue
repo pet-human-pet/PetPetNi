@@ -28,7 +28,6 @@ const router = useRouter()
 // Auth state
 const { token } = storeToRefs(authStore)
 const isLoggedIn = computed(() => !!token.value)
-
 // Logout handler
 const handleLogout = async () => {
   try {
@@ -72,13 +71,14 @@ const getIconUrl = (name) => {
               >
                 github
               </button>
-              <button
-                v-if="isLoggedIn"
+              <a
+                href="https://github.com/pet-human-pet/PetPetNi"
+                target="_blank"
+                rel="noopener"
                 class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
-                @click="handleLogout"
               >
-                登出
-              </button>
+                GitHub
+              </a>
             </div>
           </div>
         </div>
@@ -141,13 +141,16 @@ const getIconUrl = (name) => {
 
           <!-- 桌面版按鈕 -->
           <div class="flex flex-col gap-4">
-            <button
+            <a
+              href="https://github.com/pet-human-pet/PetPetNi"
+              target="_blank"
+              rel="noopener noreferrer"
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
             >
               <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
-              <span> github</span>
+              <span>Github</span>
               <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
-            </button>
+            </a>
             <button
               v-if="isLoggedIn"
               class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
