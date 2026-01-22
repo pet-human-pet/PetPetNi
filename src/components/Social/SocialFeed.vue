@@ -19,8 +19,9 @@ const commentManager = useActiveItem({
 
 const loadMoreTrigger = ref(null)
 
-const leftPosts = computed(() => postStore.postsWithAuth.filter((_, i) => i % 2 === 0))
-const rightPosts = computed(() => postStore.postsWithAuth.filter((_, i) => i % 2 !== 0))
+const visiblePosts = computed(() => postStore.postsWithAuth.filter((p) => !p.isDeleted))
+const leftPosts = computed(() => visiblePosts.value.filter((_, i) => i % 2 === 0))
+const rightPosts = computed(() => visiblePosts.value.filter((_, i) => i % 2 !== 0))
 
 const openComments = (postId) => {
   if (commentManager.activeId.value === postId) {
@@ -93,7 +94,7 @@ onMounted(() => {
     <!-- 手機/平板：單欄 -->
     <section v-if="!isDesktop" class="mt-4 flex flex-col gap-4">
       <PostCard
-        v-for="p in postStore.postsWithAuth"
+        v-for="p in visiblePosts"
         :key="p.id"
         :ref="(el) => commentManager.registerRef(p.id, el)"
         :post="p"
@@ -105,6 +106,7 @@ onMounted(() => {
         @close-comments="commentManager.deactivate()"
         @share="sharePost"
         @bookmark="toggleBookmark"
+        @delete="handleDelete"
       />
     </section>
 
@@ -125,6 +127,7 @@ onMounted(() => {
           @close-comments="commentManager.deactivate()"
           @share="sharePost"
           @bookmark="toggleBookmark"
+          @delete="handleDelete"
         />
       </div>
       <!-- 右欄 -->

@@ -60,7 +60,6 @@ export const usePostStore = defineStore('post', () => {
         userId: authStore.user.id
       })
 
-      // Backend returns the created post directly (or inside data)
       const newPost = res.data || res
 
       if (newPost) {
@@ -92,7 +91,7 @@ export const usePostStore = defineStore('post', () => {
       await socialApi.updatePost(id, payload)
     } catch (error) {
       console.error('Update post failed:', error)
-      // TODO: Revert logic if needed
+      // TODO: 必要時還原邏輯
     }
   }
 
@@ -134,16 +133,20 @@ export const usePostStore = defineStore('post', () => {
 
   // 刪除貼文
   const deletePost = async (id) => {
-    // Optimistic update
-    const previousPosts = [...posts.value]
-    posts.value = posts.value.filter((p) => p.id !== id)
+    // Optimistic update - 標記為已刪除而不是從陣列移除
+    const post = posts.value.find((p) => p.id === id)
+    if (post) {
+      post.isDeleted = true
+    }
 
     try {
       await socialApi.deletePost(id)
     } catch (error) {
       console.error('Delete post failed:', error)
       // Revert if failed
-      posts.value = previousPosts
+      if (post) {
+        post.isDeleted = false
+      }
       throw error
     }
   }
