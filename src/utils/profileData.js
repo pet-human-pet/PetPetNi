@@ -82,8 +82,10 @@ export const profile = {
   name: '豆泥 (Doni)',
   username: '@doni_cat',
   hashtags: ['#黏人', '#活潑', '#愛撒嬌', '#睡覺'],
-  followersCount: 120,
-  followingCount: 65,
+  bio: '嗨！我是豆泥，喜歡曬太陽和吃罐罐 🐱',
+  joinDate: '2023年5月',
+  followersCount: 2,
+  followingCount: 6,
   petInfo: { breed: '布偶貓', birthday: '2023-01-15', gender: '母' }
 }
 
@@ -173,37 +175,37 @@ export const followersList = [
 ]
 export const followingList = [
   {
-    id: 1,
+    id: 11,
     name: '金金',
     avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150',
     breed: '黃金獵犬'
   },
   {
-    id: 2,
+    id: 12,
     name: '小柴',
     avatar: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=150',
     breed: '柴犬'
   },
   {
-    id: 3,
+    id: 13,
     name: '咪咪',
     avatar: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=150',
     breed: '橘貓'
   },
   {
-    id: 4,
+    id: 14,
     name: '圓圓',
     avatar: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=150',
     breed: '英短'
   },
   {
-    id: 5,
+    id: 15,
     name: '波波',
     avatar: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=150',
     breed: '波斯貓'
   },
   {
-    id: 6,
+    id: 16,
     name: '黑豆',
     avatar: 'https://images.unsplash.com/photo-1548247416-ec66f4900b2e?w=150',
     breed: '黑貓'
