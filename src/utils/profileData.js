@@ -82,7 +82,19 @@ export const profile = {
   name: '豆泥 (Doni)',
   username: '@doni_cat',
   hashtags: ['#黏人', '#活潑', '#愛撒嬌', '#睡覺'],
+  followersCount: 120,
+  followingCount: 65,
   petInfo: { breed: '布偶貓', birthday: '2023-01-15', gender: '母' }
+}
+
+export const otherProfile = {
+  avatar: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=150',
+  name: '酷醬 (K醬)',
+  username: '@cool_dog',
+  hashtags: ['#法鬥', '#愛散步', '#親人'],
+  followersCount: 15,
+  followingCount: 30,
+  petInfo: { breed: '法鬥', birthday: '2022-05-20', gender: '公' }
 }
 
 export const myPosts = [

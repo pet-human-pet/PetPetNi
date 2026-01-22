@@ -81,7 +81,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/profile',
+      path: '/profile/:id?',
       name: 'Profile',
       component: () => import('@/views/ProfileView.vue'),
       meta: { headerType: 'app' }
