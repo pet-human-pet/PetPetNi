@@ -287,5 +287,55 @@ export const eventController = {
       console.error('❌ Error in getMyEvents:', error)
       res.status(500).json({ success: false, message: '取得我的活動失敗', error: error.message })
     }
+  },
+
+  /**
+   * GET /api/events/participated - 取得當前使用者參加的活動列表
+   */
+  async getMyParticipatedEvents(req, res) {
+    try {
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const events = await eventService.getUserParticipatedEvents(user.userIdInt)
+      res.json({ success: true, data: events })
+    } catch (error) {
+      console.error('❌ Error in getMyParticipatedEvents:', error)
+      res.status(500).json({
+        success: false,
+        message: '取得參加的活動失敗',
+        error: error.message
+      })
+    }
+  },
+
+  /**
+   * GET /api/events/:id/check-participation - 檢查是否已參加活動
+   */
+  async checkParticipation(req, res) {
+    try {
+      const { id } = req.params
+
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const isParticipating = await eventService.checkUserParticipation(id, user.userIdInt)
+      res.json({ success: true, data: { isParticipating } })
+    } catch (error) {
+      console.error('❌ Error in checkParticipation:', error)
+      res.status(500).json({
+        success: false,
+        message: '檢查參加狀態失敗',
+        error: error.message
+      })
+    }
   }
 }
