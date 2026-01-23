@@ -42,9 +42,9 @@ export const useEventMapStore = defineStore('event', () => {
           participantsCount: evt.participants_count || 0,
           createdAt: evt.created_at,
           initiator: {
-            id: evt.user_id,
-            name: '活動發起人', // TODO: 從 user 資料取得名稱
-            avatar: ''
+            id: evt.user_id_int,
+            name: evt.initiator_nick_name || '未知使用者',
+            avatar: evt.initiator_avatar_url || ''
           }
         }))
       }
@@ -92,9 +92,9 @@ export const useEventMapStore = defineStore('event', () => {
           participantsCount: 0,
           createdAt: newEvt.created_at,
           initiator: {
-            id: newEvt.user_id,
-            name: '我',
-            avatar: ''
+            id: newEvt.user_id_int,
+            name: '我', // 目前使用者
+            avatar: '' // TODO: 可從 auth store 取得當前使用者頭像
           }
         }
 
