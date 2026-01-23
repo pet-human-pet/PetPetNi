@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUIStore } from '../../stores/ui'
@@ -8,13 +8,12 @@ import { useScrollLock } from '@/composables/useScrollLock'
 import NavIcon from './NavIcon.vue'
 import BackgroundGrid from './BackgroundGrid.vue'
 
-// 因為 MenuOverlay 是用 v-if 控制且獨立佔滿全螢幕
-// 這裡直接傳入 ref(true) 來鎖定，因為只要元件存在就是打開的 (.vue 前端邏輯)
-const isLocked = ref(true)
-useScrollLock(isLocked)
-
 // Stores
 const uiStore = useUIStore()
+// 使用 storeToRefs 取得響應式的 isMenuOpen
+// 透過 useScrollLock 監聽 isMenuOpen，只有在選單開啟時才鎖定捲動
+const { isMenuOpen } = storeToRefs(uiStore)
+useScrollLock(isMenuOpen)
 const authStore = useAuthStore()
 const router = useRouter()
 
