@@ -3,6 +3,23 @@ import { ref, watch } from 'vue'
 import BaseInput from '@/components/Form/BaseInput.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+
+const signInWithGoogle = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+  if (error) {
+    console.error('登入錯誤', error)
+    alert('登入失敗：' + error.message)
+  }
+}
+
+const loginWithGithub = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({ provider: 'github' })
+  if (error) {
+    console.error('GitHub 登入錯誤', error)
+    alert('GitHub 登入失敗：' + error.message)
+  }
+}
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -77,10 +94,16 @@ const handleLogin = async () => {
 
   // 呼叫登入 API
   try {
-    await authStore.login(email.value, password.value)
+    const result = await authStore.login(email.value, password.value)
 
-    // 登入成功，導向首頁
-    router.push('/')
+    // 檢查是否需要完成註冊流程
+    if (result.needsRegistration) {
+      // 導向角色選擇頁面
+      router.push({ name: 'login', query: { mode: 'role' } })
+    } else {
+      // 登入成功，導向首頁
+      router.push('/')
+    }
   } catch (error) {
     // 顯示錯誤訊息
     if (error.response?.data?.error) {
@@ -101,15 +124,15 @@ const handleLogin = async () => {
 
     <!-- 第三方登入按鈕 -->
     <div class="mb-8 grid grid-cols-2 gap-4">
-      <!-- Discord 登入 -->
+      <!-- github 登入 -->
       <button
         type="button"
         class="flex items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
-        @click="handleSocialLogin('discord')"
+        @click="loginWithGithub"
       >
-        <svg class="h-5 w-5 text-[#5865F2]" fill="currentColor" viewBox="0 0 24 24">
+        <svg class="h-5 w-5" viewBox="0 0 98 96">
           <path
-            d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026 13.83 13.83 0 0 0 1.226-1.963.074.074 0 0 0-.041-.104 13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z"
+            d="M41.4395 69.3848C28.8066 67.8535 19.9062 58.7617 19.9062 46.9902C19.9062 42.2051 21.6289 37.0371 24.5 33.5918C23.2559 30.4336 23.4473 23.7344 24.8828 20.959C28.7109 20.4805 33.8789 22.4902 36.9414 25.2656C40.5781 24.1172 44.4062 23.543 49.0957 23.543C53.7852 23.543 57.6133 24.1172 61.0586 25.1699C64.0254 22.4902 69.2891 20.4805 73.1172 20.959C74.457 23.543 74.6484 30.2422 73.4043 33.4961C76.4668 37.1328 78.0937 42.0137 78.0937 46.9902C78.0937 58.7617 69.1934 67.6621 56.3691 69.2891C59.623 71.3945 61.8242 75.9883 61.8242 81.252V91.2051C61.8242 94.0762 64.2168 95.7031 67.0879 94.5547C84.4102 87.9512 98 70.6289 98 49.1914C98 22.1074 75.9883 0 48.9043 0C21.8203 0 0 22.1074 0 49.1914C0 70.4375 13.4941 88.0469 31.6777 94.6504C34.2617 95.6074 36.75 93.8848 36.75 91.3008V83.6445C35.4102 84.2188 33.6875 84.6016 32.1562 84.6016C25.8398 84.6016 22.1074 81.1563 19.4277 74.7441C18.375 72.1602 17.2266 70.6289 15.0254 70.3418C13.877 70.2461 13.4941 69.7676 13.4941 69.1934C13.4941 68.0449 15.4082 67.1836 17.3223 67.1836C20.0977 67.1836 22.4902 68.9063 24.9785 72.4473C26.8926 75.2227 28.9023 76.4668 31.2949 76.4668C33.6875 76.4668 35.2187 75.6055 37.4199 73.4043C39.0469 71.7773 40.291 70.3418 41.4395 69.3848Z"
           />
         </svg>
       </button>
@@ -118,7 +141,7 @@ const handleLogin = async () => {
       <button
         type="button"
         class="flex items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
-        @click="handleSocialLogin('google')"
+        @click="signInWithGoogle"
       >
         <svg class="h-5 w-5" viewBox="0 0 24 24">
           <path

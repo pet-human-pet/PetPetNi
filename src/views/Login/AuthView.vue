@@ -19,6 +19,7 @@ const router = useRouter()
 const authMode = ref('login')
 const userRole = ref('owner') // 用於成功頁面顯示不同訊息
 const userEmail = ref('') // 儲存用戶 Email
+const isOAuthLogin = ref(false) // 追蹤是否為第三方登入
 const countdown = ref(3)
 let countdownTimer = null
 
@@ -33,6 +34,17 @@ onMounted(() => {
     authMode.value = 'register'
   } else if (route.query.mode === 'social_bind') {
     authMode.value = 'social_bind'
+    isOAuthLogin.value = true // 標記為 OAuth 登入
+  } else if (route.query.mode === 'role') {
+    authMode.value = 'role'
+    // 檢查是否從 OAuth 登入來的（如果有 session 但沒有 profile）
+    import('@/stores/auth').then(({ useAuthStore }) => {
+      const authStore = useAuthStore()
+      if (authStore.user && authStore.user.email) {
+        userEmail.value = authStore.user.email
+        isOAuthLogin.value = true
+      }
+    })
   }
 })
 
@@ -263,6 +275,7 @@ onUnmounted(() => {
             <OwnerInfo
               :email="userEmail"
               :initial-data="ownerData"
+              :show-email="!isOAuthLogin"
               @submit="handleOwnerInfoSubmit"
               @back="handleGoBack"
             />
