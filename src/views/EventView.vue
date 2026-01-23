@@ -28,31 +28,10 @@ onBeforeUnmount(() => {
 })
 
 // 視窗斷點
-const { isMobile, isTablet } = useScreen()
+const { isMobile } = useScreen()
 
 // 地圖設定邏輯
-const MAP_PROFILE = {
-  desktop: { scale: 1, dx: 0, dy: 0 },
-  tablet: { scale: 1, dx: -100, dy: 90 },
-  mobile: { scale: 1, dx: 0, dy: 0 }
-}
-
-const locations = computed(() => {
-  let profile = 'desktop'
-  if (isMobile.value) profile = 'mobile'
-  else if (isTablet.value) profile = 'tablet'
-  const { scale, dx, dy } = MAP_PROFILE[profile]
-
-  const out = {}
-  for (const [id, loc] of Object.entries(eventStore.baseLocations)) {
-    out[id] = {
-      ...loc,
-      x: Math.round(loc.x * scale + dx),
-      y: Math.round(loc.y * scale + dy)
-    }
-  }
-  return out
-})
+const locations = computed(() => eventStore.baseLocations)
 
 // 導航邏輯
 const rightView = ref('map') // 'map' | 'detail' | 'eventForm'
