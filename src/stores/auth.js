@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import authApi from '@/api/auth'
+import { supabase } from '@/lib/supabase'
+import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
   //State
@@ -71,11 +73,25 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.session.access_token
       localStorage.setItem('token', token.value)
 
-      // TODO: 從 profile API 取得 user_id_int
-      userIdInt.value = null
-
       console.log('✅ 登入成功:', user.value.email)
-      return response.data
+
+      // 檢查是否已建立 profile
+      const hasProfile = await checkProfileExists(response.data.user.id)
+
+      if (!hasProfile) {
+        console.log('⚠️ 尚未建立 profile，需要完成註冊流程')
+        // 回傳狀態，讓前端知道需要導向註冊流程
+        return {
+          ...response.data,
+          needsRegistration: true
+        }
+      }
+
+      console.log('✅ 已有 profile，登入完成')
+      return {
+        ...response.data,
+        needsRegistration: false
+      }
     } catch (err) {
       console.error('❌ 登入失敗:', err)
       error.value = err.response?.data?.error || '登入失敗，請檢查帳號密碼'
@@ -132,6 +148,79 @@ export const useAuthStore = defineStore('auth', () => {
     // TODO: 之後實作
   }
 
+  // ==========================================
+  // Supabase OAuth 處理
+  // ==========================================
+
+  /**
+   * 處理 Supabase OAuth session
+   * 檢查使用者是否已建立 profile，決定導向註冊流程或首頁
+   */
+  const handleSupabaseSession = async (session) => {
+    try {
+      console.log('[AuthStore] 處理 Supabase session')
+
+      // 儲存 token
+      token.value = session.access_token
+      localStorage.setItem('token', token.value)
+
+      // 儲存 user 資料
+      user.value = {
+        id: session.user.id,
+        email: session.user.email,
+        created_at: session.user.created_at
+      }
+
+      // 檢查是否已建立 profile
+      const hasProfile = await checkProfileExists(session.user.id)
+
+      if (hasProfile) {
+        console.log('✅ 已有 profile，登入成功')
+        // 導向首頁
+        router.push('/')
+      } else {
+        console.log('⚠️ 尚未建立 profile，導向註冊流程')
+        // 導向角色選擇頁面
+        router.push({ name: 'login', query: { mode: 'role' } })
+      }
+    } catch (error) {
+      console.error('❌ 處理 Supabase session 失敗:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 檢查使用者是否已建立 profile
+   */
+  const checkProfileExists = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_id_int')
+        .eq('user_id', userId)
+        .single()
+
+      if (error) {
+        // 如果是 PGRST116 錯誤（找不到資料），代表尚未建立 profile
+        if (error.code === 'PGRST116') {
+          return false
+        }
+        throw error
+      }
+
+      // 若有資料，儲存 user_id_int
+      if (data?.user_id_int) {
+        userIdInt.value = data.user_id_int
+        return true
+      }
+
+      return false
+    } catch (error) {
+      console.error('❌ 檢查 profile 失敗:', error)
+      return false
+    }
+  }
+
   return {
     user,
     userIdInt,
@@ -147,6 +236,8 @@ export const useAuthStore = defineStore('auth', () => {
     setUserIdInt,
     initiateOAuthLogin,
     handleOAuthCallback,
-    registerWithEmail
+    registerWithEmail,
+    handleSupabaseSession,
+    checkProfileExists
   }
 })

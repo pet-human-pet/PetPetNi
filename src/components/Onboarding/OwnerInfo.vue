@@ -11,6 +11,10 @@ const props = defineProps({
   initialData: {
     type: Object,
     default: null
+  },
+  showEmail: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -98,6 +102,7 @@ const handleSubmit = () => {
 
   // 提交資料
   emit('submit', {
+    email: props.email, // 使用 props 中的 email（一般註冊或 OAuth 都有）
     realName: realName.value,
     nickname: nickname.value,
     phone: cleanPhone,
@@ -123,7 +128,7 @@ const handleSubmit = () => {
       @submit.prevent="handleSubmit"
     >
       <!-- Email（唯讀顯示） -->
-      <div class="space-y-2">
+      <div v-if="showEmail" class="space-y-2">
         <label class="text-sm font-medium text-gray-600">Email</label>
         <div class="w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-500">
           {{ email }}

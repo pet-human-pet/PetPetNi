@@ -1,9 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
 
-const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -11,30 +11,32 @@ const statusText = ref('正在驗證您的身分...')
 const errorMsg = ref('')
 
 onMounted(async () => {
-  const { code, provider } = route.query
-
-  if (!code) {
-    errorMsg.value = '無效的驗證請求 (Missing code)'
-    return
-  }
-
   try {
-    const result = await authStore.handleOAuthCallback(code, provider)
+    // 從 URL 取得 OAuth callback 的 code
+    const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href)
 
-    if (result.status === 'NEW_USER') {
-      statusText.value = '偵測到新用戶，正在導向註冊流程...'
-      // 導回登入頁，並指定進入 BIND_PHONE 步驟
+    if (error) {
+      console.error('❌ Session exchange 失敗:', error)
+      errorMsg.value = 'OAuth 驗證失敗'
       setTimeout(() => {
-        router.push({ name: 'login', query: { mode: 'social_bind' } })
-      }, 1000)
+        router.push({ name: 'login' })
+      }, 2000)
+      return
+    }
+
+    if (data.session) {
+      statusText.value = '驗證成功，正在載入您的資料...'
+
+      // 使用 auth store 處理 session（會自動檢查 profile 並導向）
+      await authStore.handleSupabaseSession(data.session)
     } else {
-      statusText.value = '登入成功！正在進入首頁...'
+      errorMsg.value = '無法取得登入資訊'
       setTimeout(() => {
-        router.push({ name: 'home' })
-      }, 1000)
+        router.push({ name: 'login' })
+      }, 2000)
     }
   } catch (err) {
-    console.error(err)
+    console.error('❌ OAuth callback 處理錯誤:', err)
     errorMsg.value = '登入失敗，請稍後再試'
     setTimeout(() => {
       router.push({ name: 'login' })
@@ -48,16 +50,25 @@ onMounted(async () => {
     <div class="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-lg">
       <div v-if="!errorMsg">
         <!-- Loading Spinner -->
-        <div class="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-500"></div>
+        <div
+          class="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-blue-100 border-t-blue-500"
+        ></div>
         <h2 class="mb-2 text-xl font-bold text-gray-800">第三方登入</h2>
         <p class="text-gray-500">{{ statusText }}</p>
       </div>
 
       <div v-else>
         <!-- Error State -->
-        <div class="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-500">
+        <div
+          class="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-500"
+        >
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </div>
         <h2 class="mb-2 text-xl font-bold text-gray-800">發生錯誤</h2>
