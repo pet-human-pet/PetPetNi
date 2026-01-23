@@ -70,5 +70,19 @@ export const eventApi = {
    */
   getMyEvents() {
     return api.get('/api/events/my')
+  },
+
+  /**
+   * 取得我參加的活動列表
+   */
+  getMyParticipatedEvents() {
+    return api.get('/api/events/participated')
+  },
+
+  /**
+   * 檢查是否已參加活動
+   */
+  checkParticipation(eventId) {
+    return api.get(`/api/events/${eventId}/check-participation`)
   }
 }

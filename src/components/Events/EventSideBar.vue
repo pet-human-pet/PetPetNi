@@ -1,6 +1,6 @@
 <script setup>
 // 1. Imports
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useEventMapStore } from '@/stores/EventMap'
 
@@ -19,6 +19,10 @@ const eventStore = useEventMapStore()
 const joinModalOpen = ref(false)
 const joinedEvent = ref(null)
 const isJoining = ref(false)
+const isLeaving = ref(false)
+
+// 追蹤每個活動的參加狀態
+const participationStatus = ref(new Map())
 
 // 4. Refs：scrollTo 保留
 const cardEls = new Map()
@@ -38,6 +42,9 @@ async function handleJoinEvent(evt) {
     isJoining.value = true
     await eventStore.joinEvent(evt.id)
 
+    // 更新參加狀態
+    participationStatus.value.set(evt.id, true)
+
     // 成功後顯示彈窗
     joinedEvent.value = evt
     joinModalOpen.value = true
@@ -48,11 +55,49 @@ async function handleJoinEvent(evt) {
   }
 }
 
+async function handleLeaveEvent(evt) {
+  if (isLeaving.value) return
+
+  const confirmed = confirm(`確定要取消報名「${evt.title}」嗎？`)
+  if (!confirmed) return
+
+  try {
+    isLeaving.value = true
+    await eventStore.leaveEvent(evt.id)
+
+    // 更新參加狀態
+    participationStatus.value.set(evt.id, false)
+
+    alert('已成功取消報名')
+  } catch (error) {
+    alert(error.message || '取消報名失敗')
+  } finally {
+    isLeaving.value = false
+  }
+}
+
 function canJoin(evt) {
   const s = String(evt.status || '').toLowerCase()
   const isOpen = s === 'recruiting' || s === 'signup' || s === 'open'
   const isFull = evt.participantsCount >= evt.capacity
-  return isOpen && !isFull
+  const hasJoined = participationStatus.value.get(evt.id) || false
+  return isOpen && !isFull && !hasJoined
+}
+
+function hasJoined(evt) {
+  return participationStatus.value.get(evt.id) || false
+}
+
+// 檢查所有活動的參加狀態
+async function checkAllParticipationStatus() {
+  for (const evt of props.events) {
+    try {
+      const isParticipating = await eventStore.checkParticipation(evt.id)
+      participationStatus.value.set(evt.id, isParticipating)
+    } catch (error) {
+      console.error(`檢查活動 ${evt.id} 參加狀態失敗:`, error)
+    }
+  }
 }
 
 function closeJoinModal() {
@@ -75,6 +120,16 @@ import { getStatusBadge } from '@/utils/statusHelper'
 function eventBadge(status) {
   return getStatusBadge(status)
 }
+
+// 生命週期
+onMounted(() => {
+  checkAllParticipationStatus()
+})
+
+// 監聽活動列表變化
+watch(() => props.events, () => {
+  checkAllParticipationStatus()
+}, { deep: true })
 </script>
 
 <template>
@@ -151,7 +206,22 @@ function eventBadge(status) {
         </div>
 
         <div class="flex gap-2.5 px-3 pb-3.75 md:px-3.75">
+          <!-- 已參加：顯示取消報名按鈕 -->
           <button
+            v-if="hasJoined(evt)"
+            type="button"
+            class="c-btn--primary h-8 flex-1 rounded-[17px] text-[12px] font-bold text-white md:h-8.5"
+            :disabled="isLeaving"
+            @click.stop="handleLeaveEvent(evt)"
+          >
+            <i v-if="isLeaving" class="fa-solid fa-spinner fa-spin mr-1"></i>
+            <i v-else class="fa-solid fa-right-from-bracket mr-1"></i>
+            {{ isLeaving ? '取消中...' : '取消報名' }}
+          </button>
+
+          <!-- 未參加：顯示參加按鈕 -->
+          <button
+            v-else
             type="button"
             class="h-8 flex-1 rounded-[17px] text-[12px] font-bold md:h-8.5"
             :disabled="!canJoin(evt) || isJoining"

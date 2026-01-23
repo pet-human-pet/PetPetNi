@@ -26,6 +26,7 @@ const postTabs = [
 
 const eventTabs = [
   { id: 'create', label: '發起活動', padding: 'px-4 md:px-8' },
+  { id: 'participated', label: '參加活動', padding: 'px-4 md:px-8' },
   { id: 'follow', label: '收藏活動', padding: 'px-4 md:px-8' },
   { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
 ]
@@ -39,6 +40,7 @@ const favoritesStore = useFavoritesStore()
 
 // Event data
 const createdEvents = ref([])
+const participatedEvents = ref([])
 const followedEvents = computed(() => {
   // 從 favorites store 取得收藏的活動 ID，然後從 eventStore 中取得完整資料
   return eventStore.events.filter(evt => favoritesStore.has(evt.id))
@@ -215,6 +217,15 @@ const fetchMyEvents = async () => {
   }
 }
 
+const fetchMyParticipatedEvents = async () => {
+  try {
+    const events = await eventStore.fetchMyParticipatedEvents()
+    participatedEvents.value = events
+  } catch (error) {
+    console.error('❌ 載入參加的活動失敗:', error)
+  }
+}
+
 const openDeleteConfirm = (event) => {
   eventToDelete.value = event
   showDeleteConfirm.value = true
@@ -246,12 +257,34 @@ const confirmDeleteEvent = async () => {
   }
 }
 
+const handleLeaveEvent = async (event) => {
+  const confirmed = confirm(`確定要取消報名「${event.title}」嗎？`)
+  if (!confirmed) return
+
+  try {
+    await eventStore.leaveEvent(event.id)
+
+    // 從參加活動列表中移除
+    const index = participatedEvents.value.findIndex(e => e.id === event.id)
+    if (index !== -1) {
+      participatedEvents.value.splice(index, 1)
+    }
+
+    alert('已成功取消報名')
+  } catch (error) {
+    alert(error.message || '取消報名失敗')
+  }
+}
+
 // 生命周期钩子
 onMounted(async () => {
   document.body.classList.add('md:overflow-hidden')
 
   // 載入我的活動列表
   await fetchMyEvents()
+
+  // 載入我參加的活動列表
+  await fetchMyParticipatedEvents()
 
   // 載入所有活動（用於收藏活動列表）
   await eventStore.fetchEvents()
@@ -504,6 +537,8 @@ onUnmounted(() => {
                 <div
                   v-for="event in activeSubTab === 'create'
                     ? createdEvents
+                    : activeSubTab === 'participated'
+                    ? participatedEvents
                     : activeSubTab === 'follow'
                     ? followedEvents
                     : historyEvents"
@@ -542,12 +577,24 @@ onUnmounted(() => {
                     >
                       <i class="fa-solid fa-trash text-sm"></i>
                     </button>
+
+                    <!-- 取消報名按鈕 (只在參加活動頁籤顯示) -->
+                    <button
+                      v-if="activeSubTab === 'participated'"
+                      type="button"
+                      class="text-func-warning hover:bg-func-warning/10 flex h-9 w-9 items-center justify-center rounded-full transition-all md:h-10 md:w-10"
+                      @click.stop="handleLeaveEvent(event)"
+                      title="取消報名"
+                    >
+                      <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                    </button>
                   </div>
                 </div>
 
                 <!-- 空狀態提示 -->
                 <div
                   v-if="(activeSubTab === 'create' && createdEvents.length === 0) ||
+                        (activeSubTab === 'participated' && participatedEvents.length === 0) ||
                         (activeSubTab === 'follow' && followedEvents.length === 0) ||
                         (activeSubTab === 'history' && historyEvents.length === 0)"
                   class="text-fg-muted py-10 text-center"
@@ -555,6 +602,7 @@ onUnmounted(() => {
                   <i class="fa-solid fa-calendar-xmark mb-2 text-4xl opacity-30"></i>
                   <p>
                     {{ activeSubTab === 'create' ? '尚未發起任何活動' :
+                       activeSubTab === 'participated' ? '尚未參加任何活動' :
                        activeSubTab === 'follow' ? '尚未收藏任何活動' :
                        '尚無歷史活動' }}
                   </p>

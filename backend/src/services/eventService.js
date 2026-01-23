@@ -258,5 +258,68 @@ export const eventService = {
       console.error('❌ Error fetching user events:', error)
       throw error
     }
+  },
+
+  /**
+   * 取得使用者參加的活動列表
+   * @param {number} userIdInt - 使用者 ID (BIGINT，來自 profiles.user_id_int)
+   */
+  async getUserParticipatedEvents(userIdInt) {
+    try {
+      // 從 event_participants 找出使用者參加的活動 ID
+      const { data: participations, error: participationError } = await supabase
+        .from('event_participants')
+        .select('event_id')
+        .eq('user_id_int', userIdInt)
+        .eq('status', 'joined')
+
+      if (participationError) throw participationError
+
+      // 如果沒有參加任何活動，直接返回空陣列
+      if (!participations || participations.length === 0) {
+        return []
+      }
+
+      // 取得這些活動的詳細資料
+      const eventIds = participations.map((p) => p.event_id)
+      const { data, error } = await supabase
+        .from('events_with_stats')
+        .select('*')
+        .in('id', eventIds)
+        .order('start_at', { ascending: true })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('❌ Error fetching user participated events:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 檢查使用者是否已參加某活動
+   * @param {string} eventId - 活動 ID
+   * @param {number} userIdInt - 使用者 ID (BIGINT，來自 profiles.user_id_int)
+   */
+  async checkUserParticipation(eventId, userIdInt) {
+    try {
+      const { data, error } = await supabase
+        .from('event_participants')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id_int', userIdInt)
+        .eq('status', 'joined')
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 是 "找不到資料" 的錯誤碼，這是正常的
+        throw error
+      }
+
+      return !!data
+    } catch (error) {
+      console.error('❌ Error checking user participation:', error)
+      return false
+    }
   }
 }

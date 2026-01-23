@@ -219,6 +219,62 @@ export const useEventMapStore = defineStore('event', () => {
     }
   }
 
+  /**
+   * 取得我參加的活動列表
+   */
+  async function fetchMyParticipatedEvents() {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await eventApi.getMyParticipatedEvents()
+      if (response.data.success) {
+        // 轉換後端欄位名稱為前端格式
+        return response.data.data.map((evt) => ({
+          id: evt.id,
+          locId: evt.location_id,
+          title: evt.title,
+          desc: evt.description,
+          capacity: evt.capacity,
+          startAt: evt.start_at,
+          endAt: evt.end_at,
+          contact: evt.contact,
+          status: evt.status,
+          participantsCount: evt.participants_count || 0,
+          createdAt: evt.created_at,
+          initiator: {
+            id: evt.user_id_int,
+            name: evt.initiator_nick_name || '未知使用者',
+            avatar: evt.initiator_avatar_url || ''
+          }
+        }))
+      }
+      return []
+    } catch (err) {
+      console.error('❌ 載入參加的活動失敗:', err)
+      error.value = err.message
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 檢查是否已參加活動
+   * @param {string} eventId - 活動 ID
+   */
+  async function checkParticipation(eventId) {
+    try {
+      const response = await eventApi.checkParticipation(eventId)
+      if (response.data.success) {
+        return response.data.data.isParticipating
+      }
+      return false
+    } catch (err) {
+      console.error('❌ 檢查參加狀態失敗:', err)
+      return false
+    }
+  }
+
   return {
     baseLocations,
     events,
@@ -230,6 +286,8 @@ export const useEventMapStore = defineStore('event', () => {
     joinEvent,
     leaveEvent,
     fetchMyEvents,
-    deleteEvent
+    deleteEvent,
+    fetchMyParticipatedEvents,
+    checkParticipation
   }
 })
