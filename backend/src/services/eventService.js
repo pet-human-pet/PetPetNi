@@ -145,6 +145,31 @@ export const eventService = {
    */
   async joinEvent(eventId, userIdInt) {
     try {
+      // 1. 檢查活動是否存在，並取得人數上限和當前參加人數
+      const { data: eventData, error: eventError } = await supabase
+        .from('events_with_stats')
+        .select('capacity, participants_count, status')
+        .eq('id', eventId)
+        .single()
+
+      if (eventError || !eventData) {
+        throw new Error('找不到此活動')
+      }
+
+      // 2. 檢查活動狀態
+      if (eventData.status !== 'open' && eventData.status !== 'active') {
+        throw new Error('此活動已關閉報名')
+      }
+
+      // 3. 檢查人數是否已滿
+      const currentCount = eventData.participants_count || 0
+      if (currentCount >= eventData.capacity) {
+        const error = new Error('活動報名人數已滿')
+        error.code = 'EVENT_FULL'
+        throw error
+      }
+
+      // 4. 加入活動
       const { data, error } = await supabase
         .from('event_participants')
         .insert([
@@ -158,6 +183,8 @@ export const eventService = {
         .single()
 
       if (error) throw error
+
+      console.log(`✅ 使用者 ${userIdInt} 成功加入活動 ${eventId}`)
       return data
     } catch (error) {
       console.error('❌ Error joining event:', error)
@@ -209,6 +236,26 @@ export const eventService = {
       return data
     } catch (error) {
       console.error('❌ Error fetching participants:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 取得使用者發起的活動列表
+   * @param {number} userIdInt - 使用者 ID (BIGINT，來自 profiles.user_id_int)
+   */
+  async getUserEvents(userIdInt) {
+    try {
+      const { data, error } = await supabase
+        .from('events_with_stats')
+        .select('*')
+        .eq('user_id_int', userIdInt)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('❌ Error fetching user events:', error)
       throw error
     }
   }

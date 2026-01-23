@@ -2,26 +2,52 @@ import { eventService } from '../services/eventService.js'
 import { supabase } from '../services/supabase.js'
 
 /**
- * Helper 函式：從 UUID 取得對應的 user_id_int
- * @param {string} userUuid - 使用者的 UUID (來自 auth.users)
- * @returns {Promise<number|null>} user_id_int 或 null
+ * Helper 函式：從 Authorization header 取得並驗證使用者
+ * @param {Object} req - Express request 物件
+ * @returns {Promise<{uuid: string, userIdInt: number}|null>} 使用者資訊或 null
  */
-async function getUserIdInt(userUuid) {
+async function getUserFromToken(req) {
   try {
-    const { data, error } = await supabase
+    // 1. 從 Authorization header 取得 token
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('⚠️ 未提供授權 token')
+      return null
+    }
+
+    const token = authHeader.split(' ')[1]
+
+    // 2. 驗證 token 並取得使用者資料
+    const { data: authData, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !authData.user) {
+      console.error('❌ Token 驗證失敗:', authError)
+      return null
+    }
+
+    const userUuid = authData.user.id
+    console.log('✅ Token 驗證成功，使用者 UUID:', userUuid)
+
+    // 3. 從 profiles 表查詢對應的 user_id_int
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('user_id_int')
       .eq('user_id', userUuid)
       .single()
 
-    if (error) {
-      console.error('❌ Error fetching user_id_int:', error)
+    if (profileError || !profile?.user_id_int) {
+      console.error('❌ 查詢 user_id_int 失敗:', profileError)
       return null
     }
 
-    return data?.user_id_int || null
+    console.log('✅ 取得 user_id_int:', profile.user_id_int)
+
+    return {
+      uuid: userUuid,
+      userIdInt: profile.user_id_int
+    }
   } catch (error) {
-    console.error('❌ Error in getUserIdInt:', error)
+    console.error('❌ Error in getUserFromToken:', error)
     return null
   }
 }
@@ -77,24 +103,17 @@ export const eventController = {
    */
   async createEvent(req, res) {
     try {
-      // 從 request 取得使用者 UUID
-      let userUuid = req.body.user_id || req.user?.id
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
 
-      // 開發階段：如果沒有 UUID，使用測試用的 UUID
-      if (!userUuid || userUuid === 'temp-user-id') {
-        userUuid = '00000000-0000-0000-0000-000000000000'
-        console.log('⚠️ 使用測試 UUID，請之後整合真實的使用者認證')
-      }
-
-      // 從 profiles 表查詢對應的 user_id_int
-      const userIdInt = await getUserIdInt(userUuid)
-
-      if (!userIdInt) {
-        return res.status(400).json({
+      if (!user) {
+        return res.status(401).json({
           success: false,
-          message: '無法取得使用者資訊，請確認使用者已完成註冊'
+          message: '未授權：請先登入'
         })
       }
+
+      const userIdInt = user.userIdInt
 
       const eventData = {
         title: req.body.title,
@@ -132,27 +151,19 @@ export const eventController = {
   async updateEvent(req, res) {
     try {
       const { id } = req.params
-      const userUuid = req.body.user_id || req.user?.id
 
-      if (!userUuid) {
-        return res.status(401).json({ success: false, message: '未授權：需要登入' })
-      }
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
 
-      // 從 profiles 表查詢對應的 user_id_int
-      const userIdInt = await getUserIdInt(userUuid)
-
-      if (!userIdInt) {
-        return res.status(400).json({
-          success: false,
-          message: '無法取得使用者資訊'
-        })
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
       }
 
       const updates = req.body
       delete updates.user_id // 移除 user_id，避免被修改
       delete updates.user_id_int // 移除 user_id_int，避免被修改
 
-      const updatedEvent = await eventService.updateEvent(id, userIdInt, updates)
+      const updatedEvent = await eventService.updateEvent(id, user.userIdInt, updates)
       res.json({ success: true, data: updatedEvent })
     } catch (error) {
       console.error('❌ Error in updateEvent:', error)
@@ -166,23 +177,15 @@ export const eventController = {
   async deleteEvent(req, res) {
     try {
       const { id } = req.params
-      const userUuid = req.body.user_id || req.user?.id
 
-      if (!userUuid) {
-        return res.status(401).json({ success: false, message: '未授權：需要登入' })
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
       }
 
-      // 從 profiles 表查詢對應的 user_id_int
-      const userIdInt = await getUserIdInt(userUuid)
-
-      if (!userIdInt) {
-        return res.status(400).json({
-          success: false,
-          message: '無法取得使用者資訊'
-        })
-      }
-
-      await eventService.deleteEvent(id, userIdInt)
+      await eventService.deleteEvent(id, user.userIdInt)
       res.json({ success: true, message: '活動已刪除' })
     } catch (error) {
       console.error('❌ Error in deleteEvent:', error)
@@ -196,30 +199,34 @@ export const eventController = {
   async joinEvent(req, res) {
     try {
       const { id } = req.params
-      const userUuid = req.body.user_id || req.user?.id
 
-      if (!userUuid) {
-        return res.status(401).json({ success: false, message: '未授權：需要登入' })
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
       }
 
-      // 從 profiles 表查詢對應的 user_id_int
-      const userIdInt = await getUserIdInt(userUuid)
-
-      if (!userIdInt) {
-        return res.status(400).json({
-          success: false,
-          message: '無法取得使用者資訊'
-        })
-      }
-
-      const participation = await eventService.joinEvent(id, userIdInt)
-      res.status(201).json({ success: true, data: participation })
+      const participation = await eventService.joinEvent(id, user.userIdInt)
+      res.status(201).json({ success: true, data: participation, message: '成功加入活動' })
     } catch (error) {
       console.error('❌ Error in joinEvent:', error)
 
-      // 處理重複加入的錯誤
+      // 處理不同類型的錯誤
       if (error.code === '23505') {
         return res.status(400).json({ success: false, message: '您已經加入此活動' })
+      }
+
+      if (error.code === 'EVENT_FULL') {
+        return res.status(400).json({ success: false, message: '活動報名人數已滿' })
+      }
+
+      if (error.message.includes('找不到此活動')) {
+        return res.status(404).json({ success: false, message: '找不到此活動' })
+      }
+
+      if (error.message.includes('已關閉報名')) {
+        return res.status(400).json({ success: false, message: '此活動已關閉報名' })
       }
 
       res.status(500).json({ success: false, message: '加入活動失敗', error: error.message })
@@ -232,23 +239,15 @@ export const eventController = {
   async leaveEvent(req, res) {
     try {
       const { id } = req.params
-      const userUuid = req.body.user_id || req.user?.id
 
-      if (!userUuid) {
-        return res.status(401).json({ success: false, message: '未授權：需要登入' })
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
       }
 
-      // 從 profiles 表查詢對應的 user_id_int
-      const userIdInt = await getUserIdInt(userUuid)
-
-      if (!userIdInt) {
-        return res.status(400).json({
-          success: false,
-          message: '無法取得使用者資訊'
-        })
-      }
-
-      await eventService.leaveEvent(id, userIdInt)
+      await eventService.leaveEvent(id, user.userIdInt)
       res.json({ success: true, message: '已離開活動' })
     } catch (error) {
       console.error('❌ Error in leaveEvent:', error)
@@ -267,6 +266,26 @@ export const eventController = {
     } catch (error) {
       console.error('❌ Error in getParticipants:', error)
       res.status(500).json({ success: false, message: '取得參與者列表失敗', error: error.message })
+    }
+  },
+
+  /**
+   * GET /api/events/my - 取得當前使用者發起的活動列表
+   */
+  async getMyEvents(req, res) {
+    try {
+      // 從 JWT token 取得真實登入的使用者
+      const user = await getUserFromToken(req)
+
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const events = await eventService.getUserEvents(user.userIdInt)
+      res.json({ success: true, data: events })
+    } catch (error) {
+      console.error('❌ Error in getMyEvents:', error)
+      res.status(500).json({ success: false, message: '取得我的活動失敗', error: error.message })
     }
   }
 }
