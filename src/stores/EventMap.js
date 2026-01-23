@@ -58,14 +58,15 @@ export const useEventMapStore = defineStore('event', () => {
 
   /**
    * 建立新活動
+   * 注意：後端會從 JWT token 取得真實的使用者資訊
    */
   async function addEvent(payload) {
     isLoading.value = true
     error.value = null
     try {
-      // TODO: 取得真實的 user_id
+      // 後端會從 Authorization header 的 JWT token 取得使用者資訊
+      // 不需要在這裡傳送 user_id
       const eventData = {
-        user_id: 'temp-user-id', // 暫時使用假的 user_id，之後要從 auth store 取得
         title: payload.title,
         locId: payload.locId,
         capacity: payload.capacity,
@@ -110,6 +111,114 @@ export const useEventMapStore = defineStore('event', () => {
     }
   }
 
+  /**
+   * 參加活動
+   * @param {string} eventId - 活動 ID
+   */
+  async function joinEvent(eventId) {
+    try {
+      const response = await eventApi.joinEvent(eventId)
+
+      if (response.data.success) {
+        // 更新本地活動的參與人數
+        const event = events.value.find((e) => String(e.id) === String(eventId))
+        if (event) {
+          event.participantsCount = (event.participantsCount || 0) + 1
+        }
+        return { success: true, message: response.data.message }
+      }
+    } catch (err) {
+      console.error('❌ 參加活動失敗:', err)
+      const errorMessage = err.response?.data?.message || '參加活動失敗，請稍後再試'
+      throw new Error(errorMessage)
+    }
+  }
+
+  /**
+   * 離開活動
+   * @param {string} eventId - 活動 ID
+   */
+  async function leaveEvent(eventId) {
+    try {
+      const response = await eventApi.leaveEvent(eventId)
+
+      if (response.data.success) {
+        // 更新本地活動的參與人數
+        const event = events.value.find((e) => String(e.id) === String(eventId))
+        if (event && event.participantsCount > 0) {
+          event.participantsCount = event.participantsCount - 1
+        }
+        return { success: true, message: response.data.message }
+      }
+    } catch (err) {
+      console.error('❌ 離開活動失敗:', err)
+      const errorMessage = err.response?.data?.message || '離開活動失敗，請稍後再試'
+      throw new Error(errorMessage)
+    }
+  }
+
+  /**
+   * 取得我發起的活動列表
+   */
+  async function fetchMyEvents() {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await eventApi.getMyEvents()
+      if (response.data.success) {
+        // 轉換後端欄位名稱為前端格式
+        return response.data.data.map((evt) => ({
+          id: evt.id,
+          locId: evt.location_id,
+          title: evt.title,
+          desc: evt.description,
+          capacity: evt.capacity,
+          startAt: evt.start_at,
+          endAt: evt.end_at,
+          contact: evt.contact,
+          status: evt.status,
+          participantsCount: evt.participants_count || 0,
+          createdAt: evt.created_at,
+          initiator: {
+            id: evt.user_id_int,
+            name: evt.initiator_nick_name || '未知使用者',
+            avatar: evt.initiator_avatar_url || ''
+          }
+        }))
+      }
+      return []
+    } catch (err) {
+      console.error('❌ 載入我的活動失敗:', err)
+      error.value = err.message
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 刪除活動
+   * @param {string} eventId - 活動 ID
+   */
+  async function deleteEvent(eventId) {
+    try {
+      const response = await eventApi.deleteEvent(eventId)
+
+      if (response.data.success) {
+        // 從本地列表中移除該活動
+        const index = events.value.findIndex((e) => String(e.id) === String(eventId))
+        if (index !== -1) {
+          events.value.splice(index, 1)
+        }
+        return { success: true, message: response.data.message || '活動已刪除' }
+      }
+    } catch (err) {
+      console.error('❌ 刪除活動失敗:', err)
+      const errorMessage = err.response?.data?.message || '刪除活動失敗，請稍後再試'
+      throw new Error(errorMessage)
+    }
+  }
+
   return {
     baseLocations,
     events,
@@ -117,6 +226,10 @@ export const useEventMapStore = defineStore('event', () => {
     isLoading,
     error,
     fetchEvents,
-    addEvent
+    addEvent,
+    joinEvent,
+    leaveEvent,
+    fetchMyEvents,
+    deleteEvent
   }
 })

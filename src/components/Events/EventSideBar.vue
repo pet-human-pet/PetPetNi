@@ -2,6 +2,7 @@
 // 1. Imports
 import { ref } from 'vue'
 import { useFavoritesStore } from '@/stores/favorites'
+import { useEventMapStore } from '@/stores/EventMap'
 
 // 2. Props & Emits
 const props = defineProps({
@@ -13,9 +14,11 @@ const emit = defineEmits(['select', 'open-detail', 'open-form'])
 
 // 3. Store / State
 const fav = useFavoritesStore()
+const eventStore = useEventMapStore()
 
 const joinModalOpen = ref(false)
 const joinedEvent = ref(null)
+const isJoining = ref(false)
 
 // 4. Refs：scrollTo 保留
 const cardEls = new Map()
@@ -28,19 +31,43 @@ function scrollTo(id) {
 defineExpose({ scrollTo })
 
 // 5. Functions
-function openJoinModal(evt) {
-  joinedEvent.value = evt
-  joinModalOpen.value = true
+async function handleJoinEvent(evt) {
+  if (isJoining.value) return
+
+  try {
+    isJoining.value = true
+    await eventStore.joinEvent(evt.id)
+
+    // 成功後顯示彈窗
+    joinedEvent.value = evt
+    joinModalOpen.value = true
+  } catch (error) {
+    alert(error.message || '參加活動失敗')
+  } finally {
+    isJoining.value = false
+  }
 }
 
-function canJoin(status) {
-  const s = String(status || '').toLowerCase()
-  return s === 'recruiting' || s === 'signup' || s === 'open'
+function canJoin(evt) {
+  const s = String(evt.status || '').toLowerCase()
+  const isOpen = s === 'recruiting' || s === 'signup' || s === 'open'
+  const isFull = evt.participantsCount >= evt.capacity
+  return isOpen && !isFull
 }
 
 function closeJoinModal() {
   joinModalOpen.value = false
   joinedEvent.value = null
+}
+
+// 計算剩餘名額
+function getRemainingSlots(evt) {
+  return Math.max(0, evt.capacity - (evt.participantsCount || 0))
+}
+
+// 判斷是否已滿
+function isFull(evt) {
+  return (evt.participantsCount || 0) >= evt.capacity
 }
 
 import { getStatusBadge } from '@/utils/statusHelper'
@@ -98,14 +125,28 @@ function eventBadge(status) {
             {{ evt.desc }}
           </div>
 
-          <div v-if="evt.initiator" class="text-fg-muted mt-2 text-xs">
-            發起人：
-            <span
-              class="text-brand-primary decoration-brand-primary/30 hover:decoration-brand-primary cursor-pointer font-bold underline underline-offset-2"
-              @click.stop="() => {} /* Placeholder for profile navigation */"
+          <!-- 發起人與報名人數 -->
+          <div class="text-fg-muted mt-2 flex items-center justify-between text-xs">
+            <div v-if="evt.initiator">
+              發起人：
+              <span
+                class="text-brand-primary decoration-brand-primary/30 hover:decoration-brand-primary cursor-pointer font-bold underline underline-offset-2"
+                @click.stop="() => {} /* Placeholder for profile navigation */"
+              >
+                {{ evt.initiator.name }}
+              </span>
+            </div>
+
+            <!-- 報名人數 / 上限 -->
+            <div
+              class="flex items-center gap-1 text-[11px] font-bold"
+              :class="isFull(evt) ? 'text-func-danger' : 'text-brand-primary'"
             >
-              {{ evt.initiator.name }}
-            </span>
+              <i class="fa-solid fa-users"></i>
+              <span>{{ evt.participantsCount || 0 }}/{{ evt.capacity }}</span>
+              <span v-if="isFull(evt)" class="text-func-danger">(已滿)</span>
+              <span v-else class="text-fg-muted">(剩 {{ getRemainingSlots(evt) }})</span>
+            </div>
           </div>
         </div>
 
@@ -113,16 +154,17 @@ function eventBadge(status) {
           <button
             type="button"
             class="h-8 flex-1 rounded-[17px] text-[12px] font-bold md:h-8.5"
-            :disabled="!canJoin(evt.status)"
+            :disabled="!canJoin(evt) || isJoining"
             :class="
-              !canJoin(evt.status)
+              !canJoin(evt)
                 ? 'c-btn text-fg-muted cursor-not-allowed bg-gray-100'
                 : 'c-btn--primary text-white'
             "
-            @click.stop="canJoin(evt.status) && openJoinModal(evt)"
+            @click.stop="canJoin(evt) && handleJoinEvent(evt)"
           >
-            <i class="fa-solid fa-paw mr-1"></i>
-            {{ evt.status === 'ended' ? '已結束' : '參加' }}
+            <i v-if="isJoining" class="fa-solid fa-spinner fa-spin mr-1"></i>
+            <i v-else class="fa-solid fa-paw mr-1"></i>
+            {{ isFull(evt) ? '已額滿' : evt.status === 'ended' ? '已結束' : '參加' }}
           </button>
 
           <button

@@ -5,10 +5,7 @@ import {
   myPosts as myPostsData,
   savedPosts as savedPostsData,
   followersList,
-  followingList,
-  createdEvents,
-  followedEvents,
-  historyEvents
+  followingList
 } from '@/utils/profileData.js'
 import { useTagSelection } from '@/composables/useTagSelection.js'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
@@ -19,6 +16,8 @@ import ImageCropper from '@/components/Share/ImageCropper.vue'
 import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
 import { useImagePreview } from '@/composables/useImagePreview'
 import { getStatusBadge } from '@/utils/statusHelper'
+import { useEventMapStore } from '@/stores/EventMap'
+import { useFavoritesStore } from '@/stores/favorites'
 
 const postTabs = [
   { id: 'my', label: '我的貼文', padding: 'px-6 md:px-10' },
@@ -33,6 +32,26 @@ const eventTabs = [
 
 const myPosts = ref(myPostsData)
 const savedPosts = ref(savedPostsData)
+
+// Event stores
+const eventStore = useEventMapStore()
+const favoritesStore = useFavoritesStore()
+
+// Event data
+const createdEvents = ref([])
+const followedEvents = computed(() => {
+  // 從 favorites store 取得收藏的活動 ID，然後從 eventStore 中取得完整資料
+  return eventStore.events.filter(evt => favoritesStore.has(evt.id))
+})
+const historyEvents = computed(() => {
+  // 歷史活動：狀態為 ended 的活動
+  return createdEvents.value.filter(evt => evt.status === 'ended')
+})
+
+// 刪除確認 Modal 狀態
+const showDeleteConfirm = ref(false)
+const eventToDelete = ref(null)
+const isDeleting = ref(false)
 
 // 統一的 Modal 樣式
 const modalOverlayClass =
@@ -186,9 +205,56 @@ const handleTagConfirm = () => {
   showTagPicker.value = false
 }
 
+// 活動相關函式
+const fetchMyEvents = async () => {
+  try {
+    const events = await eventStore.fetchMyEvents()
+    createdEvents.value = events
+  } catch (error) {
+    console.error('❌ 載入我的活動失敗:', error)
+  }
+}
+
+const openDeleteConfirm = (event) => {
+  eventToDelete.value = event
+  showDeleteConfirm.value = true
+}
+
+const closeDeleteConfirm = () => {
+  showDeleteConfirm.value = false
+  eventToDelete.value = null
+}
+
+const confirmDeleteEvent = async () => {
+  if (!eventToDelete.value || isDeleting.value) return
+
+  try {
+    isDeleting.value = true
+    await eventStore.deleteEvent(eventToDelete.value.id)
+
+    // 從本地列表中移除
+    const index = createdEvents.value.findIndex(e => e.id === eventToDelete.value.id)
+    if (index !== -1) {
+      createdEvents.value.splice(index, 1)
+    }
+
+    closeDeleteConfirm()
+  } catch (error) {
+    alert(error.message || '刪除活動失敗')
+  } finally {
+    isDeleting.value = false
+  }
+}
+
 // 生命周期钩子
-onMounted(() => {
+onMounted(async () => {
   document.body.classList.add('md:overflow-hidden')
+
+  // 載入我的活動列表
+  await fetchMyEvents()
+
+  // 載入所有活動（用於收藏活動列表）
+  await eventStore.fetchEvents()
 })
 
 onBeforeUnmount(() => {
@@ -442,19 +508,57 @@ onUnmounted(() => {
                     ? followedEvents
                     : historyEvents"
                   :key="event.id"
-                  class="border-border-default flex cursor-pointer items-center justify-between rounded-3xl border bg-white p-4 shadow-sm transition-all hover:shadow-md md:p-6"
-                  @click="openDetail(event)"
+                  class="border-border-default flex items-center justify-between gap-3 rounded-3xl border bg-white p-4 shadow-sm transition-all hover:shadow-md md:p-6"
                 >
-                  <div class="flex-1 text-left">
-                    <h4 class="text-fg-primary text-base font-bold md:text-lg">{{ event.name }}</h4>
-                    <p class="text-fg-muted text-xs md:text-sm">{{ event.location }}</p>
+                  <div
+                    class="flex-1 cursor-pointer text-left"
+                    @click="openDetail(event)"
+                  >
+                    <h4 class="text-fg-primary text-base font-bold md:text-lg">{{ event.title }}</h4>
+                    <p class="text-fg-muted text-xs md:text-sm">
+                      {{ eventStore.baseLocations[event.locId]?.name || '未知地點' }}
+                    </p>
+                    <p class="text-fg-muted mt-1 text-xs">
+                      <i class="fa-solid fa-users mr-1"></i>
+                      {{ event.participantsCount || 0 }}/{{ event.capacity }}
+                    </p>
                   </div>
-                  <!-- TODO: Replace #f48e31 -->
-                                  <span
-                                    class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold"
-                                    :class="getStatusBadge(event.status).cls"
-                                    >{{ getStatusBadge(event.status).text }}</span
-                                  >                </div>
+
+                  <div class="flex shrink-0 items-center gap-2">
+                    <span
+                      class="rounded-full px-2 py-0.5 text-[11px] font-bold"
+                      :class="getStatusBadge(event.status).cls"
+                    >
+                      {{ getStatusBadge(event.status).text }}
+                    </span>
+
+                    <!-- 刪除按鈕 (只在發起活動頁籤顯示) -->
+                    <button
+                      v-if="activeSubTab === 'create'"
+                      type="button"
+                      class="text-func-danger hover:bg-func-danger/10 flex h-9 w-9 items-center justify-center rounded-full transition-all md:h-10 md:w-10"
+                      @click.stop="openDeleteConfirm(event)"
+                      title="刪除活動"
+                    >
+                      <i class="fa-solid fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 空狀態提示 -->
+                <div
+                  v-if="(activeSubTab === 'create' && createdEvents.length === 0) ||
+                        (activeSubTab === 'follow' && followedEvents.length === 0) ||
+                        (activeSubTab === 'history' && historyEvents.length === 0)"
+                  class="text-fg-muted py-10 text-center"
+                >
+                  <i class="fa-solid fa-calendar-xmark mb-2 text-4xl opacity-30"></i>
+                  <p>
+                    {{ activeSubTab === 'create' ? '尚未發起任何活動' :
+                       activeSubTab === 'follow' ? '尚未收藏任何活動' :
+                       '尚無歷史活動' }}
+                  </p>
+                </div>
               </div>
             </div>
           </main>
@@ -578,12 +682,42 @@ onUnmounted(() => {
         >
           <div class="c-card w-full max-w-2xl bg-white p-8 text-left">
             <div v-if="selectedItem" class="space-y-6 text-left">
-              <h2 class="text-left text-3xl font-bold text-[#f48e31]">
-                <!-- TODO: Replace #f48e31 -->
-                {{ selectedItem.name }}
-              </h2>
+              <div class="flex items-start justify-between gap-4">
+                <h2 class="text-left text-3xl font-bold text-[#f48e31]">
+                  <!-- TODO: Replace #f48e31 -->
+                  {{ selectedItem.title || selectedItem.name }}
+                </h2>
+                <span
+                  v-if="selectedItem.status"
+                  class="shrink-0 rounded-full px-3 py-1 text-xs font-bold"
+                  :class="getStatusBadge(selectedItem.status).cls"
+                >
+                  {{ getStatusBadge(selectedItem.status).text }}
+                </span>
+              </div>
+
+              <div v-if="selectedItem.locId" class="text-fg-muted flex items-center gap-2">
+                <i class="fa-solid fa-location-dot"></i>
+                <span>{{ eventStore.baseLocations[selectedItem.locId]?.name || '未知地點' }}</span>
+              </div>
+
+              <div v-if="selectedItem.startAt" class="text-fg-muted flex items-center gap-2">
+                <i class="fa-solid fa-clock"></i>
+                <span>{{ new Date(selectedItem.startAt).toLocaleString('zh-TW') }}</span>
+              </div>
+
+              <div v-if="selectedItem.capacity" class="text-fg-muted flex items-center gap-2">
+                <i class="fa-solid fa-users"></i>
+                <span>{{ selectedItem.participantsCount || 0 }}/{{ selectedItem.capacity }} 人</span>
+              </div>
+
+              <div v-if="selectedItem.contact" class="text-fg-muted flex items-center gap-2">
+                <i class="fa-solid fa-phone"></i>
+                <span>{{ selectedItem.contact }}</span>
+              </div>
+
               <div class="text-fg-secondary border-t pt-6 text-left text-lg leading-relaxed">
-                {{ selectedItem.content }}
+                {{ selectedItem.desc || selectedItem.content }}
               </div>
             </div>
             <button
@@ -596,6 +730,50 @@ onUnmounted(() => {
           </div>
         </div></Transition
       >
+
+      <!-- 刪除活動確認 Modal -->
+      <Transition name="fade">
+        <div
+          v-if="showDeleteConfirm"
+          :class="modalOverlayClass"
+          @click.self="closeDeleteConfirm"
+        >
+          <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl md:p-8">
+            <div class="mb-4 text-center">
+              <div class="text-func-danger mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+              </div>
+              <h3 class="text-fg-primary mb-2 text-xl font-bold">確定要刪除此活動？</h3>
+              <p class="text-fg-secondary text-sm">
+                刪除後將無法復原，且所有參與者將失去此活動的資訊。
+              </p>
+              <p v-if="eventToDelete" class="text-brand-primary mt-3 font-bold">
+                「{{ eventToDelete.title }}」
+              </p>
+            </div>
+
+            <div class="flex gap-3">
+              <button
+                type="button"
+                class="flex-1 rounded-xl border-2 border-gray-300 bg-white py-3 font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+                :disabled="isDeleting"
+                @click="closeDeleteConfirm"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                class="bg-func-danger flex-1 rounded-xl py-3 font-bold text-white shadow-md transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
+                :disabled="isDeleting"
+                @click="confirmDeleteEvent"
+              >
+                <i v-if="isDeleting" class="fa-solid fa-spinner fa-spin mr-2"></i>
+                {{ isDeleting ? '刪除中...' : '確定刪除' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
