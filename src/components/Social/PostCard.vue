@@ -23,7 +23,9 @@ const emit = defineEmits([
   'share',
   'bookmark',
   'close-comments',
-  'delete'
+  'delete',
+  'comment-added',
+  'comment-deleted'
 ])
 
 const router = useRouter()
@@ -284,6 +286,7 @@ const removeEditImage = (index) => {
     <ActionBar
       :post-id="post.id"
       :like-count="post.likeCount"
+      :comment-count="post.commentCount"
       :is-liked="post.isLiked"
       :is-bookmarked="post.isBookmarked"
       :share-url="shareUrl"
@@ -296,6 +299,12 @@ const removeEditImage = (index) => {
     />
 
     <!-- 留言區塊 -->
-    <CommentSection v-if="showComments" :post="post" @close="$emit('close-comments')" />
+    <CommentSection
+      v-if="showComments"
+      :post="post"
+      @close="$emit('close-comments')"
+      @add-comment="$emit('comment-added', post.id)"
+      @delete-comment="$emit('comment-deleted', post.id)"
+    />
   </div>
 </template>

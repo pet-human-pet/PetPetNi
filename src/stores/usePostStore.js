@@ -106,28 +106,44 @@ export const usePostStore = defineStore('post', () => {
 
     try {
       if (isLiked) {
-        await socialApi.likePost(id) // 假設 API
+        console.log('[Store] Calling API: likePost', id)
+        await socialApi.likePost(id)
       } else {
-        await socialApi.unlikePost(id) // 假設 API
+        console.log('[Store] Calling API: unlikePost', id)
+        await socialApi.unlikePost(id)
       }
     } catch (error) {
-      console.warn('Like post failed (Dev Mode - keeping local change):', error)
-      // 正式環境應 revert:
-      // post.isLiked = !isLiked
-      // post.likeCount += isLiked ? -1 : 1
+      console.error('Like post failed:', error)
+      // Revert change
+      post.isLiked = !isLiked
+      post.likeCount += isLiked ? -1 : 1
     }
   }
 
   // 收藏
   const bookmarkPost = async (id) => {
+    console.log('[Store] bookmarkPost called with id:', id)
     const post = posts.value.find((p) => p.id === id)
-    if (!post) return
+    if (!post) {
+      console.error('[Store] Post not found for id:', id)
+      return
+    }
 
-    post.isBookmarked = !post.isBookmarked
+    const originalState = post.isBookmarked
+    post.isBookmarked = !originalState
+
     try {
-      // await socialApi.bookmarkPost(id)
+      if (post.isBookmarked) {
+        console.log('[Store] Calling API: bookmarkPost', id)
+        await socialApi.bookmarkPost(id)
+      } else {
+        console.log('[Store] Calling API: unbookmarkPost', id)
+        await socialApi.unbookmarkPost(id)
+      }
     } catch (error) {
-      console.warn('Bookmark post failed (Dev Mode - keeping local change):', error)
+      console.error('Bookmark post failed:', error)
+      // Revert change
+      post.isBookmarked = originalState
     }
   }
 
@@ -151,6 +167,13 @@ export const usePostStore = defineStore('post', () => {
     }
   }
 
+  const updateCommentCount = (id, delta) => {
+    const post = posts.value.find((p) => p.id === id)
+    if (post) {
+      post.commentCount = (post.commentCount || 0) + delta
+    }
+  }
+
   return {
     posts,
     postsWithAuth,
@@ -161,6 +184,7 @@ export const usePostStore = defineStore('post', () => {
     updatePost,
     likePost,
     bookmarkPost,
-    deletePost
+    deletePost,
+    updateCommentCount
   }
 })

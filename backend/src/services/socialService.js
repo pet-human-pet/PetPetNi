@@ -1,268 +1,609 @@
+/* eslint-disable no-console */
 import { supabase } from './supabase.js'
 
-const formatPostForFrontend = (post) => {
-  const images = post.post_images ? post.post_images.map((img) => img.image_url) : []
+// Helper: 取得 user_id_int (從 profiles table)
+const getProfileId = async (authUserId) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('user_id_int')
+    .eq('user_id', authUserId)
+    .single()
 
-  return {
-    id: post.id,
-    author: post.profiles?.name || 'Unknown',
-    authorId: post.user_id,
-    authorAvatar: post.profiles?.avatar || '',
-    content: post.content,
-    images: images,
-    audience: post.audience, // 'public', 'friends', etc.
-    isLiked: post.is_liked || false,
-    likeCount: post.post_likes ? post.post_likes[0]?.count : 0,
-    commentCount: post.post_comments ? post.post_comments[0]?.count : 0,
-    isBookmarked: post.is_bookmarked || false,
-    createdAt: post.created_at,
-    isNew: false
+  if (error || !data) {
+    console.error(`❌ 無法取得用戶 Profile ID (Auth ID: ${authUserId}):`, error)
+    throw new Error('找不到用戶資料')
   }
+  return data.user_id_int
 }
 
 export const socialService = {
-  // 取得貼文列表
+  // ==========================================
+  // 取得貼文列表 API
+  // ==========================================
   getPosts: async ({ page = 1, limit = 10, userId = null }) => {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    // 1. Fetch Posts
-    const {
-      data: postsData,
-      error: postsError,
-      count
-    } = await supabase
-      .from('posts')
-      .select('*', { count: 'exact' })
-      .eq('is_deleted', false)
-      .order('created_at', { ascending: false })
-      .range(from, to)
+    try {
+      let query = supabase
+        .from('posts')
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          user_id_int,
+          profiles:user_id_int (
+            user_id,
+            nick_name,
+            avatar_url
+          ),
+          post_images (
+            display_order,
+            is_deleted,
+            images (
+              url
+            )
+          ),
+          post_likes(count),
+          post_comments(count)
+        `,
+          { count: 'exact' }
+        )
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .range(from, to)
 
-    if (postsError) {
-      console.error('❌ Error getting posts:', postsError)
-      throw postsError
-    }
+      const { data: postsData, error: postsError, count } = await query
 
-    if (!postsData || postsData.length === 0) {
-      return { data: [], total: count }
-    }
-
-    // 2. Collect IDs
-    const userIds = [...new Set(postsData.map((p) => p.user_id))]
-    const postIds = postsData.map((p) => p.id)
-
-    // 3. Fetch Profiles & Images in parallel
-    const [profilesResult, imagesResult, likesResult] = await Promise.all([
-      supabase.from('profiles').select('id, name, avatar').in('id', userIds),
-      supabase.from('post_images').select('post_id, image_url').in('post_id', postIds),
-      // Optional: Fetch likes/bookmarks status if needed specific to current user,
-      // but for now we follow existing structure or just return defaults if not critical.
-      // If we need like counts, they should likely be a separate query or counter on post table.
-      // Assuming existing `post_likes` counts were via join, we might skip or do a count query if critical.
-      // For now, let's keep it simple to fix the 500 error.
-      Promise.resolve({ data: [] })
-    ])
-
-    const profilesMap = new Map(profilesResult.data?.map((p) => [p.id, p]) || [])
-
-    // Group images by post_id
-    const imagesMap = {}
-    imagesResult.data?.forEach((img) => {
-      if (!imagesMap[img.post_id]) imagesMap[img.post_id] = []
-      imagesMap[img.post_id].push(img)
-    })
-
-    // 4. Merge Data
-    const posts = postsData.map((p) => {
-      const profile = profilesMap.get(p.user_id)
-      const images = imagesMap[p.id]?.map((i) => i.image_url) || []
-
-      return {
-        id: p.id,
-        author: profile?.name || 'Unknown',
-        authorId: p.user_id,
-        authorAvatar: profile?.avatar || '',
-        content: p.content,
-        images: images,
-        audience: p.audience,
-        isLiked: false, // TODO: restore like status logic if needed
-        likeCount: 0, // TODO: restore like count logic
-        commentCount: 0, // TODO: restore comment count logic
-        isBookmarked: false,
-        createdAt: p.created_at,
-        isNew: false
+      if (postsError) {
+        console.error('❌ 取得貼文列表失敗:', postsError)
+        throw postsError
       }
-    })
 
-    return { data: posts, total: count }
-  },
+      if (!postsData || postsData.length === 0) {
+        return { data: [], total: count }
+      }
 
-  // 建立貼文
-  createPost: async (userId, { content, images = [], audience = 'public' }) => {
-    // 1. 建立 Post 本體
-    const { data: postData, error: postError } = await supabase
-      .from('posts')
-      .insert({
-        user_id: userId,
-        content,
-        audience
+      // 處理按讚與收藏狀態
+      let userLikedPostIds = new Set()
+      let userBookmarkedPostIds = new Set()
+
+      if (userId) {
+        console.log(`[SocialService] Fetching interaction status for user: ${userId}`)
+        try {
+          // 注意：這裡假設 userId 是 UUID (Auth ID)，需轉為 user_id_int
+          const profileId = await getProfileId(userId)
+          console.log(`[SocialService] Resolved profileId: ${profileId}`)
+
+          // 查詢按讚
+          const { data: likesData, error: likesError } = await supabase
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id_int', profileId)
+            .in(
+              'post_id',
+              postsData.map((p) => p.id)
+            )
+
+          if (likesError) console.error('[SocialService] Error fetching likes:', likesError)
+
+          if (likesData) {
+            likesData.forEach((l) => userLikedPostIds.add(l.post_id))
+          }
+
+          // 查詢收藏
+          const { data: bookmarksData, error: bookmarksError } = await supabase
+            .from('bookmarks')
+            .select('post_id')
+            .eq('user_id_int', profileId)
+            .in(
+              'post_id',
+              postsData.map((p) => p.id)
+            )
+
+          if (bookmarksError)
+            console.error('[SocialService] Error fetching bookmarks:', bookmarksError)
+
+          if (bookmarksData) {
+            bookmarksData.forEach((b) => userBookmarkedPostIds.add(b.post_id))
+          }
+        } catch (e) {
+          console.warn('⚠️ 無法確認互動狀態:', e.message)
+        }
+      }
+
+      const posts = postsData.map((p) => {
+        const images =
+          p.post_images
+            ?.filter((pi) => !pi.is_deleted)
+            ?.sort((a, b) => a.display_order - b.display_order)
+            ?.map((pi) => pi.images?.url)
+            ?.filter(Boolean) || []
+
+        const likeCount = p.post_likes?.[0]?.count || 0
+        const commentCount = p.post_comments?.[0]?.count || 0
+
+        return {
+          id: p.id,
+          author: p.profiles?.nick_name || 'Unknown',
+          authorId: p.profiles?.user_id || '',
+          authorAvatar: p.profiles?.avatar_url || '',
+          content: p.content,
+          images: images,
+          audience: 'public',
+          isLiked: userLikedPostIds.has(p.id),
+          likeCount: likeCount,
+          commentCount: commentCount,
+          isBookmarked: userBookmarkedPostIds.has(p.id),
+          createdAt: p.created_at,
+          isNew: false
+        }
       })
-      .select()
-      .single()
 
-    if (postError) {
-      console.error('❌ Error creating post:', postError)
-      throw postError
-    }
-
-    const postId = postData.id
-
-    // 2. 若有圖片，寫入 post_images 表格
-    if (images && images.length > 0) {
-      const imageRecords = images.map((url, index) => ({
-        post_id: postId,
-        image_url: url
-        // display_order: index // 若有此欄位
-      }))
-
-      const { error: imgError } = await supabase.from('post_images').insert(imageRecords)
-
-      if (imgError) {
-        console.error('❌ Error creating post images:', imgError)
-      }
-    }
-
-    const { data: userData } = await supabase
-      .from('profiles')
-      .select('name')
-      .eq('id', userId)
-      .single()
-
-    return {
-      id: postId,
-      author: userData?.name || 'Me',
-      authorId: userId,
-      content,
-      images,
-      audience,
-      likeCount: 0,
-      commentCount: 0,
-      isLiked: false,
-      isBookmarked: false,
-      createdAt: postData.created_at,
-      isNew: true
-    }
-  },
-
-  // 按讚
-  likePost: async (userId, postId) => {
-    const { error } = await supabase.from('post_likes').insert({ post_id: postId, user_id: userId })
-
-    if (error) throw error
-    return { success: true }
-  },
-
-  // 取消讚
-  unlikePost: async (userId, postId) => {
-    const { error } = await supabase
-      .from('post_likes')
-      .delete()
-      .eq('post_id', postId)
-      .eq('user_id', userId)
-
-    if (error) throw error
-    return { success: true }
-  },
-
-  // 刪除貼文 (軟刪除)
-  deletePost: async (userId, postId) => {
-    // 驗證是否為作者 (安全檢查)
-    const { data: post } = await supabase.from('posts').select('user_id').eq('id', postId).single()
-
-    if (!post) throw new Error('Post not found')
-    // 這裡我們暫時放寬權限檢查，或者假設 userId 必須匹配 (如果 userId 有傳入的話)
-    // 嚴謹做法：if (post.user_id !== userId) throw new Error('Unauthorized')
-
-    const { error } = await supabase.from('posts').update({ is_deleted: true }).eq('id', postId)
-
-    if (error) {
-      console.error('❌ Error deleting post:', error)
+      return { data: posts, total: count }
+    } catch (error) {
+      console.error('❌ getPosts 發生嚴重錯誤:', error)
       throw error
     }
-    return { success: true }
   },
 
-  // 更新貼文
-  updatePost: async (userId, postId, { content, images, audience }) => {
-    // 1. Update Post Content
-    const { data: post, error: postError } = await supabase
-      .from('posts')
-      .update({ content, audience })
-      .eq('id', postId)
-      // .eq('user_id', userId) // Enforce owner check
-      .select()
-      .single()
+  // ==========================================
+  // 建立貼文 API
+  // ==========================================
+  createPost: async (userId, { content, images = [], audience = 'public' }) => {
+    console.log(`[SocialService] createPost called by ${userId}`)
+    try {
+      const userIdInt = await getProfileId(userId)
 
-    if (postError) throw postError
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .insert({
+          user_id_int: userIdInt,
+          content,
+          is_deleted: false
+        })
+        .select()
+        .single()
 
-    // 2. Sync Images
-    // Get current DB images
-    const { data: currentImages } = await supabase
-      .from('post_images')
-      .select('image_url')
-      .eq('post_id', postId)
+      if (postError) {
+        console.error('❌ 建立貼文失敗:', postError)
+        throw postError
+      }
 
-    const currentUrls = currentImages?.map((i) => i.image_url) || []
+      const postId = postData.id
 
-    // Determine images to delete (present in DB but not in new list)
-    // images is the new list of URLs
-    const imagesToDelete = currentUrls.filter((url) => !images.includes(url))
+      if (images && images.length > 0) {
+        for (let i = 0; i < images.length; i++) {
+          const imageUrl = images[i]
+          let imageId
 
-    // Note: We currently only support deleting existing images during edit, not adding new ones via this flow yet.
-    // If we wanted to support adding, we would find diff in the other direction.
+          const { data: existingImg } = await supabase
+            .from('images')
+            .select('id')
+            .eq('url', imageUrl)
+            .single()
 
-    if (imagesToDelete.length > 0) {
-      const { error: deleteError } = await supabase
-        .from('post_images')
+          if (existingImg) {
+            imageId = existingImg.id
+          } else {
+            const { data: newImg, error: imgInsertError } = await supabase
+              .from('images')
+              .insert({
+                url: imageUrl,
+                folder: 'social_posts'
+              })
+              .select('id')
+              .single()
+
+            if (imgInsertError) {
+              console.error(`❌ 新增圖片失敗 (${imageUrl}):`, imgInsertError)
+              continue
+            }
+            imageId = newImg.id
+          }
+
+          const { error: linkError } = await supabase.from('post_images').insert({
+            post_id: postId,
+            image_id: imageId,
+            display_order: i
+          })
+
+          if (linkError) {
+            console.error(`❌ 關聯圖片失敗 (Post: ${postId}, Img: ${imageId}):`, linkError)
+          }
+        }
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('nick_name, avatar_url')
+        .eq('user_id_int', userIdInt)
+        .single()
+
+      return {
+        id: postId,
+        author: profile?.nick_name || 'Me',
+        authorId: userId,
+        authorAvatar: profile?.avatar_url || '',
+        content,
+        images,
+        audience,
+        likeCount: 0,
+        commentCount: 0,
+        isLiked: false,
+        isBookmarked: false,
+        createdAt: postData.created_at,
+        isNew: true
+      }
+    } catch (error) {
+      console.error('❌ createPost 發生錯誤:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 按讚 API
+  // ==========================================
+  likePost: async (userId, postId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      const { error } = await supabase
+        .from('post_likes')
+        .insert({ post_id: postId, user_id_int: userIdInt })
+
+      if (error && !error.message.includes('duplicate key')) {
+        throw error
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 按讚失敗:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 取消讚 API
+  // ==========================================
+  unlikePost: async (userId, postId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      const { error } = await supabase
+        .from('post_likes')
         .delete()
         .eq('post_id', postId)
-        .in('image_url', imagesToDelete)
+        .eq('user_id_int', userIdInt)
 
-      if (deleteError) {
-        console.error('❌ Error deleting post images:', deleteError)
-        throw deleteError
-      }
+      if (error) throw error
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 取消讚失敗:', error)
+      throw error
     }
+  },
 
-    // Return updated post structure
-    // Reuse formatPostForFrontend logic or construct manually
-    // Fetch profile for completeness
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('name, avatar')
-      .eq('id', post.user_id)
-      .single()
+  // ==========================================
+  // 刪除貼文 API (軟刪除)
+  // ==========================================
+  deletePost: async (userId, postId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
 
-    // Re-fetch final images to be sure
-    const { data: finalImages } = await supabase
-      .from('post_images')
-      .select('image_url')
-      .eq('post_id', postId)
+      const { data: post, error: findError } = await supabase
+        .from('posts')
+        .select('user_id_int')
+        .eq('id', postId)
+        .single()
 
-    return {
-      id: post.id,
-      author: profile?.name || 'Unknown',
-      authorId: post.user_id,
-      authorAvatar: profile?.avatar || '',
-      content: post.content,
-      images: finalImages?.map((i) => i.image_url) || [],
-      audience: post.audience,
-      isLiked: false, // preserving previous state in frontend ideally
-      likeCount: 0,
-      commentCount: 0,
-      isBookmarked: false,
-      createdAt: post.created_at,
-      isNew: false
+      if (findError || !post) {
+        throw new Error('找不到貼文')
+      }
+
+      if (post.user_id_int !== userIdInt) {
+        throw new Error('無權限刪除此貼文')
+      }
+
+      const { error } = await supabase.from('posts').update({ is_deleted: true }).eq('id', postId)
+
+      if (error) {
+        console.error('❌ 刪除貼文失敗:', error)
+        throw error
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ deletePost 發生錯誤:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 收藏貼文 API
+  // ==========================================
+  bookmarkPost: async (userId, postId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      const { error } = await supabase
+        .from('bookmarks')
+        .insert({ post_id: postId, user_id_int: userIdInt })
+
+      if (error && !error.message.includes('duplicate key')) {
+        throw error
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 收藏失敗:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 取消收藏 API
+  // ==========================================
+  unbookmarkPost: async (userId, postId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      const { error } = await supabase
+        .from('bookmarks')
+        .delete()
+        .eq('post_id', postId)
+        .eq('user_id_int', userIdInt)
+
+      if (error) throw error
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 取消收藏失敗:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 更新貼文 API
+  // ==========================================
+  updatePost: async (userId, postId, { content, images, audience }) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      // 1. 檢查權限
+      const { data: post, error: findError } = await supabase
+        .from('posts')
+        .select('user_id_int')
+        .eq('id', postId)
+        .single()
+
+      if (findError || !post) {
+        throw new Error('找不到貼文')
+      }
+
+      if (post.user_id_int !== userIdInt) {
+        throw new Error('無權限修改此貼文')
+      }
+
+      // 2. 更新內容
+      // TODO: 若資料庫支援 audience，也要 update audience
+      const { error: updateError } = await supabase
+        .from('posts')
+        .update({ content })
+        .eq('id', postId)
+
+      if (updateError) throw updateError
+
+      // 3. 處理圖片更新
+      if (images) {
+        // 先取得目前關聯的圖片
+        const { data: currentLinks } = await supabase
+          .from('post_images')
+          .select(
+            `
+            id,
+            image_id,
+            display_order,
+            is_deleted,
+            images(id, url)
+          `
+          )
+          .eq('post_id', postId)
+
+        // 建立目前的 URL Map: URL -> post_image record
+        const currentUrlMap = new Map()
+        if (currentLinks) {
+          currentLinks.forEach((link) => {
+            if (link.images?.url) {
+              currentUrlMap.set(link.images.url, link)
+            }
+          })
+        }
+
+        // 遍歷新的圖片列表
+        for (let i = 0; i < images.length; i++) {
+          const url = images[i]
+
+          if (currentUrlMap.has(url)) {
+            // 舊圖片：更新順序並確保未刪除
+            const link = currentUrlMap.get(url)
+            await supabase
+              .from('post_images')
+              .update({ display_order: i, is_deleted: false })
+              .eq('id', link.id)
+
+            // 從 Map 移除，表示已處理
+            currentUrlMap.delete(url)
+          } else {
+            // 新圖片：找 ID 或新增，然後建立關聯
+            let imageId
+
+            const { data: existingImg } = await supabase
+              .from('images')
+              .select('id')
+              .eq('url', url)
+              .single()
+
+            if (existingImg) {
+              imageId = existingImg.id
+            } else {
+              const { data: newImg, error: imgInsertError } = await supabase
+                .from('images')
+                .insert({ url: url, folder: 'social_posts' })
+                .select('id')
+                .single()
+
+              if (imgInsertError) {
+                console.error(`❌ 新增圖片失敗 (${url}):`, imgInsertError)
+                continue
+              }
+              imageId = newImg.id
+            }
+
+            const { error: linkError } = await supabase.from('post_images').insert({
+              post_id: postId,
+              image_id: imageId,
+              display_order: i,
+              is_deleted: false
+            })
+
+            if (linkError) {
+              console.error(`❌ 關聯圖片失敗 (${url}):`, linkError)
+            }
+          }
+        }
+
+        // 剩下的 Map 項目表示這次更新被移除的圖片 -> 設為 deleted
+        for (const link of currentUrlMap.values()) {
+          if (!link.is_deleted) {
+            await supabase.from('post_images').update({ is_deleted: true }).eq('id', link.id)
+          }
+        }
+      }
+
+      return {
+        id: postId,
+        content,
+        images,
+        audience,
+        success: true
+      }
+    } catch (error) {
+      console.error('❌ 更新貼文失敗:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 取得留言列表 API
+  // ==========================================
+  getComments: async (postId) => {
+    try {
+      const { data, error } = await supabase
+        .from('post_comments')
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          user_id_int,
+          profiles:user_id_int (
+            user_id,
+            nick_name,
+            avatar_url
+          )
+        `
+        )
+        .eq('post_id', postId)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        throw error
+      }
+
+      const comments = data.map((c) => ({
+        id: c.id,
+        content: c.content,
+        author: c.profiles?.nick_name || 'Unknown',
+        authorId: c.profiles?.user_id,
+        authorAvatar: c.profiles?.avatar_url,
+        createdAt: c.created_at
+      }))
+
+      return comments
+    } catch (error) {
+      console.error('❌ 取得留言失敗:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 新增留言 API
+  // ==========================================
+  createComment: async (userId, postId, content) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      const { data, error } = await supabase
+        .from('post_comments')
+        .insert({
+          post_id: postId,
+          user_id_int: userIdInt,
+          content,
+          is_deleted: false
+        })
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          profiles:user_id_int (
+            user_id,
+            nick_name,
+            avatar_url
+          )
+        `
+        )
+        .single()
+
+      if (error) throw error
+
+      return {
+        id: data.id,
+        content: data.content,
+        author: data.profiles?.nick_name || 'Unknown',
+        authorId: userId,
+        authorAvatar: data.profiles?.avatar_url,
+        createdAt: data.created_at
+      }
+    } catch (error) {
+      console.error('❌ 新增留言失敗:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
+  // 刪除留言 API (硬刪除)
+  // ==========================================
+  deleteComment: async (userId, commentId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      const { error } = await supabase
+        .from('post_comments')
+        .delete()
+        .eq('id', commentId)
+        .eq('user_id_int', userIdInt) // 確保權限：只能刪自己的
+
+      if (error) throw error
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 刪除留言失敗:', error)
+      throw error
     }
   }
 }
