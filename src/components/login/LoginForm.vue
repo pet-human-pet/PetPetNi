@@ -227,7 +227,7 @@ const handleLogin = async () => {
         </BaseInput>
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex items-center">
         <label class="flex cursor-pointer items-center">
           <input
             type="checkbox"
