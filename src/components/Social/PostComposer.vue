@@ -79,7 +79,10 @@ const triggerImageUpload = () => {
 const submit = async () => {
   if (!canSubmit.value) return
 
-  const text = content.value.trim()
+  const normalizedContent = content.value
+    .trim()
+    .replace(/\n\s*\n+/g, '\n\n')
+  const text = normalizedContent
   const hasImages = images.value.length > 0
 
   if (!hasImages && text.length <= 3) {
@@ -93,7 +96,7 @@ const submit = async () => {
     const uploadedUrls = await uploadAllImages()
 
     emit('submit', {
-      content: content.value,
+      content: normalizedContent,
       images: uploadedUrls,
       hashtags: [],
       audience: audience.value
@@ -104,8 +107,10 @@ const submit = async () => {
     content.value = ''
     clearImages()
     open.value = false
-  } catch {
-    error('發布失敗，請稍後再試')
+  } catch (err) {
+    if (!err?.__toastShown) {
+      error(err?.message || '發布失敗，請稍後再試')
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -162,6 +167,7 @@ const audience = ref('public')
             class="text-fg-primary min-h-16 w-full resize-none bg-transparent text-base outline-none"
             placeholder="分享你的寵物日常..."
             :maxlength="maxLength"
+            style="max-height: 30vh"
             @input="autoResize"
           />
 

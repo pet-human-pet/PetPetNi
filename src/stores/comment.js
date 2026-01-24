@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia'
 import { socialApi } from '@/api/social'
+import { useToast } from '@/composables/useToast'
+
+const getErrorMessage = (err, fallback) =>
+  err?.response?.data?.error ||
+  err?.response?.data?.message ||
+  err?.message ||
+  fallback
 
 export const useCommentStore = defineStore('comment', {
   state: () => ({
@@ -15,18 +22,21 @@ export const useCommentStore = defineStore('comment', {
   actions: {
     async fetchComments(postId) {
       if (!postId) return
+      const { error: showError } = useToast()
       try {
         const res = await socialApi.getComments(postId)
         // 假設 API 回傳的是 comment array
         this.commentsByPost[postId] = res.data || res
       } catch (error) {
         console.error('Fetch comments failed:', error)
+        showError(getErrorMessage(error, '留言載入失敗，請稍後再試'))
       }
     },
 
     async addComment(postId, content) {
       if (!postId || !content) return
 
+      const { error: showError } = useToast()
       try {
         console.log('[CommentStore] Adding comment for post:', postId)
         const res = await socialApi.createComment(postId, { content })
@@ -50,11 +60,13 @@ export const useCommentStore = defineStore('comment', {
         return newComment
       } catch (error) {
         console.error('[CommentStore] Add comment failed:', error)
+        showError(getErrorMessage(error, '留言新增失敗，請稍後再試'))
         throw error
       }
     },
 
     async deleteComment(postId, commentId) {
+      const { error: showError } = useToast()
       try {
         await socialApi.deleteComment(commentId)
 
@@ -66,6 +78,7 @@ export const useCommentStore = defineStore('comment', {
         }
       } catch (error) {
         console.error('Delete comment failed:', error)
+        showError(getErrorMessage(error, '留言刪除失敗，請稍後再試'))
         throw error
       }
     }
