@@ -66,7 +66,10 @@ const cancelEdit = () => {
 }
 
 const saveEdit = () => {
-  if (!editContent.value.trim()) return
+  const hasContent = editContent.value.trim().length > 0
+  const hasImages = editImages.value.length > 0
+  
+  if (!hasContent && !hasImages) return
   emit('update', {
     id: props.post.id,
     content: editContent.value,

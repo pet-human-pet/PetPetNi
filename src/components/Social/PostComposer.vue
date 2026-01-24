@@ -4,10 +4,12 @@ import AudiencePicker from './AudiencePicker.vue'
 import ImageCropper from '@/components/Share/ImageCropper.vue'
 import { usePostComposerImages } from '@/composables/usePostComposerImages'
 import { useToast } from '@/composables/useToast'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
 // 發布貼文流程
 const props = defineProps({
-  username: { type: String, default: 'test' },
+  username: { type: String, default: '' },
   maxLength: { type: Number, default: 500 }
 })
 
@@ -239,7 +241,9 @@ const audience = ref('public')
             <div class="flex items-center gap-3">
               <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
               <div class="min-w-0">
-                <div class="text-sm font-semibold">{{ username }}</div>
+                <div class="text-sm font-semibold">
+                  {{ username || authStore.user?.name || '匿名用戶' }}
+                </div>
                 <AudiencePicker v-model="audience" />
               </div>
             </div>

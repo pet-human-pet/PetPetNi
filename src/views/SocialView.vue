@@ -5,14 +5,14 @@ import { useToast } from '@/composables/useToast'
 import { usePostStore } from '@/stores/usePostStore'
 
 const postStore = usePostStore()
-const { success, error } = useToast()
+const { success } = useToast()
 
 const handleSubmit = async (payload) => {
   try {
     await postStore.createPost(payload.content, payload.images, payload.audience)
     success('貼文已發布')
   } catch {
-    error('發布失敗')
+    // 錯誤已由 API interceptor 與 store 統一處理
   }
 }
 </script>

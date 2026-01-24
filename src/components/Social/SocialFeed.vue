@@ -7,14 +7,14 @@ import { useScreen } from '@/composables/useScreen'
 import { useActiveItem } from '@/composables/useActiveItem'
 import { useToast } from '@/composables/useToast'
 import { useImagePreview } from '@/composables/useImagePreview'
+import { usePostStore } from '@/stores/usePostStore'
+import { useAuthStore } from '@/stores/auth'
+import { watch } from 'vue'
 
 const postStore = usePostStore()
 const { success, error } = useToast()
 const { isDesktop } = useScreen()
 const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
-import { usePostStore } from '@/stores/usePostStore'
-import { useAuthStore } from '@/stores/auth'
-import { watch } from 'vue'
 
 const commentManager = useActiveItem({
   enableClickOutside: isDesktop
@@ -38,11 +38,7 @@ const toggleLike = async (postId) => {
   try {
     const post = postStore.posts.find((p) => p.id === postId)
     if (!post) return
-
-    // 樂觀更新已經在 Store 做掉了，這裡只負責提示
     await postStore.likePost(postId)
-
-    // 根據新的狀態顯示提示
     if (post.isLiked) {
       success('已按讚')
     } else {
@@ -118,13 +114,10 @@ onMounted(() => {
   }
 })
 
-// 當用戶狀態改變 (如初始載入完成、登入、登出) 時，重新抓取貼文以更新按讚/收藏狀態
 const authStore = useAuthStore()
 watch(
   () => authStore.user,
   (newUser) => {
-    // 若原本沒使用者 -> 變有使用者 (登入/初始化完成)，或者使用者改變
-    // 重新 fetch posts 能拿到正確的 isLiked 狀態
     if (newUser) {
       postStore.fetchPosts()
     }
