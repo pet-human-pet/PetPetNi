@@ -1,5 +1,5 @@
 import { ref, onUnmounted } from 'vue'
-import { supabase } from '@/services/supabase'
+import { supabase } from '@/lib/supabase'
 
 export function useRealtimeChat() {
   const channels = ref(new Map())

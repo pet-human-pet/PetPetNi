@@ -35,9 +35,6 @@ app.get('/api/health', (req, res) => {
 })
 
 // 3. 啟動伺服器
-// 注意：即時聊天功能已遷移至 Supabase Realtime
-// 訊息透過前端直接寫入 Supabase，並透過 Realtime 訂閱推播
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
-  console.log(`📡 Chat功能使用 Supabase Realtime（不再需要 Socket.io server）`)
 })

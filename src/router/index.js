@@ -107,4 +107,33 @@ const router = createRouter({
   }
 })
 
+// Navigation Guard
+router.beforeEach(async (to, from, next) => {
+  // 動態引入 store 避免循環依賴
+  const { useAuthStore } = await import('@/stores/auth')
+  const authStore = useAuthStore()
+
+  // 確保 auth 狀態已初始化 (如果需要)
+  // if (!authStore.hasInit) await authStore.initAuth()
+  // ↑ initAuth 是在 App.vue mounted 呼叫，可能比 router guard 晚
+  // 若要確保路由進入前已驗證，可能需要在這裡呼叫，或檢查 localStorage
+
+  const token = localStorage.getItem('token')
+  const isLoggedIn = !!token
+
+  // 1. 需要認證但未登入
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    next({ name: 'login', query: { redirect: to.fullPath } })
+    return
+  }
+
+  // 2. 已登入但訪問登入頁 -> 導向首頁或 Dashboard
+  if (to.name === 'login' && isLoggedIn) {
+    next({ name: 'home' }) // 或 'match'
+    return
+  }
+
+  next()
+})
+
 export default router
