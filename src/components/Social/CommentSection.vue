@@ -1,9 +1,11 @@
 <script setup>
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 import { useSwipe, useScrollLock } from '@vueuse/core'
 import { useScreen } from '@/composables/useScreen'
+import { useToast } from '@/composables/useToast'
 import { formatCommentTime } from '@/utils/formatTime'
 import { useCommentStore } from '@/stores/comment'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   post: {
@@ -13,12 +15,29 @@ const props = defineProps({
 })
 
 const commentStore = useCommentStore()
+const authStore = useAuthStore()
+
+// 載入留言
+const isLoading = ref(true)
+
+onMounted(async () => {
+  if (props.post.id) {
+    try {
+      await commentStore.fetchComments(props.post.id)
+    } finally {
+      isLoading.value = false
+    }
+  } else {
+    isLoading.value = false
+  }
+})
 
 const comments = computed(() => commentStore.getComments(props.post.id))
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'add-comment', 'delete-comment'])
 
 const { isMobile } = useScreen()
+const { success, error } = useToast()
 
 // Mobile 滾動鎖定
 const isLocked = useScrollLock(document.body)
@@ -37,37 +56,31 @@ onUnmounted(() => {
 
 const MAX_COMMENT_LENGTH = 50
 
-// 編輯功能
-const editingCommentId = ref(null)
-const editContent = ref('')
-
 // 新增留言
 const newComment = ref('')
 
-const submitComment = () => {
+const submitComment = async () => {
   if (!newComment.value.trim() || newComment.value.length > MAX_COMMENT_LENGTH) return
-  commentStore.addComment(props.post.id, newComment.value)
-  newComment.value = ''
+  try {
+    await commentStore.addComment(props.post.id, newComment.value)
+    emit('add-comment')
+    newComment.value = ''
+    success('留言已發佈')
+  } catch (err) {
+    console.error(err)
+    error('留言失敗')
+  }
 }
 
-const startEdit = (comment) => {
-  editingCommentId.value = comment.id
-  editContent.value = comment.content
-}
-
-const cancelEdit = () => {
-  editingCommentId.value = null
-  editContent.value = ''
-}
-
-const saveEdit = () => {
-  if (!editContent.value.trim() || editContent.value.length > MAX_COMMENT_LENGTH) return
-  commentStore.updateComment(props.post.id, editingCommentId.value, editContent.value)
-  cancelEdit()
-}
-
-const handleDelete = (id) => {
-  commentStore.deleteComment(props.post.id, id)
+const handleDelete = async (id) => {
+  try {
+    await commentStore.deleteComment(props.post.id, id)
+    emit('delete-comment')
+    success('留言已刪除')
+  } catch (err) {
+    console.error(err)
+    error('刪除失敗')
+  }
 }
 
 const mobileSheetRef = ref(null)
@@ -89,7 +102,7 @@ const onSwipeEnd = () => {
 <template>
   <!-- Mobile -->
   <Teleport to="body" :disabled="!isMobile">
-    <div v-if="isMobile" class="fixed inset-0 z-1001 flex items-end justify-center md:hidden">
+    <div v-if="isMobile" class="fixed inset-0 z-[1000] flex items-end justify-center md:hidden">
       <!-- Overlay (點擊關閉) -->
       <div class="absolute inset-0 bg-black/60 transition-opacity" @click="$emit('close')"></div>
 
@@ -111,8 +124,17 @@ const onSwipeEnd = () => {
 
         <!-- Comment -->
         <div class="max-h-[60vh] min-h-[16vh] overflow-y-auto px-4 pt-2">
+          <div v-if="isLoading" class="space-y-4 px-1 py-2">
+            <div v-for="i in 3" :key="i" class="flex gap-3">
+              <div class="h-8 w-8 shrink-0 animate-pulse rounded-full bg-zinc-200"></div>
+              <div class="flex-1 space-y-2 py-1">
+                <div class="h-3 w-24 animate-pulse rounded bg-zinc-200"></div>
+                <div class="h-3 w-3/4 animate-pulse rounded bg-zinc-200"></div>
+              </div>
+            </div>
+          </div>
           <div
-            v-if="comments.length === 0"
+            v-else-if="comments.length === 0"
             class="flex flex-col items-center justify-center py-10 text-zinc-400"
           >
             <i class="fa-regular fa-comment-dots mb-2 text-2xl"></i>
@@ -126,55 +148,17 @@ const onSwipeEnd = () => {
           >
             <div class="h-8 w-8 shrink-0 rounded-full bg-zinc-200"></div>
             <div class="min-w-0 flex-1">
-              <div v-if="editingCommentId === c.id">
-                <div class="flex flex-col gap-2">
-                  <textarea
-                    v-model="editContent"
-                    rows="2"
-                    class="w-full resize-none rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm break-all whitespace-pre-wrap outline-none focus:border-blue-500"
-                    placeholder="編輯留言..."
-                    @keydown.enter.prevent="saveEdit"
-                  ></textarea>
-                  <div class="flex items-center justify-between">
-                    <span
-                      class="text-xs"
-                      :class="
-                        editContent.length > MAX_COMMENT_LENGTH ? 'text-red-500' : 'text-zinc-400'
-                      "
-                    >
-                      {{ editContent.length }}/{{ MAX_COMMENT_LENGTH }}
-                    </span>
-                    <div class="flex gap-2 text-sm">
-                      <button class="text-zinc-500" @click.stop="cancelEdit">取消</button>
-                      <button
-                        class="text-brand-primary disabled:text-zinc-400"
-                        :disabled="!editContent.trim() || editContent.length > MAX_COMMENT_LENGTH"
-                        @click.stop="saveEdit"
-                      >
-                        儲存
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else>
+              <div>
                 <div class="flex items-baseline justify-between pb-1">
                   <div class="flex items-center justify-center gap-3">
                     <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
                     <span class="text-xs text-zinc-300">
                       {{ formatCommentTime(c.time) }}
-                      <span v-if="c.isEdited" class="ml-1 text-zinc-400">(已編輯)</span>
                     </span>
                   </div>
                   <div class="flex items-center gap-2">
-                    <div v-if="c.user === 'me'" class="flex gap-6 pr-2">
-                      <button
-                        v-if="!c.isEdited"
-                        class="text-zinc-400 hover:text-zinc-600"
-                        @click.stop="startEdit(c)"
-                      >
-                        <i class="fa-solid fa-pen text-sm"></i>
-                      </button>
+                    <!-- 判斷是否為當前用戶的留言 -->
+                    <div v-if="c.userId === authStore.user?.id" class="flex gap-6 pr-2">
                       <button
                         class="text-zinc-400 hover:text-red-500"
                         @click.stop="handleDelete(c.id)"
@@ -228,7 +212,7 @@ const onSwipeEnd = () => {
   <!-- Desktop -->
   <div
     v-if="!isMobile"
-    class="animate-pop-in absolute right-5 bottom-16 z-30 w-[80%] origin-bottom-left rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl"
+    class="animate-pop-in absolute right-12 bottom-16 z-40 w-[70%] origin-bottom-left rounded-2xl border border-zinc-100 bg-white p-3 shadow-xl"
   >
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
@@ -239,9 +223,18 @@ const onSwipeEnd = () => {
     </div>
 
     <!-- List -->
-    <div class="no-scrollbar max-h-60 min-h-14 space-y-1 overflow-y-auto p-1">
+    <div class="no-scrollbar max-h-40 min-h-14 space-y-1 overflow-y-auto p-1">
+      <div v-if="isLoading" class="space-y-3 py-2">
+        <div v-for="i in 3" :key="i" class="flex gap-3 px-1">
+          <div class="h-8 w-8 shrink-0 animate-pulse rounded-full bg-zinc-200"></div>
+          <div class="flex-1 space-y-2 py-1">
+            <div class="h-3 w-24 animate-pulse rounded bg-zinc-200"></div>
+            <div class="h-3 w-3/4 animate-pulse rounded bg-zinc-200"></div>
+          </div>
+        </div>
+      </div>
       <div
-        v-if="comments.length === 0"
+        v-else-if="comments.length === 0"
         class="flex flex-col items-center justify-center py-8 text-zinc-400"
       >
         <span class="text-sm">目前沒有留言</span>
@@ -249,70 +242,22 @@ const onSwipeEnd = () => {
       <div
         v-for="c in comments"
         :key="c.id"
-        class="flex gap-3 rounded-lg p-2 transition-colors duration-300"
+        class="flex gap-3 rounded-lg py-3 transition-colors duration-300"
         :class="c.isHighlight ? 'bg-yellow-50/40 ring-1 ring-yellow-200' : 'bg-white ring-0'"
       >
         <div class="h-8 w-8 shrink-0 rounded-full bg-zinc-200"></div>
         <div class="min-w-0 flex-1">
-          <div v-if="editingCommentId === c.id">
-            <div class="flex flex-col gap-2">
-              <textarea
-                v-model="editContent"
-                rows="2"
-                class="focus:border-brand-primary w-full resize-none rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm outline-none"
-                placeholder="編輯留言..."
-                @keydown.enter.prevent="saveEdit"
-              ></textarea>
-              <div class="flex items-center justify-between">
-                <div>
-                  <span
-                    class="text-xs"
-                    :class="
-                      editContent.length > MAX_COMMENT_LENGTH ? 'text-red-500' : 'text-zinc-400'
-                    "
-                  >
-                    {{ editContent.length }}/{{ MAX_COMMENT_LENGTH }}
-                  </span>
-                  <span class="ml-2 p-0.5 text-[10px] text-red-500/80">
-                    * 注意: 每筆留言僅能編輯一次
-                  </span>
-                </div>
-                <div class="flex gap-2 text-xs font-bold">
-                  <button
-                    class="cursor-pointer text-zinc-400 hover:text-zinc-700"
-                    @click.stop="cancelEdit"
-                  >
-                    取消
-                  </button>
-                  <button
-                    class="text-brand-primary cursor-pointer disabled:text-zinc-300"
-                    :disabled="!editContent.trim() || editContent.length > MAX_COMMENT_LENGTH"
-                    @click.stop="saveEdit"
-                  >
-                    儲存
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else>
+          <div>
             <div class="flex items-baseline justify-between pb-1">
               <div class="flex items-center justify-center gap-5">
-                <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
-                <span class="text-xs text-zinc-400">
-                  {{ formatCommentTime(c.time) }}
-                  <span v-if="c.isEdited" class="ml-1 text-zinc-300">(已編輯)</span>
+                <span class="text-sm font-bold text-blue-800">{{ c.author }}</span>
+                <span class="text-xs text-gray-400">
+                  {{ formatCommentTime(c.createdAt) }}
+                  <span v-if="c.isEdited" class="ml-1 text-gray-500">(已編輯)</span>
                 </span>
               </div>
               <div class="flex items-center gap-4">
-                <div v-if="c.user === 'me'" class="flex gap-2">
-                  <button
-                    v-if="!c.isEdited"
-                    class="hover:text-brand-primary cursor-pointer text-zinc-300 transition-colors"
-                    @click.stop="startEdit(c)"
-                  >
-                    <i class="fa-solid fa-pen text-xs"></i>
-                  </button>
+                <div v-if="c.authorId === authStore.user?.id" class="flex gap-2">
                   <button
                     class="cursor-pointer text-zinc-300 transition-colors hover:text-red-500"
                     @click.stop="handleDelete(c.id)"
@@ -322,7 +267,7 @@ const onSwipeEnd = () => {
                 </div>
               </div>
             </div>
-            <p class="text-sm break-all whitespace-pre-wrap text-zinc-600">
+            <p class="text-fg-primary text-sm break-all whitespace-pre-wrap">
               {{ c.content }}
             </p>
           </div>

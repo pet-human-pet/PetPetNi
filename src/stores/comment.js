@@ -1,82 +1,73 @@
 import { defineStore } from 'pinia'
+import { socialApi } from '@/api/social'
 
 export const useCommentStore = defineStore('comment', {
   state: () => ({
-    // 以 postId 為 key 的物件
-    commentsByPost: {
-      1: [
-        {
-          id: 1,
-          user: 'user123',
-          content: '真可愛！',
-          time: '2025-12-30T10:30:00',
-          isHighlight: false
-        },
-        {
-          id: 2,
-          user: 'dog_lover',
-          content: '這是在哪裡拍的呀？',
-          time: '2025-12-29T21:15:00',
-          isHighlight: false
-        }
-      ],
-      2: [
-        {
-          id: 3,
-          user: 'cat_king',
-          content: '雖然我是貓派，但這隻可以。',
-          time: '2025-12-31T13:20:00',
-          isHighlight: false
-        }
-      ]
-    }
+    commentsByPost: {}
   }),
 
   getters: {
-    // 取得特定貼文的留言
     getComments: (state) => (postId) => {
       return state.commentsByPost[postId] || []
     }
   },
 
   actions: {
-    addComment(postId, content) {
-      // 確保該貼文有留言陣列
-      if (!this.commentsByPost[postId]) {
-        this.commentsByPost[postId] = []
+    async fetchComments(postId) {
+      if (!postId) return
+      try {
+        const res = await socialApi.getComments(postId)
+        // 假設 API 回傳的是 comment array
+        this.commentsByPost[postId] = res.data || res
+      } catch (error) {
+        console.error('Fetch comments failed:', error)
       }
+    },
 
-      const newComment = {
-        id: Date.now(),
-        user: 'me',
-        content,
-        time: new Date().toISOString(),
-        isHighlight: true
-      }
+    async addComment(postId, content) {
+      if (!postId || !content) return
 
-      this.commentsByPost[postId].unshift(newComment)
+      try {
+        console.log('[CommentStore] Adding comment for post:', postId)
+        const res = await socialApi.createComment(postId, { content })
+        const newComment = res.data || res
 
-      setTimeout(() => {
-        const target = this.commentsByPost[postId].find((c) => c.id === newComment.id)
-        if (target) {
-          target.isHighlight = false
+        if (!this.commentsByPost[postId]) {
+          this.commentsByPost[postId] = []
         }
-      }, 2000)
-    },
 
-    updateComment(postId, commentId, newContent) {
-      if (!this.commentsByPost[postId]) return
+        // 加上 highlight 效果
+        newComment.isHighlight = true
+        this.commentsByPost[postId].unshift(newComment) // 新留言排最前
 
-      const comment = this.commentsByPost[postId].find((c) => c.id === commentId)
-      if (comment) {
-        comment.content = newContent
-        comment.isEdited = true
+        setTimeout(() => {
+          const target = this.commentsByPost[postId].find((c) => c.id === newComment.id)
+          if (target) {
+            target.isHighlight = false
+          }
+        }, 2000)
+
+        return newComment
+      } catch (error) {
+        console.error('[CommentStore] Add comment failed:', error)
+        throw error
       }
     },
 
-    deleteComment(postId, commentId) {
-      if (!this.commentsByPost[postId]) return
-      this.commentsByPost[postId] = this.commentsByPost[postId].filter((c) => c.id !== commentId)
+    async deleteComment(postId, commentId) {
+      try {
+        await socialApi.deleteComment(commentId)
+
+        // Optimistic update
+        if (this.commentsByPost[postId]) {
+          this.commentsByPost[postId] = this.commentsByPost[postId].filter(
+            (c) => c.id !== commentId
+          )
+        }
+      } catch (error) {
+        console.error('Delete comment failed:', error)
+        throw error
+      }
     }
   }
 })

@@ -1,11 +1,10 @@
 <script setup>
-import { computed } from 'vue'
-import { useCommentStore } from '@/stores/comment'
 import ShareBtn from './ShareBtn.vue'
 
 const props = defineProps({
   postId: { type: [String, Number], required: true },
   likeCount: { type: Number, default: 0 },
+  commentCount: { type: Number, default: 0 },
   isLiked: { type: Boolean, default: false },
   isBookmarked: { type: Boolean, default: false },
   shareUrl: { type: String, default: '' },
@@ -14,11 +13,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['like', 'open-comments', 'share', 'bookmark'])
-
-const commentStore = useCommentStore()
-
-const comments = computed(() => commentStore.getComments(props.postId))
-
 const handleLike = () => emit('like', props.postId)
 const handleOpenComments = () => emit('open-comments', props.postId)
 const handleBookmark = () => emit('bookmark', props.postId)
@@ -49,7 +43,7 @@ const handleShare = (payload) => emit('share', payload)
         <span class="action-icon inline-flex items-center justify-center text-xl leading-none"
           ><i class="fa-solid fa-comment"
         /></span>
-        <span class="text-sm">{{ comments.length }}</span>
+        <span class="text-sm">{{ commentCount }}</span>
       </button>
 
       <ShareBtn

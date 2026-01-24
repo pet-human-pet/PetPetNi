@@ -1,17 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import PostCard from '@/components/Social/PostCard.vue'
+import PostSkeleton from '@/components/Social/PostSkeleton.vue'
 import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
 import { useScreen } from '@/composables/useScreen'
 import { useActiveItem } from '@/composables/useActiveItem'
 import { useToast } from '@/composables/useToast'
 import { useImagePreview } from '@/composables/useImagePreview'
-import { usePostStore } from '@/stores/usePostStore'
 
 const postStore = usePostStore()
 const { success, error } = useToast()
 const { isDesktop } = useScreen()
 const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
+import { usePostStore } from '@/stores/usePostStore'
+import { useAuthStore } from '@/stores/auth'
+import { watch } from 'vue'
 
 const commentManager = useActiveItem({
   enableClickOutside: isDesktop
@@ -32,11 +35,38 @@ const openComments = (postId) => {
 }
 
 const toggleLike = async (postId) => {
-  await postStore.likePost(postId)
+  try {
+    const post = postStore.posts.find((p) => p.id === postId)
+    if (!post) return
+
+    // 樂觀更新已經在 Store 做掉了，這裡只負責提示
+    await postStore.likePost(postId)
+
+    // 根據新的狀態顯示提示
+    if (post.isLiked) {
+      success('已按讚')
+    } else {
+      success('已取消按讚')
+    }
+  } catch (err) {
+    error('操作失敗')
+  }
 }
 
 const toggleBookmark = async (postId) => {
-  await postStore.bookmarkPost(postId)
+  try {
+    const post = postStore.posts.find((p) => p.id === postId)
+    await postStore.bookmarkPost(postId)
+
+    if (post && post.isBookmarked) {
+      success('已收藏貼文')
+    } else {
+      success('已取消收藏')
+    }
+  } catch (err) {
+    console.error(err)
+    error('操作失敗')
+  }
 }
 
 const handleUpdate = async (payload) => {
@@ -87,12 +117,28 @@ onMounted(() => {
     observer.observe(loadMoreTrigger.value)
   }
 })
+
+// 當用戶狀態改變 (如初始載入完成、登入、登出) 時，重新抓取貼文以更新按讚/收藏狀態
+const authStore = useAuthStore()
+watch(
+  () => authStore.user,
+  (newUser) => {
+    // 若原本沒使用者 -> 變有使用者 (登入/初始化完成)，或者使用者改變
+    // 重新 fetch posts 能拿到正確的 isLiked 狀態
+    if (newUser) {
+      postStore.fetchPosts()
+    }
+  }
+)
 </script>
 
 <template>
   <div>
     <!-- 手機/平板：單欄 -->
     <section v-if="!isDesktop" class="mt-4 flex flex-col gap-4">
+      <div v-if="postStore.isLoading && visiblePosts.length === 0" class="flex flex-col gap-4">
+        <PostSkeleton v-for="i in 3" :key="i" />
+      </div>
       <PostCard
         v-for="p in visiblePosts"
         :key="p.id"
@@ -107,6 +153,8 @@ onMounted(() => {
         @share="sharePost"
         @bookmark="toggleBookmark"
         @delete="handleDelete"
+        @comment-added="postStore.updateCommentCount($event, 1)"
+        @comment-deleted="postStore.updateCommentCount($event, -1)"
       />
     </section>
 
@@ -114,6 +162,9 @@ onMounted(() => {
     <section class="mt-6 hidden w-full grid-cols-2 gap-6 md:grid">
       <!-- 左欄 -->
       <div class="flex flex-col gap-6">
+        <div v-if="postStore.isLoading && visiblePosts.length === 0" class="flex flex-col gap-6">
+          <PostSkeleton v-for="i in 2" :key="i" />
+        </div>
         <PostCard
           v-for="p in leftPosts"
           :key="p.id"
@@ -128,10 +179,18 @@ onMounted(() => {
           @share="sharePost"
           @bookmark="toggleBookmark"
           @delete="handleDelete"
+          @comment-added="postStore.updateCommentCount($event, 1)"
+          @comment-deleted="postStore.updateCommentCount($event, -1)"
         />
       </div>
       <!-- 右欄 -->
       <div class="flex flex-1 flex-col gap-6">
+        <div
+          v-if="postStore.isLoading && visiblePosts.length === 0"
+          class="flex flex-col gap-6 pt-12"
+        >
+          <PostSkeleton v-for="i in 2" :key="i" />
+        </div>
         <PostCard
           v-for="p in rightPosts"
           :key="p.id"
@@ -146,6 +205,8 @@ onMounted(() => {
           @share="sharePost"
           @bookmark="toggleBookmark"
           @delete="handleDelete"
+          @comment-added="postStore.updateCommentCount($event, 1)"
+          @comment-deleted="postStore.updateCommentCount($event, -1)"
         />
       </div>
     </section>
