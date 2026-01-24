@@ -64,26 +64,28 @@ export function useRealtimeChat() {
    */
   const sendMessage = async (roomId, content, senderIdInt, messageType = 'text', imageUrl = null, replyToId = null) => {
     try {
+      const insertData = {
+        room_id: roomId,
+        content,
+        message_type: messageType,
+        sender_id_int: senderIdInt,
+        read: false,
+        image_url: imageUrl,
+        parent_id: replyToId
+      }
+
       const { data, error } = await supabase
         .from('chat_messages')
-        .insert({
-          room_id: roomId,
-          content,
-          message_type: messageType,
-          sender_id_int: senderIdInt,
-          read: false,
-          image_url: imageUrl,
-          parent_id: replyToId
-        })
+        .insert(insertData)
         .select()
         .single()
 
       if (error) {
-        console.error('❌ Error sending message:', error)
+        console.error('❌ Supabase error:', error)
         throw error
       }
 
-      console.log('✅ Message sent:', data)
+      console.log('✅ Message sent successfully:', data)
       return data
     } catch (error) {
       console.error('❌ Failed to send message:', error)
