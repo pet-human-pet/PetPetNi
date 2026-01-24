@@ -109,14 +109,34 @@ export const usePostComposerImages = (maxCount = 4) => {
         const result = await uploadToCloudinary(compressedBlob, { folder: 'petpetni/posts' })
         img.status = 'success'
         return result.url
-      } catch {
+      } catch (err) {
         img.status = 'error'
         return null
       }
     })
 
     const results = await Promise.all(uploadPromises)
-    return results.filter(Boolean)
+    const uploadedUrls = results.filter(Boolean)
+
+    if (uploadedUrls.length === 0) {
+      images.value.forEach((img) => (img.status = 'error'))
+      const message = '圖片上傳失敗，請檢查 Cloudinary 設定或網路'
+      error(message)
+      const err = new Error(message)
+      err.__toastShown = true
+      throw err
+    }
+
+    if (uploadedUrls.length < images.value.length) {
+      images.value.forEach((img) => (img.status = 'error'))
+      const message = '部分圖片上傳失敗，請重新嘗試'
+      error(message)
+      const err = new Error(message)
+      err.__toastShown = true
+      throw err
+    }
+
+    return uploadedUrls
   }
 
   // 清空所有狀態

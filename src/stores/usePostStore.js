@@ -16,6 +16,12 @@ export const usePostStore = defineStore('post', () => {
   const authStore = useAuthStore()
   const { error: showError } = useToast()
 
+  const getErrorMessage = (err, fallback) =>
+    err?.response?.data?.error ||
+    err?.response?.data?.message ||
+    err?.message ||
+    fallback
+
   const postsWithAuth = computed(() => {
     return posts.value.map((p) => ({
       ...p,
@@ -44,8 +50,8 @@ export const usePostStore = defineStore('post', () => {
         limit,
         hasMore: hasNext
       }
-    } catch {
-      // API error handled by interceptor
+    } catch (err) {
+      showError(getErrorMessage(err, '貼文載入失敗，請稍後再試'))
     } finally {
       isLoading.value = false
     }
@@ -57,40 +63,50 @@ export const usePostStore = defineStore('post', () => {
       showError(msg)
       throw new Error(msg)
     }
-    const res = await socialApi.createPost({
-      content,
-      imageUrls,
-      audience,
-      userId: authStore.user.id
-    })
+    try {
+      const res = await socialApi.createPost({
+        content,
+        imageUrls,
+        audience,
+        userId: authStore.user.id
+      })
 
-    const newPost = res.data || res
+      const newPost = res.data || res
 
-    if (newPost) {
-      posts.value.unshift(newPost)
+      if (newPost) {
+        posts.value.unshift(newPost)
 
-      // New post animation handling
-      if (newPost.isNew) {
-        setTimeout(() => {
-          const p = posts.value.find((x) => x.id === newPost.id)
-          if (p) p.isNew = false
-        }, 3000)
+        // New post animation handling
+        if (newPost.isNew) {
+          setTimeout(() => {
+            const p = posts.value.find((x) => x.id === newPost.id)
+            if (p) p.isNew = false
+          }, 3000)
+        }
+        return newPost
       }
-      return newPost
+    } catch (err) {
+      showError(getErrorMessage(err, '貼文發布失敗，請稍後再試'))
+      throw err
     }
   }
 
   // 更新貼文
   const updatePost = async (id, payload) => {
     const post = posts.value.find((p) => p.id === id)
+    const previousPost = post ? { ...post } : null
     if (post) {
       Object.assign(post, payload)
     }
 
     try {
       await socialApi.updatePost(id, payload)
-    } catch {
+    } catch (err) {
       // TODO: 必要時還原邏輯 (目前沒有簡單的還原機制，暫時忽略)
+      if (post && previousPost) {
+        Object.assign(post, previousPost)
+      }
+      showError(getErrorMessage(err, '更新貼文失敗，請稍後再試'))
     }
   }
 
@@ -109,9 +125,10 @@ export const usePostStore = defineStore('post', () => {
       } else {
         await socialApi.unlikePost(id)
       }
-    } catch {
+    } catch (err) {
       post.isLiked = !isLiked
       post.likeCount += isLiked ? -1 : 1
+      showError(getErrorMessage(err, '操作失敗，請稍後再試'))
     }
   }
 
@@ -129,8 +146,9 @@ export const usePostStore = defineStore('post', () => {
       } else {
         await socialApi.unbookmarkPost(id)
       }
-    } catch {
+    } catch (err) {
       post.isBookmarked = originalState
+      showError(getErrorMessage(err, '操作失敗，請稍後再試'))
     }
   }
 
@@ -147,6 +165,7 @@ export const usePostStore = defineStore('post', () => {
       if (post) {
         post.isDeleted = false
       }
+      showError(getErrorMessage(error, '刪除貼文失敗，請稍後再試'))
       throw error
     }
   }

@@ -66,13 +66,16 @@ const cancelEdit = () => {
 }
 
 const saveEdit = () => {
-  const hasContent = editContent.value.trim().length > 0
+  const normalizedContent = editContent.value
+    .trim()
+    .replace(/\n\s*\n+/g, '\n\n')
+  const hasContent = normalizedContent.length > 0
   const hasImages = editImages.value.length > 0
   
   if (!hasContent && !hasImages) return
   emit('update', {
     id: props.post.id,
-    content: editContent.value,
+    content: normalizedContent,
     audience: editAudience.value,
     images: editImages.value
   })
@@ -251,7 +254,7 @@ const removeEditImage = (index) => {
         </button>
       </div>
     </div>
-    <p v-else class="md:text-m text-fg-secondary mt-3 leading-6 sm:text-base">
+    <p v-else class="md:text-m text-fg-secondary mt-3 whitespace-pre-wrap break-words leading-6 sm:text-base">
       {{ post.content }}
     </p>
 
