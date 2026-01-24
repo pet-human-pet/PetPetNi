@@ -1,6 +1,4 @@
 import express from 'express'
-import { createServer } from 'http'
-import { Server } from 'socket.io'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import path from 'path'
@@ -12,12 +10,10 @@ import aiRoutes from './routes/ai.js'
 import authRoutes from './routes/auth.js'
 import userRoutes from './routes/user.js'
 import eventRoutes from './routes/event.js'
-import { chatService } from './services/chatService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
 const app = express()
-const httpServer = createServer(app)
 
 // 配置
 const PORT = process.env.PORT || 3000
@@ -38,81 +34,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'PetPetNi API Server is running!' })
 })
 
-// 3. Socket.io 初始化 (與之前逻辑一致但改用 chatService)
-const io = new Server(httpServer, {
-  cors: { origin: FRONTEND_URL }
-})
-
-io.on('connection', async (socket) => {
-  try {
-    // TODO: [資安協定] Socket.io 零信任原則 - 嚴禁信任客戶端傳入的 userId
-    // 必須從 Server Session/JWT 驗證後取得真實的 socket.userId
-    // 參考: 全域規則 3. 資安防護協定 - Socket.io 零信任
-    const userId = socket.handshake.auth?.userId
-    socket.userId = userId
-
-    if (userId) {
-      const userRooms = await chatService.getUserRooms(userId)
-      userRooms.forEach((roomId) => socket.join(roomId))
-    }
-  } catch (error) {
-    console.error('❌ Socket connection error:', error)
-    socket.disconnect()
-  }
-
-  // 加入房間
-  socket.on('join_room', async (roomId) => {
-    try {
-      socket.join(roomId)
-      const history = await chatService.getMessages(roomId)
-      socket.emit('history_messages', history)
-    } catch (error) {
-      console.error('❌ Error in join_room:', error)
-      socket.emit('error', { message: '無法加入房間', details: error.message })
-    }
-  })
-
-  // 發送訊息
-  socket.on('send_message', async (data) => {
-    try {
-      // TODO: [資安協定] 嚴禁信任客戶端 data 中的 senderId，必須使用 socket.userId
-      // TODO: [資安協定] 必須驗證用戶是否有權限在該 roomId 中發送訊息（防止 IDOR）
-      const { roomId, content, messageType, imageUrl, replyTo } = data
-
-      const messagePayload = {
-        content,
-        messageType: messageType || 'text',
-        senderId: socket.userId || socket.id,
-        imageUrl: imageUrl || null,
-        replyTo: replyTo || null
-      }
-
-      const savedMessage = await chatService.saveMessage(roomId, messagePayload)
-
-      if (savedMessage) {
-        socket.to(roomId).emit('new_message', savedMessage)
-      } else {
-        console.error('❌ Failed to save message: saveMessage returned null')
-        socket.emit('error', { message: '訊息儲存失敗', details: 'Database insertion failed' })
-      }
-    } catch (error) {
-      console.error('❌ Error in send_message:', error)
-      socket.emit('error', { message: '訊息傳送失敗', details: error.message })
-    }
-  })
-
-  // 輸入中狀態
-  socket.on('typing_start', (roomId) => {
-    socket.to(roomId).emit('user_typing', { userId: socket.userId })
-  })
-
-  socket.on('typing_stop', (roomId) => {
-    socket.to(roomId).emit('user_stop_typing', { userId: socket.userId })
-  })
-
-  socket.on('disconnect', () => {})
-})
-
-httpServer.listen(PORT, () => {
+// 3. 啟動伺服器
+// 注意：即時聊天功能已遷移至 Supabase Realtime
+// 訊息透過前端直接寫入 Supabase，並透過 Realtime 訂閱推播
+app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`📡 Chat功能使用 Supabase Realtime（不再需要 Socket.io server）`)
 })
