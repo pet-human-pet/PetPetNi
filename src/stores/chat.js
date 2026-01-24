@@ -163,7 +163,9 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function sendMessage(text, isImage = false, replyTo = null) {
-    if (!activeChat.value) return { success: false, error: 'No active chat' }
+    if (!activeChat.value) {
+      return { success: false, error: 'No active chat' }
+    }
 
     const mode = chatMode.value
     const chat = activeChat.value
