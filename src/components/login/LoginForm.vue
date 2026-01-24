@@ -24,7 +24,7 @@ const loginWithGithub = async () => {
 const authStore = useAuthStore()
 const router = useRouter()
 
-defineEmits(['switch', 'forgot'])
+defineEmits(['switch'])
 
 const email = ref('')
 const password = ref('')
@@ -45,7 +45,7 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-// TODO: 串接後端 API - 獲取 OAuth 授權 URL
+//獲取 OAuth 授權 URL
 const handleSocialLogin = async (provider) => {
   try {
     // 呼叫後端 API 獲取 OAuth URL
@@ -117,10 +117,7 @@ const handleLogin = async () => {
 
 <template>
   <div class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12">
-    <h2 class="mb-8 text-center text-3xl font-bold" style="color: #ffa75f">
-      <!-- TODO: Replace with CSS variable var(--app-primary) -->
-      歡迎回來
-    </h2>
+    <h2 class="text-brand-primary mb-8 text-center text-3xl font-bold">歡迎回來</h2>
 
     <!-- 第三方登入按鈕 -->
     <div class="mb-8 grid grid-cols-2 gap-4">
@@ -232,28 +229,18 @@ const handleLogin = async () => {
 
       <div class="flex items-center justify-between">
         <label class="flex cursor-pointer items-center">
-          <!-- TODO: Replace with CSS variable var(--app-primary) -->
           <input
             type="checkbox"
-            class="h-4 w-4 rounded border-gray-300 text-[#ffa75f] focus:ring-[#ffa75f]"
+            class="text-brand-primary focus:ring-brand-primary h-4 w-4 rounded border-gray-300"
           />
-          <span class="ml-2 text-sm text-gray-500">我會記得你的</span>
+          <span class="ml-2 text-sm text-gray-600">我會記得你的</span>
         </label>
-        <button
-          type="button"
-          class="text-sm text-gray-400 hover:text-gray-600"
-          @click="$emit('forgot')"
-        >
-          忘記密碼？
-        </button>
       </div>
 
       <button
         type="submit"
-        class="w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
-        style="background-color: #ffa75f"
+        class="bg-brand-primary w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
       >
-        <!-- TODO: Replace with CSS variable var(--app-primary) -->
         登入
       </button>
     </form>
@@ -261,12 +248,10 @@ const handleLogin = async () => {
     <p class="mt-8 text-center text-sm text-gray-500">
       還不是會員？
       <button
-        class="font-medium hover:underline"
-        style="color: #ffa75f"
+        class="text-brand-primary font-medium hover:underline"
         type="button"
         @click="$emit('switch')"
       >
-        <!-- TODO: Replace with CSS variable var(--app-primary) -->
         註冊
       </button>
     </p>

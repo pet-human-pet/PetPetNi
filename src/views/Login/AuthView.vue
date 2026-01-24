@@ -4,8 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { userApi } from '@/api/user'
 import LoginForm from '@/components/login/LoginForm.vue'
 import RegisterForm from '@/components/login/RegisterForm.vue'
-import ForgetPasswordForm from '@/components/login/ForgetPasswordForm.vue'
-import ResetPasswordForm from '@/components/login/ResetPasswordForm.vue'
+
 import SocialBindEmail from '@/components/login/SocialBindEmail.vue'
 import RoleSelection from '@/components/Onboarding/RoleSelection.vue'
 import OwnerInfo from '@/components/Onboarding/OwnerInfo.vue'
@@ -14,7 +13,7 @@ import PetTagsSelection from '@/components/Onboarding/PetTagsSelection.vue'
 
 const route = useRoute()
 const router = useRouter()
-// 認證模式: 'login' | 'register' | 'forget' | 'reset-password' | 'social_bind' | 'role' | 'owner_info' | 'pet' | 'pet_tags' | 'success'
+// 認證模式: 'login' | 'register' | 'social_bind' | 'role' | 'owner_info' | 'pet' | 'pet_tags' | 'success'
 
 const authMode = ref('login')
 const userRole = ref('owner') // 用於成功頁面顯示不同訊息
@@ -56,20 +55,6 @@ const switchToLogin = () => {
   authMode.value = 'login'
 }
 
-const switchToForget = () => {
-  authMode.value = 'forget'
-}
-
-const handleViewChange = (view) => {
-  // 處理表單之間的切換
-  const viewMap = {
-    LOGIN: 'login',
-    REGISTER: 'register',
-    FORGET: 'forget'
-  }
-  authMode.value = viewMap[view] || 'login'
-}
-
 const handleRegisterSuccess = (data) => {
   // 儲存 Email 並進入角色選擇
   userEmail.value = data.email
@@ -79,11 +64,6 @@ const handleRegisterSuccess = (data) => {
 const handleSocialBindSuccess = () => {
   // 社交綁定 Email 成功，進入角色選擇
   authMode.value = 'role'
-}
-
-const handleResetPasswordSuccess = () => {
-  // 密碼重設成功，回到登入頁
-  authMode.value = 'login'
 }
 
 const handleRoleSelect = (role) => {
@@ -227,32 +207,14 @@ onUnmounted(() => {
       <!-- Form Section (Right/Bottom) - 動態高度 -->
       <div class="flex justify-center">
         <Transition name="auth-form" mode="out-in">
-          <LoginForm
-            v-if="authMode === 'login'"
-            key="login"
-            @switch="switchToRegister"
-            @forgot="switchToForget"
-          />
+          <LoginForm v-if="authMode === 'login'" key="login" @switch="switchToRegister" />
           <RegisterForm
             v-else-if="authMode === 'register'"
             key="register"
             @switch="switchToLogin"
             @success="handleRegisterSuccess"
           />
-          <div
-            v-else-if="authMode === 'forget'"
-            key="forget"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
-          >
-            <ForgetPasswordForm @change-view="handleViewChange" />
-          </div>
-          <div
-            v-else-if="authMode === 'reset-password'"
-            key="reset-password"
-            class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12"
-          >
-            <ResetPasswordForm @success="handleResetPasswordSuccess" />
-          </div>
+
           <div
             v-else-if="authMode === 'social_bind'"
             key="social_bind"
