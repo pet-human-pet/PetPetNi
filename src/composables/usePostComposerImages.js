@@ -115,7 +115,8 @@ export const usePostComposerImages = (maxCount = 4) => {
       }
     })
 
-    return await Promise.all(uploadPromises)
+    const results = await Promise.all(uploadPromises)
+    return results.filter(Boolean)
   }
 
   // 清空所有狀態

@@ -1,6 +1,17 @@
 import { socialService } from '../services/socialService.js'
 import { supabase } from '../services/supabase.js'
 
+const MAX_CONTENT_LENGTH = 500
+const MAX_IMAGE_COUNT = 4
+const CLOUDINARY_URL_PATTERN = /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/.+/i
+
+const isValidImageUrl = (url) => CLOUDINARY_URL_PATTERN.test(url)
+
+const normalizeImages = (images) => {
+  if (!Array.isArray(images)) return null
+  return images.filter((url) => typeof url === 'string' && url.trim().length > 0)
+}
+
 /**
  * Helper：從 Authorization header 取得並驗證使用者
  * @param {Object} req - Express request 物件
@@ -68,14 +79,36 @@ export const socialController = {
       }
 
       const { content, imageUrls, audience } = req.body
+      const contentTrimmed = typeof content === 'string' ? content.trim() : ''
+      const images = normalizeImages(imageUrls)
 
-      if (!content && (!imageUrls || imageUrls.length === 0)) {
+      if (content !== undefined && typeof content !== 'string') {
+        return res.status(400).json({ error: 'Content must be a string' })
+      }
+
+      if (!images && imageUrls !== undefined) {
+        return res.status(400).json({ error: 'Images must be an array' })
+      }
+
+      if (contentTrimmed.length > MAX_CONTENT_LENGTH) {
+        return res.status(400).json({ error: 'Content is too long' })
+      }
+
+      if (images && images.length > MAX_IMAGE_COUNT) {
+        return res.status(400).json({ error: 'Too many images' })
+      }
+
+      if (images && images.some((url) => !isValidImageUrl(url))) {
+        return res.status(400).json({ error: 'Invalid image URL' })
+      }
+
+      if (!contentTrimmed && (!images || images.length === 0)) {
         return res.status(400).json({ error: 'Content or images are required' })
       }
 
       const newPost = await socialService.createPost(user.uuid, {
-        content,
-        images: imageUrls,
+        content: contentTrimmed,
+        images: images || [],
         audience
       })
 
@@ -181,10 +214,42 @@ export const socialController = {
 
       const postId = req.params.id
       const { content, images, audience } = req.body
+      const hasContentField = content !== undefined
+      const hasImagesField = images !== undefined
+      const contentTrimmed = typeof content === 'string' ? content.trim() : ''
+      const normalizedImages = hasImagesField ? normalizeImages(images) : null
+
+      if (!hasContentField && !hasImagesField) {
+        return res.status(400).json({ error: 'Content or images are required' })
+      }
+
+      if (hasContentField && typeof content !== 'string') {
+        return res.status(400).json({ error: 'Content must be a string' })
+      }
+
+      if (hasImagesField && !normalizedImages) {
+        return res.status(400).json({ error: 'Images must be an array' })
+      }
+
+      if (hasContentField && contentTrimmed.length > MAX_CONTENT_LENGTH) {
+        return res.status(400).json({ error: 'Content is too long' })
+      }
+
+      if (normalizedImages && normalizedImages.length > MAX_IMAGE_COUNT) {
+        return res.status(400).json({ error: 'Too many images' })
+      }
+
+      if (normalizedImages && normalizedImages.some((url) => !isValidImageUrl(url))) {
+        return res.status(400).json({ error: 'Invalid image URL' })
+      }
+
+      if (!contentTrimmed && (!normalizedImages || normalizedImages.length === 0)) {
+        return res.status(400).json({ error: 'Content or images are required' })
+      }
 
       const updatedPost = await socialService.updatePost(user.uuid, postId, {
-        content,
-        images,
+        content: hasContentField ? contentTrimmed : undefined,
+        images: hasImagesField ? normalizedImages : undefined,
         audience
       })
       res.json(updatedPost)

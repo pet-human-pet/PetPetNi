@@ -232,7 +232,7 @@ const audience = ref('public')
               <div class="text-sm text-zinc-400">{{ countText }}</div>
               <button
                 type="button"
-                class="rounded-lg bg-btn-primary px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                class="bg-btn-primary cursor-pointer rounded-lg px-5 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-btn-primary/90"
                 :disabled="!canSubmit"
                 @click="submit"
               >
@@ -335,7 +335,7 @@ const audience = ref('public')
               <div class="text-xs text-zinc-400">{{ countText }}</div>
               <button
                 type="button"
-                class="rounded-lg bg-btn-primary px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                class="bg-btn-primary rounded-lg px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 :disabled="!canSubmit"
                 @click="submit"
               >
