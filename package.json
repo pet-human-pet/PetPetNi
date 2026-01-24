@@ -40,5 +40,18 @@
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-vue-devtools": "^8.0.5",
     "vitest": "^4.0.16"
-  }
+  },
+  "description": "",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pet-human-pet/PetPetNi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pet-human-pet/PetPetNi/issues"
+  },
+  "homepage": "https://github.com/pet-human-pet/PetPetNi#readme"
 }
