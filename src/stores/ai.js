@@ -9,7 +9,7 @@ export const useAIStore = defineStore('ai', () => {
   const aiDb = ref(INITIAL_AI_DB)
   const activeSessionId = ref(null)
 
-  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'}/ai`
+  const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/api/ai`
 
   // --- 計算屬性 ---
   const activeChat = computed(() => {
