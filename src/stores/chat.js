@@ -3,16 +3,20 @@ import { ref, computed } from 'vue'
 import { INITIAL_DB } from '@/utils/chatMockData'
 import { useRealtimeChat } from '@/composables/useRealtimeChat'
 import { checkSensitiveContent } from '@/utils/validators'
+import { useAuthStore } from '@/stores/auth'
 
 export const useChatStore = defineStore('chat', () => {
   // --- 0. Supabase Realtime 整合 ---
   const realtime = useRealtimeChat()
   const isConnected = realtime.isConnected
 
+  // --- 1. Auth Store 整合 ---
+  const authStore = useAuthStore()
+  const currentUserIdInt = computed(() => authStore.userIdInt)
+
   // --- 狀態資料 ---
   const currentCategory = ref('match')
   const activeChatId = ref(null)
-  const currentUserId = ref('u_123456')
 
   // UI 協調狀態
   const privateSubTab = ref('friend')
@@ -24,7 +28,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // --- 內部輔助 ---
   function findChat(id) {
-    if (id === currentUserId.value) return db.value.myProfile
+    if (id === currentUserIdInt.value) return db.value.myProfile
     for (const key in db.value) {
       if (Array.isArray(db.value[key])) {
         const found = db.value[key].find((c) => c.id === id)
@@ -57,7 +61,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const activeChat = computed(() => {
     if (!activeChatId.value) return null
-    if (activeChatId.value === currentUserId.value) return db.value.myProfile
+    if (activeChatId.value === currentUserIdInt.value) return db.value.myProfile
 
     for (const key in db.value) {
       if (Array.isArray(db.value[key])) {
@@ -70,7 +74,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const selectedFriend = computed(() => {
     if (!selectedFriendId.value) return null
-    if (selectedFriendId.value === currentUserId.value) return db.value.myProfile
+    if (selectedFriendId.value === currentUserIdInt.value) return db.value.myProfile
     return db.value.match.find((f) => f.id === selectedFriendId.value)
   })
 
@@ -134,7 +138,7 @@ export const useChatStore = defineStore('chat', () => {
           const isActiveChat = activeChatId.value === id
           chat.msgs.push({
             id: newMessage.id,
-            sender: newMessage.sender_id_int === currentUserId.value ? 'me' : 'other',
+            sender: newMessage.sender_id_int === currentUserIdInt.value ? 'me' : 'other',
             content: newMessage.content,
             image: newMessage.image_url,
             timestamp: new Date(newMessage.created_at).getTime(),
@@ -149,7 +153,7 @@ export const useChatStore = defineStore('chat', () => {
         if (history.length > 0) {
           chat.msgs = history.map((msg) => ({
             id: msg.id,
-            sender: msg.sender_id_int === currentUserId.value ? 'me' : 'other',
+            sender: msg.sender_id_int === currentUserIdInt.value ? 'me' : 'other',
             content: msg.content,
             image: msg.image_url,
             timestamp: new Date(msg.created_at).getTime(),
@@ -220,7 +224,7 @@ export const useChatStore = defineStore('chat', () => {
     realtime.sendMessage(
       chat.id,
       tempMsg.content,
-      parseInt(currentUserId.value) || 0, // TODO: 從 auth store 取得真實 user_id_int
+      currentUserIdInt.value || 0,
       isImage ? 'image' : 'text',
       isImage ? text : null,
       replyTo?.id || null
@@ -381,7 +385,7 @@ export const useChatStore = defineStore('chat', () => {
   return {
     currentCategory,
     activeChatId,
-    currentUserId,
+    currentUserIdInt,
     privateSubTab,
     selectedFriendId,
     isFriendListExpanded,
