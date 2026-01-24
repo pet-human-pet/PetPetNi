@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth'
 
 const getHeaders = () => {
   const authStore = useAuthStore()
-  // 由於 pinia store 初始化時機問題，確保調用時能夠取得
   const userId = authStore.user?.id
   if (userId) {
     return { 'x-user-id': userId }

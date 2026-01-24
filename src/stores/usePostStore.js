@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { socialApi } from '@/api/social'
 import { useAuthStore } from './auth'
+import { useToast } from '@/composables/useToast'
 
 export const usePostStore = defineStore('post', () => {
   const posts = ref([])
@@ -13,10 +14,12 @@ export const usePostStore = defineStore('post', () => {
   })
 
   const authStore = useAuthStore()
+  const { error: showError } = useToast()
+
   const postsWithAuth = computed(() => {
     return posts.value.map((p) => ({
       ...p,
-      isMine: p.authorId === authStore.user?.id || p.author === authStore.user?.name
+      isMine: p.authorId === authStore.user?.id
     }))
   })
   const fetchPosts = async ({ page = 1, limit = 10, loadMore = false } = {}) => {
@@ -41,42 +44,39 @@ export const usePostStore = defineStore('post', () => {
         limit,
         hasMore: hasNext
       }
-    } catch (error) {
-      console.error('Fetch posts failed:', error)
+    } catch {
+      // API error handled by interceptor
     } finally {
       isLoading.value = false
     }
   }
 
   const createPost = async (content, imageUrls = [], audience = 'public') => {
-    try {
-      if (!authStore.user?.id) {
-        throw new Error('User not authenticated')
+    if (!authStore.user?.id) {
+      const msg = '請先登入'
+      showError(msg)
+      throw new Error(msg)
+    }
+    const res = await socialApi.createPost({
+      content,
+      imageUrls,
+      audience,
+      userId: authStore.user.id
+    })
+
+    const newPost = res.data || res
+
+    if (newPost) {
+      posts.value.unshift(newPost)
+
+      // New post animation handling
+      if (newPost.isNew) {
+        setTimeout(() => {
+          const p = posts.value.find((x) => x.id === newPost.id)
+          if (p) p.isNew = false
+        }, 3000)
       }
-      const res = await socialApi.createPost({
-        content,
-        imageUrls,
-        audience,
-        userId: authStore.user.id
-      })
-
-      const newPost = res.data || res
-
-      if (newPost) {
-        posts.value.unshift(newPost)
-
-        // New post animation handling
-        if (newPost.isNew) {
-          setTimeout(() => {
-            const p = posts.value.find((x) => x.id === newPost.id)
-            if (p) p.isNew = false
-          }, 3000)
-        }
-        return newPost
-      }
-    } catch (error) {
-      console.error('API createPost failed:', error)
-      throw error // Let component handle error toast
+      return newPost
     }
   }
 
@@ -89,9 +89,8 @@ export const usePostStore = defineStore('post', () => {
 
     try {
       await socialApi.updatePost(id, payload)
-    } catch (error) {
-      console.error('Update post failed:', error)
-      // TODO: 必要時還原邏輯
+    } catch {
+      // TODO: 必要時還原邏輯 (目前沒有簡單的還原機制，暫時忽略)
     }
   }
 
@@ -106,15 +105,11 @@ export const usePostStore = defineStore('post', () => {
 
     try {
       if (isLiked) {
-        console.log('[Store] Calling API: likePost', id)
         await socialApi.likePost(id)
       } else {
-        console.log('[Store] Calling API: unlikePost', id)
         await socialApi.unlikePost(id)
       }
-    } catch (error) {
-      console.error('Like post failed:', error)
-      // Revert change
+    } catch {
       post.isLiked = !isLiked
       post.likeCount += isLiked ? -1 : 1
     }
@@ -122,34 +117,25 @@ export const usePostStore = defineStore('post', () => {
 
   // 收藏
   const bookmarkPost = async (id) => {
-    console.log('[Store] bookmarkPost called with id:', id)
     const post = posts.value.find((p) => p.id === id)
-    if (!post) {
-      console.error('[Store] Post not found for id:', id)
-      return
-    }
+    if (!post) return
 
     const originalState = post.isBookmarked
     post.isBookmarked = !originalState
 
     try {
       if (post.isBookmarked) {
-        console.log('[Store] Calling API: bookmarkPost', id)
         await socialApi.bookmarkPost(id)
       } else {
-        console.log('[Store] Calling API: unbookmarkPost', id)
         await socialApi.unbookmarkPost(id)
       }
-    } catch (error) {
-      console.error('Bookmark post failed:', error)
-      // Revert change
+    } catch {
       post.isBookmarked = originalState
     }
   }
 
   // 刪除貼文
   const deletePost = async (id) => {
-    // Optimistic update - 標記為已刪除而不是從陣列移除
     const post = posts.value.find((p) => p.id === id)
     if (post) {
       post.isDeleted = true
@@ -158,8 +144,6 @@ export const usePostStore = defineStore('post', () => {
     try {
       await socialApi.deletePost(id)
     } catch (error) {
-      console.error('Delete post failed:', error)
-      // Revert if failed
       if (post) {
         post.isDeleted = false
       }
