@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import AudiencePicker from './AudiencePicker.vue'
 import ImageCropper from '@/components/Share/ImageCropper.vue'
 import { usePostComposerImages } from '@/composables/usePostComposerImages'
@@ -32,7 +32,8 @@ const {
 
 const open = ref(false)
 const content = ref('')
-const textareaRef = ref(null)
+const textareaRefDesktop = ref(null)
+const textareaRefMobile = ref(null)
 const fileInputRef = ref(null)
 const isSubmitting = ref(false)
 
@@ -48,20 +49,26 @@ const canSubmit = computed(() => {
 })
 
 const autoResize = () => {
-  const el = textareaRef.value
-  if (!el) return
-  el.style.height = 'auto'
-  el.style.height = `${el.scrollHeight}px`
+  const targets = [textareaRefDesktop.value, textareaRefMobile.value].filter(Boolean)
+  if (targets.length === 0) return
+  targets.forEach((el) => {
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  })
 }
 
 watch(open, async (v) => {
   if (!v) return
   await nextTick()
   autoResize()
-  textareaRef.value?.focus()
+  textareaRefMobile.value?.focus()
 })
 
 watch(content, () => {
+  autoResize()
+})
+
+onMounted(() => {
   autoResize()
 })
 
@@ -150,10 +157,12 @@ const audience = ref('public')
 
         <div class="min-w-0 flex-1">
           <textarea
+            ref="textareaRefDesktop"
             v-model="content"
             class="text-fg-primary min-h-16 w-full resize-none bg-transparent text-base outline-none"
             placeholder="分享你的寵物日常..."
             :maxlength="maxLength"
+            @input="autoResize"
           />
 
           <!-- 圖片預覽區 -->
@@ -223,7 +232,7 @@ const audience = ref('public')
               <div class="text-sm text-zinc-400">{{ countText }}</div>
               <button
                 type="button"
-                class="rounded-lg bg-zinc-700 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                class="rounded-lg bg-btn-primary px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 :disabled="!canSubmit"
                 @click="submit"
               >
@@ -262,12 +271,14 @@ const audience = ref('public')
 
           <div class="mt-3">
             <textarea
-              ref="textareaRef"
+              ref="textareaRefMobile"
               v-model="content"
-              class="w-full resize-none bg-transparent text-base leading-7 outline-none"
+              class="w-full resize-none overflow-y-auto bg-transparent text-base leading-7 outline-none"
               placeholder="分享你的寵物日常..."
               :maxlength="maxLength"
               rows="3"
+              style="max-height: 50vh"
+              @input="autoResize"
             />
           </div>
 
@@ -324,7 +335,7 @@ const audience = ref('public')
               <div class="text-xs text-zinc-400">{{ countText }}</div>
               <button
                 type="button"
-                class="rounded-lg bg-zinc-700 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                class="rounded-lg bg-btn-primary px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 :disabled="!canSubmit"
                 @click="submit"
               >
