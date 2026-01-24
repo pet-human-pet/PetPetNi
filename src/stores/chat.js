@@ -143,10 +143,10 @@ export const useChatStore = defineStore('chat', () => {
         }
       })
 
-      // 載入歷史訊息（如果還沒載入過）
+      // 載入歷史訊息（優先使用 Supabase 資料）
       try {
         const history = await realtime.getMessages(id)
-        if (chat.msgs.length === 0 && history.length > 0) {
+        if (history.length > 0) {
           chat.msgs = history.map((msg) => ({
             id: msg.id,
             sender: msg.sender_id_int === currentUserId.value ? 'me' : 'other',
