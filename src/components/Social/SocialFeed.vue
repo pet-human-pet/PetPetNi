@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useInfiniteScroll } from '@vueuse/core'
 import PostCard from '@/components/Social/PostCard.vue'
 import PostSkeleton from '@/components/Social/PostSkeleton.vue'
 import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
@@ -9,9 +10,9 @@ import { useToast } from '@/composables/useToast'
 import { useImagePreview } from '@/composables/useImagePreview'
 import { usePostStore } from '@/stores/usePostStore'
 import { useAuthStore } from '@/stores/auth'
-import { watch } from 'vue'
 
 const postStore = usePostStore()
+const authStore = useAuthStore()
 const { success, error } = useToast()
 const { isDesktop } = useScreen()
 const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
@@ -25,6 +26,10 @@ const loadMoreTrigger = ref(null)
 const visiblePosts = computed(() => postStore.postsWithAuth.filter((p) => !p.isDeleted))
 const leftPosts = computed(() => visiblePosts.value.filter((_, i) => i % 2 === 0))
 const rightPosts = computed(() => visiblePosts.value.filter((_, i) => i % 2 !== 0))
+const isEmptyLoading = computed(
+  () => postStore.isLoading && visiblePosts.value.length === 0
+)
+const desktopColumns = computed(() => [leftPosts.value, rightPosts.value])
 
 const openComments = (postId) => {
   if (commentManager.activeId.value === postId) {
@@ -94,27 +99,38 @@ const handleDelete = async (postId) => {
   }
 }
 
+const handleCommentAdded = (postId) => postStore.updateCommentCount(postId, 1)
+const handleCommentDeleted = (postId) => postStore.updateCommentCount(postId, -1)
+const postCardEvents = {
+  update: handleUpdate,
+  'preview-image': openPreview,
+  like: toggleLike,
+  'open-comments': openComments,
+  'close-comments': commentManager.deactivate,
+  share: sharePost,
+  bookmark: toggleBookmark,
+  delete: handleDelete,
+  'comment-added': handleCommentAdded,
+  'comment-deleted': handleCommentDeleted
+}
+
 onMounted(() => {
   postStore.fetchPosts()
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (entries[0].isIntersecting && postStore.pagination.hasMore && !postStore.isLoading) {
-        postStore.fetchPosts({
-          page: postStore.pagination.page + 1,
-          loadMore: true
-        })
-      }
-    },
-    { threshold: 0.5 }
-  )
-
-  if (loadMoreTrigger.value) {
-    observer.observe(loadMoreTrigger.value)
-  }
 })
 
-const authStore = useAuthStore()
+useInfiniteScroll(
+  loadMoreTrigger,
+  () => {
+    if (postStore.pagination.hasMore && !postStore.isLoading) {
+      postStore.fetchPosts({
+        page: postStore.pagination.page + 1,
+        loadMore: true
+      })
+    }
+  },
+  { distance: 10 }
+)
+
 watch(
   () => authStore.user,
   (newUser) => {
@@ -129,7 +145,7 @@ watch(
   <div>
     <!-- 手機/平板：單欄 -->
     <section v-if="!isDesktop" class="mt-4 flex flex-col gap-4">
-      <div v-if="postStore.isLoading && visiblePosts.length === 0" class="flex flex-col gap-4">
+      <div v-if="isEmptyLoading" class="flex flex-col gap-4">
         <PostSkeleton v-for="i in 3" :key="i" />
       </div>
       <PostCard
@@ -138,68 +154,25 @@ watch(
         :ref="(el) => commentManager.registerRef(p.id, el)"
         :post="p"
         :show-comments="commentManager.activeId.value === p.id"
-        @update="handleUpdate"
-        @preview-image="openPreview"
-        @like="toggleLike"
-        @open-comments="openComments"
-        @close-comments="commentManager.deactivate()"
-        @share="sharePost"
-        @bookmark="toggleBookmark"
-        @delete="handleDelete"
-        @comment-added="postStore.updateCommentCount($event, 1)"
-        @comment-deleted="postStore.updateCommentCount($event, -1)"
+        v-on="postCardEvents"
       />
     </section>
 
     <!-- 桌機：雙欄 -->
     <section class="mt-6 hidden w-full grid-cols-2 gap-6 md:grid">
-      <!-- 左欄 -->
-      <div class="flex flex-col gap-6">
-        <div v-if="postStore.isLoading && visiblePosts.length === 0" class="flex flex-col gap-6">
+      <div v-for="(colPosts, index) in desktopColumns" :key="index" class="flex flex-col gap-6">
+        <!-- Skeleton Loading -->
+        <div v-if="isEmptyLoading" class="flex flex-col gap-6">
           <PostSkeleton v-for="i in 2" :key="i" />
         </div>
+
         <PostCard
-          v-for="p in leftPosts"
+          v-for="p in colPosts"
           :key="p.id"
           :ref="(el) => commentManager.registerRef(p.id, el)"
           :post="p"
           :show-comments="commentManager.activeId.value === p.id"
-          @update="handleUpdate"
-          @preview-image="openPreview"
-          @like="toggleLike"
-          @open-comments="openComments"
-          @close-comments="commentManager.deactivate()"
-          @share="sharePost"
-          @bookmark="toggleBookmark"
-          @delete="handleDelete"
-          @comment-added="postStore.updateCommentCount($event, 1)"
-          @comment-deleted="postStore.updateCommentCount($event, -1)"
-        />
-      </div>
-      <!-- 右欄 -->
-      <div class="flex flex-1 flex-col gap-6">
-        <div
-          v-if="postStore.isLoading && visiblePosts.length === 0"
-          class="flex flex-col gap-6 pt-12"
-        >
-          <PostSkeleton v-for="i in 2" :key="i" />
-        </div>
-        <PostCard
-          v-for="p in rightPosts"
-          :key="p.id"
-          :ref="(el) => commentManager.registerRef(p.id, el)"
-          :post="p"
-          :show-comments="commentManager.activeId.value === p.id"
-          @update="handleUpdate"
-          @preview-image="openPreview"
-          @like="toggleLike"
-          @open-comments="openComments"
-          @close-comments="commentManager.deactivate()"
-          @share="sharePost"
-          @bookmark="toggleBookmark"
-          @delete="handleDelete"
-          @comment-added="postStore.updateCommentCount($event, 1)"
-          @comment-deleted="postStore.updateCommentCount($event, -1)"
+          v-on="postCardEvents"
         />
       </div>
     </section>

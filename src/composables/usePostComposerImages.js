@@ -5,7 +5,6 @@ import { useToast } from './useToast'
 export const usePostComposerImages = (maxCount = 4) => {
   const { compressImage, uploadToCloudinary } = useImageUpload()
   const { error } = useToast()
-
   const images = ref([]) // 最終裁切後的圖片列表
   const cropQueue = ref([]) // 待裁切檔案佇列
   const currentCropSrc = ref('') // 當前裁切預覽源
@@ -112,7 +111,7 @@ export const usePostComposerImages = (maxCount = 4) => {
         return result.url
       } catch {
         img.status = 'error'
-        return img.url
+        return null
       }
     })
 
