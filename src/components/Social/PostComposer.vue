@@ -37,6 +37,9 @@ const fileInputRef = ref(null)
 const isSubmitting = ref(false)
 
 const countText = computed(() => `${content.value.length}/${props.maxLength}`)
+const displayName = computed(
+  () => authStore.user?.nickname || authStore.user?.username || props.username
+)
 
 const canSubmit = computed(() => {
   const hasContent = content.value.trim().length > 0
@@ -233,16 +236,16 @@ const audience = ref('public')
     </section>
 
     <!-- 手機彈窗 -->
-    <div v-if="open" class="fixed inset-0 z-60 md:hidden">
-      <div class="absolute inset-0 bg-black/60" @click="close"></div>
+    <div v-if="open" class="fixed inset-0 z-60 md:hidden" @click="close">
+      <div class="absolute inset-0 bg-black/60"></div>
       <div class="relative mx-auto flex h-full max-w-130 items-center p-4">
-        <section class="w-full rounded-2xl bg-white p-4 shadow-lg">
+        <section class="w-full rounded-2xl bg-white p-4 shadow-lg" @click.stop>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
               <div class="min-w-0">
                 <div class="text-sm font-semibold">
-                  {{ username || authStore.user?.name || '匿名用戶' }}
+                  {{ displayName }}
                 </div>
                 <AudiencePicker v-model="audience" />
               </div>
@@ -307,21 +310,14 @@ const audience = ref('public')
           </div>
 
           <div class="mt-4 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 text-zinc-700">
+            <div class="flex items-center gap-3 text-zinc-500">
               <button
                 type="button"
                 class="grid h-10 w-10 place-items-center rounded-full bg-zinc-100"
                 aria-label="Upload"
                 @click="triggerImageUpload"
               >
-                🖼️
-              </button>
-              <button
-                type="button"
-                class="grid h-10 w-10 place-items-center rounded-full bg-zinc-100"
-                aria-label="Hashtag"
-              >
-                <span class="text-lg font-semibold">#</span>
+                <i class="fa-regular fa-image"></i>
               </button>
             </div>
             <div class="flex items-center gap-3">
