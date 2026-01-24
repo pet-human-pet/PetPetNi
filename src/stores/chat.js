@@ -1,46 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { INITIAL_DB } from '@/utils/chatMockData'
-import { useSocket } from '@/composables/useSocket'
+import { useRealtimeChat } from '@/composables/useRealtimeChat'
 import { checkSensitiveContent } from '@/utils/validators'
 
 export const useChatStore = defineStore('chat', () => {
-  // --- 0. Socket.IO 整合 ---
-  const {
-    isConnected,
-    initSocket,
-    joinRoom,
-    sendMessage: sendSocketMessage,
-    onNewMessage,
-    onHistoryReceived,
-    markRead,
-    startTyping,
-    stopTyping
-  } = useSocket()
-
-  // 系統啟動時初始化 Socket
-  initSocket('u_123456')
-
-  // 監聽接收訊息
-  onNewMessage((msg) => {
-    const chat = findChat(msg.roomId)
-    if (chat) {
-      if (!chat.msgs.find((m) => m.id === msg.id)) {
-        const isActiveChat = activeChatId.value === msg.roomId
-        chat.msgs.push({
-          ...msg,
-          read: isActiveChat ? true : false
-        })
-      }
-    }
-  })
-
-  // 監聽歷史訊息
-  onHistoryReceived((history) => {
-    if (activeChat.value && activeChat.value.msgs.length === 0) {
-      activeChat.value.msgs = history
-    }
-  })
+  // --- 0. Supabase Realtime 整合 ---
+  const realtime = useRealtimeChat()
+  const isConnected = realtime.isConnected
 
   // --- 狀態資料 ---
   const currentCategory = ref('match')
@@ -146,19 +113,52 @@ export const useChatStore = defineStore('chat', () => {
     selectedFriendId.value = null
   }
 
-  function openChat(id) {
+  async function openChat(id) {
     activeChatId.value = id
     selectedFriendId.value = null
     replyingMsg.value = null
     const chat = activeChat.value
 
     if (chat) {
+      // 標記訊息為已讀
       if (chat.msgs.length > 0) {
         chat.msgs.forEach((m) => {
           if (m.sender !== 'me') m.read = 1
         })
       }
-      joinRoom(id)
+
+      // 訂閱聊天室的 Realtime 更新
+      realtime.subscribeToRoom(id, (newMessage) => {
+        // 處理收到的新訊息
+        if (!chat.msgs.find((m) => m.id === newMessage.id)) {
+          const isActiveChat = activeChatId.value === id
+          chat.msgs.push({
+            id: newMessage.id,
+            sender: newMessage.sender_id_int === currentUserId.value ? 'me' : 'other',
+            content: newMessage.content,
+            image: newMessage.image_url,
+            timestamp: new Date(newMessage.created_at).getTime(),
+            read: isActiveChat ? true : false
+          })
+        }
+      })
+
+      // 載入歷史訊息（如果還沒載入過）
+      try {
+        const history = await realtime.getMessages(id)
+        if (chat.msgs.length === 0 && history.length > 0) {
+          chat.msgs = history.map((msg) => ({
+            id: msg.id,
+            sender: msg.sender_id_int === currentUserId.value ? 'me' : 'other',
+            content: msg.content,
+            image: msg.image_url,
+            timestamp: new Date(msg.created_at).getTime(),
+            read: msg.read || false
+          }))
+        }
+      } catch (error) {
+        console.error('❌ Failed to load chat history:', error)
+      }
     }
   }
 
@@ -201,7 +201,8 @@ export const useChatStore = defineStore('chat', () => {
       return { success: false, error: `已達到 ${limit} 句互動上限，請升級為好友繼續聊天！` }
     }
 
-    const newMsg = {
+    // 樂觀更新：立即顯示訊息
+    const tempMsg = {
       id: Date.now(),
       sender: 'me',
       content: isImage ? '[圖片]' : text,
@@ -211,14 +212,23 @@ export const useChatStore = defineStore('chat', () => {
       replyTo: replyTo
     }
 
-    chat.msgs.push(newMsg)
+    chat.msgs.push(tempMsg)
 
-    sendSocketMessage({
-      roomId: chat.id,
-      content: newMsg.content,
-      messageType: isImage ? 'image' : 'text',
-      imageUrl: isImage ? text : null,
-      replyTo: replyTo?.id || null
+    // 發送訊息到 Supabase（異步處理）
+    realtime.sendMessage(
+      chat.id,
+      tempMsg.content,
+      parseInt(currentUserId.value) || 0, // TODO: 從 auth store 取得真實 user_id_int
+      isImage ? 'image' : 'text',
+      isImage ? text : null,
+      replyTo?.id || null
+    ).catch((error) => {
+      console.error('❌ Failed to send message:', error)
+      // 發送失敗時可以加入錯誤處理邏輯
+      const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
+      if (index !== -1) {
+        chat.msgs[index].error = true
+      }
     })
 
     return { success: true }
