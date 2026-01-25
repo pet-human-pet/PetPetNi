@@ -76,7 +76,7 @@ const getIconUrl = (name) => {
         <!-- 中央區圖片 (佔第 2 列，全部 6 行) - 放大且不裁切 -->
         <div class="col-start-2 row-span-6 row-start-1 flex items-center justify-center">
           <div
-            class="h-[120%] w-[120%] bg-contain bg-center bg-no-repeat"
+            class="h-64 min-h-64 w-64 min-w-64 bg-contain bg-center bg-no-repeat md:h-[120%] md:min-h-0 md:w-[120%] md:min-w-0"
             :style="`background-image: url(${getIconUrl('中央區.webp')})`"
           ></div>
         </div>
