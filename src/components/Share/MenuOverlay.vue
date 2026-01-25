@@ -60,7 +60,7 @@ const getIconUrl = (name) => {
       <!-- 手機版佈局 -->
       <div class="relative flex min-h-screen flex-col px-6 pt-20 pb-10 md:hidden">
         <!-- 頂部標語區 (Header) -->
-        <div class="pointer-events-auto mb-10 border-b border-white/10 pb-6">
+        <div class="pointer-events-auto mb-6 border-b border-white/10 pb-4">
           <div class="flex items-start gap-8">
             <div class="writing-vertical-rl pt-1 text-[10px] tracking-widest text-white opacity-80">
               PetPetNi 寵物社交平台
@@ -96,7 +96,7 @@ const getIconUrl = (name) => {
         </div>
 
         <!-- 底部按鈕區 (Footer) -->
-        <div class="pointer-events-auto mt-auto flex flex-col items-start gap-3 pt-10">
+        <div class="pointer-events-auto mt-auto flex flex-col items-start gap-2 pt-6">
           <!-- ✅ GitHub 連結 -->
           <a
             href="https://github.com/pet-human-pet/PetPetNi"
