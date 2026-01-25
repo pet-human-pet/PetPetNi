@@ -12,10 +12,11 @@ export const aiController = {
         return res.status(400).json({ error: '請提供訊息內容' })
       }
 
-      const reply = await aiService.getChatResponse(message, history || [], sessionId)
+      const { reply, updatedTitle } = await aiService.getChatResponse(message, history || [], sessionId)
 
       res.json({
         reply,
+        updatedTitle,
         timestamp: Date.now()
       })
     } catch (error) {

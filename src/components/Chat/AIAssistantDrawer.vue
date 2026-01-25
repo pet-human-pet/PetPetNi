@@ -119,7 +119,7 @@ const handleDeleteSession = (id) => {
 
     <!-- 3. AI 抽屜 (Drawer) -->
     <div
-      class="bg-bg-surface border-brand-primary pointer-events-auto absolute top-24 right-0 flex h-[70vh] w-[310px] flex-col overflow-hidden rounded-l-4xl border-[5px] shadow-2xl transition-transform duration-500 ease-out md:w-[400px]"
+      class="bg-bg-surface border-brand-primary pointer-events-auto absolute top-25 right-0 flex h-[70vh] w-[310px] flex-col overflow-hidden rounded-l-4xl border-[5px] shadow-2xl transition-transform duration-500 ease-out md:w-[400px]"
       :class="aiStore.isDrawerOpen ? 'translate-x-0' : 'translate-x-full'"
     >
       <!-- Header -->
