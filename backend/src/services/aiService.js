@@ -7,6 +7,10 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
+// 字串截斷長度常數
+const LAST_MESSAGE_SNAPSHOT_LENGTH = 50
+const SESSION_TITLE_MAX_LENGTH = 20
+
 // 波波的角色設定
 const SYSTEM_INSTRUCTIONS = `
 你是一位專業的寵物溝通師，名字叫「波波」。你可以感應到毛孩的心聲，並提供專業的寵物照護、行為理解建議。
@@ -74,13 +78,15 @@ export const aiService = {
 
         // 準備更新資料
         const updateData = {
-          last_message: replyText.substring(0, 50),
+          last_message: replyText.substring(0, LAST_MESSAGE_SNAPSHOT_LENGTH),
           updated_at: new Date().toISOString()
         }
 
         // 如果標題還是「新對話」，用用戶的第一條訊息更新標題
+        let updatedTitle = null
         if (session?.title === '新對話') {
-          updateData.title = message.substring(0, 20) + (message.length > 20 ? '...' : '')
+          updatedTitle = message.substring(0, SESSION_TITLE_MAX_LENGTH) + (message.length > SESSION_TITLE_MAX_LENGTH ? '...' : '')
+          updateData.title = updatedTitle
         }
 
         const { error: updateError } = await supabase
@@ -89,9 +95,12 @@ export const aiService = {
           .eq('id', sessionId)
 
         if (updateError) throw updateError
+
+        // 回傳包含更新標題的物件
+        return { reply: replyText, updatedTitle }
       }
 
-      return replyText
+      return { reply: replyText, updatedTitle: null }
     } catch (error) {
       console.error('❌ AI Service Error:', error)
       throw error

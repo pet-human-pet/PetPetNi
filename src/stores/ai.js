@@ -150,9 +150,9 @@ export const useAIStore = defineStore('ai', () => {
         // 更新最後更新時間
         currentChat.timestamp = Date.now()
 
-        // 如果標題還是「新對話」，用用戶的第一條訊息更新標題
-        if (currentChat.title === '新對話') {
-          currentChat.title = text.substring(0, 20) + (text.length > 20 ? '...' : '')
+        // 使用後端回傳的更新標題 (Single Source of Truth)
+        if (data.updatedTitle) {
+          currentChat.title = data.updatedTitle
         }
       } else {
         throw new Error(data.error || 'AI 回應格式錯誤')
@@ -177,8 +177,6 @@ export const useAIStore = defineStore('ai', () => {
   async function createAiChat(title = '新對話') {
     try {
       const userId = authStore.userIdInt
-      console.log('📊 建立 AI Session，userId:', userId)
-
       const response = await fetch(`${API_BASE_URL}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
