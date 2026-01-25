@@ -225,5 +225,77 @@ export const userController = {
         })
       })
     }
+  },
+
+  // ==========================================
+  // 📝 取得個人檔案 API
+  // ==========================================
+  getProfile: async (req, res) => {
+    try {
+      // 1. Token 驗證
+      const authHeader = req.headers.authorization
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: '未提供授權 token' })
+      }
+
+      const token = authHeader.split(' ')[1]
+      const {
+        data: { user },
+        error: authError
+      } = await supabase.auth.getUser(token)
+
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Token 無效或已過期' })
+      }
+
+      // 2. 查詢 Profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (profileError) {
+        return res.status(404).json({ error: '找不到使用者資料' })
+      }
+
+      // 3. 查詢 Pet & Tags
+      // 先找寵物
+      const { data: pet, error: petError } = await supabase
+        .from('pets')
+        .select('*')
+        .eq('user_id_int', profile.user_id_int)
+        .single()
+
+      let tags = []
+      if (pet) {
+        // 如果有寵物，再找標籤
+        const { data: petTags, error: tagsError } = await supabase
+          .from('pet_tags')
+          .select('tag')
+          .eq('pet_id', pet.id)
+
+        if (!tagsError && petTags) {
+          tags = petTags.map((t) => t.tag)
+        }
+      }
+
+      // 4. 回傳組合後的資料
+      res.status(200).json({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email
+          },
+          profile,
+          pet,
+          tags
+        }
+      })
+    } catch (error) {
+      console.error('❌ getProfile 錯誤:', error)
+      res.status(500).json({ error: '伺服器錯誤' })
+    }
   }
 }

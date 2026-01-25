@@ -14,6 +14,7 @@ router.post('/posts/:id/like', socialController.likePost)
 router.delete('/posts/:id/like', socialController.unlikePost)
 
 // 收藏
+router.get('/posts/bookmarks', socialController.getBookmarkedPosts)
 router.post('/posts/:id/bookmark', socialController.bookmarkPost)
 router.delete('/posts/:id/bookmark', socialController.unbookmarkPost)
 

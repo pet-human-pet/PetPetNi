@@ -80,9 +80,7 @@ export const socialController = {
 
       const { content, imageUrls, audience } = req.body
       const contentTrimmed =
-        typeof content === 'string'
-          ? content.trim().replace(/\n\s*\n+/g, '\n\n')
-          : ''
+        typeof content === 'string' ? content.trim().replace(/\n\s*\n+/g, '\n\n') : ''
       const images = normalizeImages(imageUrls)
 
       if (content !== undefined && typeof content !== 'string') {
@@ -190,6 +188,22 @@ export const socialController = {
     }
   },
 
+  // 取得已收藏的貼文列表
+  async getBookmarkedPosts(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ error: '未授權：請先登入' })
+      }
+
+      const result = await socialService.getBookmarkedPosts(user.uuid)
+      res.json(result)
+    } catch (error) {
+      console.error('Get Bookmarked Posts Error:', error)
+      res.status(500).json({ error: 'Failed to fetch bookmarked posts' })
+    }
+  },
+
   // 刪除貼文
   async deletePost(req, res) {
     try {
@@ -220,9 +234,7 @@ export const socialController = {
       const hasContentField = content !== undefined
       const hasImagesField = images !== undefined
       const contentTrimmed =
-        typeof content === 'string'
-          ? content.trim().replace(/\n\s*\n+/g, '\n\n')
-          : ''
+        typeof content === 'string' ? content.trim().replace(/\n\s*\n+/g, '\n\n') : ''
       const normalizedImages = hasImagesField ? normalizeImages(images) : null
 
       if (!hasContentField && !hasImagesField) {

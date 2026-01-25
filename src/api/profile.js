@@ -1,6 +1,6 @@
 import api from './index'
 
-export const userApi = {
+export const profileApi = {
   /**
    * 建立用戶完整 Profile
    * @param {Object} data - Profile 資料
@@ -31,4 +31,4 @@ export const userApi = {
   }
 }
 
-export default userApi
+export default profileApi

@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { requiredTagGroups, optionalTagCategories } from '@/utils/profileData.js'
+import { requiredTagGroups, optionalTagCategories } from '@/utils/tags.js'
 
 defineProps({
   requiredSelections: {

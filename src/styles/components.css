@@ -59,6 +59,11 @@
       overflow: hidden;
       overscroll-behavior: none;
     }
+    .u-no-tap-highlight,
+    .u-no-tap-highlight * {
+      -webkit-tap-highlight-color: transparent;
+      tap-highlight-color: transparent;
+    }
   }
 
   /* Header / Nav Icon Button */
@@ -375,11 +380,40 @@
   .fade-enter-active,
   .fade-leave-active {
     transition: opacity 0.2s ease;
+    will-change: opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .fade-enter-from,
   .fade-leave-to {
     opacity: 0;
+  }
+
+  .fade-slide-enter-active,
+  .fade-slide-leave-active {
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .fade-slide-enter-from,
+  .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  /* 防止 Transition 內子元素閃爍 */
+  .fade-enter-active *,
+  .fade-leave-active *,
+  .fade-slide-enter-active *,
+  .fade-slide-leave-active * {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
   }
 
   .c-toast {

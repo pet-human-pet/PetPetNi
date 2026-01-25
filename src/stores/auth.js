@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import authApi from '@/api/auth'
+import profileApi from '@/api/profile'
 import { supabase } from '@/lib/supabase'
 import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
-  //State
+  // State
   const user = ref(null)
   const userIdInt = ref(null) // 用戶自增 ID（主要識別碼）
+  const profile = ref(null) // 完整 Profile
+  const pet = ref(null) // 寵物資料
+  const tags = ref([]) // 寵物標籤
   const token = ref(null)
   const isLoading = ref(false)
   const error = ref(null)
@@ -20,19 +24,24 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = savedToken
 
       try {
-        // 呼叫 API 驗證 token 並取得用戶資料
-        const response = await authApi.getCurrentUser()
-        user.value = response.data.user
-        userIdInt.value = response.data.profile.user_id_int
+        // 呼叫 API 驗證 token 並取得完整用戶資料
+        // 改用 profileApi.getProfile 取代原本只取 header 的 authApi.getCurrentUser (如果後端有調整)
+        // 但這裡我們直接呼叫新做的 profileApi.getProfile 來拿所有資訊
+        const response = await profileApi.getProfile()
+        const data = response.data.data // { user, profile, pet, tags }
+
+        user.value = data.user
+        profile.value = data.profile
+        pet.value = data.pet
+        tags.value = data.tags || []
+        userIdInt.value = data.profile?.user_id_int
 
         console.log('✅ Token 驗證成功，已恢復登入狀態')
-      } catch {
+        console.log('🐶 寵物資料:', pet.value?.name)
+      } catch (err) {
         // Token 無效，清除狀態
-        console.warn('⚠️ Token 無效或已過期，清除登入狀態')
-        user.value = null
-        userIdInt.value = null
-        token.value = null
-        localStorage.removeItem('token')
+        console.warn('⚠️ Token 無效或無法取得 Profile，清除登入狀態', err)
+        logout(false) // 傳入 false 代表不呼叫 API，只清本地
       }
     }
   }
@@ -50,6 +59,9 @@ export const useAuthStore = defineStore('auth', () => {
 
       // user_id_int 需在 profile 建立後才會有，先設為 null
       userIdInt.value = null
+      profile.value = null
+      pet.value = null
+      tags.value = []
 
       console.log('✅ 註冊成功:', user.value.email)
       return response.data
@@ -75,22 +87,31 @@ export const useAuthStore = defineStore('auth', () => {
 
       console.log('✅ 登入成功:', user.value.email)
 
-      // 檢查是否已建立 profile
-      const hasProfile = await checkProfileExists(response.data.user.id)
+      // 嘗試取得完整 Profile
+      try {
+        const profileRes = await profileApi.getProfile()
+        const data = profileRes.data.data
 
-      if (!hasProfile) {
-        console.log('⚠️ 尚未建立 profile，需要完成註冊流程')
-        // 回傳狀態，讓前端知道需要導向註冊流程
+        profile.value = data.profile
+        pet.value = data.pet
+        tags.value = data.tags || []
+        userIdInt.value = data.profile?.user_id_int
+
+        console.log('✅ 已取得完整 Profile')
         return {
           ...response.data,
-          needsRegistration: true
+          needsRegistration: false
         }
-      }
-
-      console.log('✅ 已有 profile，登入完成')
-      return {
-        ...response.data,
-        needsRegistration: false
+      } catch (e) {
+        // 如果抓不到 Profile，可能是還沒 Onboarding
+        if (e.response?.status === 404) {
+          console.log('⚠️ 尚未建立 profile，需要完成註冊流程')
+          return {
+            ...response.data,
+            needsRegistration: true
+          }
+        }
+        throw e
       }
     } catch (err) {
       console.error('❌ 登入失敗:', err)
@@ -101,13 +122,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = async () => {
+  const logout = async (callApi = true) => {
     try {
       isLoading.value = true
       error.value = null
 
-      await authApi.logout()
-      console.log('✅ 登出成功')
+      if (callApi) {
+        await authApi.logout()
+        console.log('✅ 登出成功')
+      }
     } catch (err) {
       console.error('❌ 登出失敗:', err)
       error.value = err.response?.data?.error || '登出失敗，請稍後再試'
@@ -115,6 +138,9 @@ export const useAuthStore = defineStore('auth', () => {
       // 無論 API 成功或失敗，都清除本地狀態
       user.value = null
       userIdInt.value = null
+      profile.value = null
+      pet.value = null
+      tags.value = []
       token.value = null
       localStorage.removeItem('token')
       isLoading.value = false
@@ -197,16 +223,20 @@ export const useAuthStore = defineStore('auth', () => {
         created_at: session.user.created_at
       }
 
-      // 檢查是否已建立 profile
-      const hasProfile = await checkProfileExists(session.user.id)
+      // 嘗試取得完整 Profile
+      try {
+        const profileRes = await profileApi.getProfile()
+        const data = profileRes.data.data
 
-      if (hasProfile) {
+        profile.value = data.profile
+        pet.value = data.pet
+        tags.value = data.tags || []
+        userIdInt.value = data.profile?.user_id_int
+
         console.log('✅ 已有 profile，登入成功')
-        // 導向首頁
         router.push('/')
-      } else {
-        console.log('⚠️ 尚未建立 profile，導向註冊流程')
-        // 導向角色選擇頁面
+      } catch (e) {
+        console.log('⚠️ 尚未建立 profile (或是 API 失敗)，導向註冊流程')
         router.push({ name: 'login', query: { mode: 'role' } })
       }
     } catch (error) {
@@ -217,8 +247,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 檢查使用者是否已建立 profile
+   * (保留給 login flow 判斷用，如果不走 getProfile 的話)
    */
   const checkProfileExists = async (userId) => {
+    // 這裡其實可以 deprecated，因為我們現在都試著直接抓 profile
+    // 但為了保持相容性先留著，或者讓它也呼叫 API?
+    // 暫時維持原樣，但上面的流程已經改用 getProfile 判斷
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -227,19 +261,13 @@ export const useAuthStore = defineStore('auth', () => {
         .single()
 
       if (error) {
-        // 如果是 PGRST116 錯誤（找不到資料），代表尚未建立 profile
-        if (error.code === 'PGRST116') {
-          return false
-        }
+        if (error.code === 'PGRST116') return false
         throw error
       }
-
-      // 若有資料，儲存 user_id_int
       if (data?.user_id_int) {
         userIdInt.value = data.user_id_int
         return true
       }
-
       return false
     } catch (error) {
       console.error('❌ 檢查 profile 失敗:', error)
@@ -247,9 +275,30 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * 刷新 Profile (例如編輯後)
+   */
+  const fetchProfile = async () => {
+    try {
+      const response = await profileApi.getProfile()
+      const data = response.data.data
+
+      user.value = data.user
+      profile.value = data.profile
+      pet.value = data.pet
+      tags.value = data.tags || []
+      userIdInt.value = data.profile?.user_id_int
+    } catch (e) {
+      console.error('❌ 刷新 Profile 失敗', e)
+    }
+  }
+
   return {
     user,
     userIdInt,
+    profile,
+    pet,
+    tags,
     token,
     isLoading,
     error,
@@ -264,6 +313,7 @@ export const useAuthStore = defineStore('auth', () => {
     handleOAuthCallback,
     registerWithEmail,
     handleSupabaseSession,
-    checkProfileExists
+    checkProfileExists,
+    fetchProfile
   }
 })
