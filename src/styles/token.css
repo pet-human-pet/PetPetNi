@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TW-EL.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TW-EL.woff2') format('woff2');
   font-weight: 200;
   font-style: normal;
   font-display: swap;
@@ -8,7 +8,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TC-EL.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TC-EL.woff2') format('woff2');
   font-weight: 200;
   font-style: normal;
   font-display: swap;
@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TW-L.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TW-L.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -24,7 +24,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TC-L.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TC-L.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -32,7 +32,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TW-R.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TW-R.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -40,7 +40,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TC-R.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TC-R.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -48,7 +48,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TW-M.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TW-M.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -56,7 +56,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TC-M.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TC-M.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -64,7 +64,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TW-B.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TW-B.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -72,7 +72,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TC-B.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TC-B.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -80,7 +80,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TW-H.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TW-H.woff2') format('woff2');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -88,7 +88,7 @@
 
 @font-face {
   font-family: 'GenSenRounded';
-  src: url('../assets/fonts/GenSenRounded2TC-H.woff2') format('woff2');
+  src: url('/fonts/GenSenRounded2TC-H.woff2') format('woff2');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
