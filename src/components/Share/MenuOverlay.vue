@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useScrollLock } from '@/composables/useScrollLock'
 import NavIcon from './NavIcon.vue'
 import BackgroundGrid from './BackgroundGrid.vue'
+import MenuActionButton from './MenuActionButton.vue'
 
 // Stores
 const uiStore = useUIStore()
@@ -96,27 +97,20 @@ const getIconUrl = (name) => {
         </div>
 
         <!-- 底部按鈕區 (Footer) -->
-        <div class="pointer-events-auto mt-auto flex flex-col items-start gap-2 pt-6">
-          <!-- ✅ GitHub 連結 -->
-          <a
+        <div class="pointer-events-auto mt-auto flex flex-col items-start gap-3 pt-6">
+          <MenuActionButton
+            label="GitHub"
             href="https://github.com/pet-human-pet/PetPetNi"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="group text-brand-primary flex w-full max-w-[220px] items-center justify-between rounded-full bg-white px-8 py-3 text-sm font-bold transition-colors hover:bg-gray-100"
-          >
-            <span>GitHub</span>
-            <span class="text-lg transition-transform group-hover:translate-x-1">→</span>
-          </a>
-          <!-- ✅ 登出按鈕 (已登入時顯示) -->
-          <button
+            custom-class="w-full max-w-[220px] px-8 py-3 text-sm"
+          />
+          <MenuActionButton
             v-if="isLoggedIn"
-            type="button"
-            class="group text-brand-primary flex w-full max-w-[220px] items-center justify-between rounded-full bg-white px-8 py-3 text-sm font-bold transition-colors hover:bg-gray-100"
+            is-button
+            label="登出"
+            custom-class="w-full max-w-[220px] px-8 py-3 text-sm"
+            label-class="tracking-widest"
             @click="handleLogout"
-          >
-            <span class="tracking-widest">登出</span>
-            <span class="text-lg transition-transform group-hover:translate-x-1">→</span>
-          </button>
+          />
         </div>
       </div>
 
@@ -140,28 +134,19 @@ const getIconUrl = (name) => {
 
           <!-- 桌面版按鈕 -->
           <div class="flex flex-col gap-4">
-            <!-- ✅ GitHub 連結 -->
-            <a
+            <MenuActionButton
+              label="GitHub"
               href="https://github.com/pet-human-pet/PetPetNi"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
-            >
-              <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
-              <span>GitHub</span>
-              <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
-            </a>
-            <!-- ✅ 登出按鈕（已登入時顯示） -->
-            <button
+              custom-class="min-w-[280px] px-8 py-4 text-base"
+            />
+            <MenuActionButton
               v-if="isLoggedIn"
-              type="button"
-              class="group text-brand-primary flex min-w-[280px] items-center justify-between rounded-full bg-white px-8 py-4 font-bold transition-colors hover:bg-gray-100"
+              is-button
+              label="登出"
+              custom-class="min-w-[280px] px-8 py-4 text-base"
+              label-class="tracking-widest"
               @click="handleLogout"
-            >
-              <!-- TODO: Magic Number: min-w-[280px] 應改為 Tailwind utility 或 token -->
-              <span class="tracking-widest">登出</span>
-              <span class="text-xl transition-transform group-hover:translate-x-1">→</span>
-            </button>
+            />
           </div>
         </div>
 
