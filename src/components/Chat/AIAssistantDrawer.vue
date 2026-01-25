@@ -80,6 +80,10 @@ const selectSession = (id) => {
   aiStore.openSession(id)
   isHistoryView.value = false
 }
+
+const handleDeleteSession = (id) => {
+  aiStore.deleteSession(id)
+}
 </script>
 
 <template>
@@ -106,9 +110,16 @@ const selectSession = (id) => {
       </button>
     </div>
 
-    <!-- 2. AI 抽屜 (Drawer) -->
+    <!-- 2. 背景遮罩 - 點擊關閉抽屜 -->
     <div
-      class="bg-bg-surface border-border-default pointer-events-auto absolute top-0 right-0 flex h-full w-[310px] flex-col border-l shadow-2xl transition-transform duration-500 ease-out md:w-[400px]"
+      v-if="aiStore.isDrawerOpen"
+      class="pointer-events-auto absolute inset-0"
+      @click="aiStore.closeDrawer()"
+    ></div>
+
+    <!-- 3. AI 抽屜 (Drawer) -->
+    <div
+      class="bg-bg-surface border-brand-primary pointer-events-auto absolute top-24 right-0 flex h-[70vh] w-[310px] flex-col overflow-hidden rounded-l-4xl border-[5px] shadow-2xl transition-transform duration-500 ease-out md:w-[400px]"
       :class="aiStore.isDrawerOpen ? 'translate-x-0' : 'translate-x-full'"
     >
       <!-- Header -->
@@ -173,9 +184,17 @@ const selectSession = (id) => {
                 {{ new Date(chat.timestamp).toLocaleString() }}
               </div>
             </div>
-            <i
-              class="fa-solid fa-chevron-right text-fg-muted text-xs transition-transform group-hover:translate-x-1"
-            ></i>
+            <div class="flex items-center gap-1">
+              <button
+                class="text-fg-muted h-7 w-7 rounded-full opacity-0 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-500"
+                @click.stop="handleDeleteSession(chat.id)"
+              >
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+              <i
+                class="fa-solid fa-chevron-right text-fg-muted text-xs transition-transform group-hover:translate-x-1"
+              ></i>
+            </div>
           </div>
         </div>
       </div>
@@ -279,7 +298,7 @@ const selectSession = (id) => {
               v-model="messageInput"
               rows="1"
               placeholder="詢問波波..."
-              class="max-h-32 flex-1 resize-none bg-transparent py-1 text-sm outline-none"
+              class="max-h-32 flex-1 resize-none bg-transparent py-1 text-base outline-none md:text-sm"
               @keydown="handleKeydown"
             ></textarea>
             <button
@@ -296,27 +315,3 @@ const selectSession = (id) => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.animate-slide-right {
-  animation: slide-right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slide-right {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-/* 滾動條美化 */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-</style>

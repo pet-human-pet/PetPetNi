@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { INITIAL_AI_DB, AI_WELCOME_MESSAGES } from '@/utils/chatMockData'
+import { useAuthStore } from '@/stores/auth'
 
 export const useAIStore = defineStore('ai', () => {
+  const authStore = useAuthStore()
   // --- 狀態 ---
   const isDrawerOpen = ref(false)
   const isLoading = ref(false)
@@ -147,6 +149,11 @@ export const useAIStore = defineStore('ai', () => {
         })
         // 更新最後更新時間
         currentChat.timestamp = Date.now()
+
+        // 如果標題還是「新對話」，用用戶的第一條訊息更新標題
+        if (currentChat.title === '新對話') {
+          currentChat.title = text.substring(0, 20) + (text.length > 20 ? '...' : '')
+        }
       } else {
         throw new Error(data.error || 'AI 回應格式錯誤')
       }
@@ -169,10 +176,13 @@ export const useAIStore = defineStore('ai', () => {
    */
   async function createAiChat(title = '新對話') {
     try {
+      const userId = authStore.userIdInt
+      console.log('📊 建立 AI Session，userId:', userId)
+
       const response = await fetch(`${API_BASE_URL}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
+        body: JSON.stringify({ title, userId })
       })
       const session = await response.json()
 
@@ -226,18 +236,48 @@ export const useAIStore = defineStore('ai', () => {
     isDrawerOpen.value = true
   }
 
+  /**
+   * 刪除歷史對話
+   */
+  async function deleteSession(id) {
+    try {
+      await fetch(`${API_BASE_URL}/sessions/${id}`, {
+        method: 'DELETE'
+      })
+
+      // 從本地移除
+      const index = aiDb.value.history.findIndex((c) => c.id === id)
+      if (index !== -1) {
+        aiDb.value.history.splice(index, 1)
+      }
+
+      // 如果刪除的是當前對話，切換到其他對話或清空
+      if (activeSessionId.value === id) {
+        if (aiDb.value.history.length > 0) {
+          activeSessionId.value = aiDb.value.history[0].id
+        } else {
+          activeSessionId.value = null
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to delete session:', error)
+    }
+  }
+
   return {
     isDrawerOpen,
     activeSessionId,
     activeChat,
     history,
     aiDb,
+    isLoading,
     toggleDrawer,
     closeDrawer,
     openSession,
     sendMessage,
     createAiChat,
     startAiFeature,
-    loadSessions
+    loadSessions,
+    deleteSession
   }
 })
