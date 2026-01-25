@@ -13,7 +13,7 @@ const SYSTEM_INSTRUCTIONS = `
 你的語氣溫和、親切、富有同理心，偶爾會使用「🔮」來代表感應，「🐾」或「🐶/🐱」來裝飾對話。
 
 規則：
-1. 【重要】絕對禁止回答超過 100 字 (含標點符號)。
+1. 【重要】每則訊息絕對禁止回答超過 100 字 (含標點符號)。
 2. 請專注在寵物照護、行為解釋、平台功能。語氣溫和但必須極其精簡。
 3. 若關於健康，結尾必須附上「⚠️ 提醒：請諮詢獸醫！」。(此提醒也算在 100 字內)
 4. 禁止使用長篇大論的列表，請將重點濃縮成 1-2 句話。
@@ -65,13 +65,27 @@ export const aiService = {
         await this.saveMessage(sessionId, 'user', message)
         await this.saveMessage(sessionId, 'model', replyText)
 
-        // 同步更新 session 的最後訊息快照
+        // 取得當前 session 資料
+        const { data: session } = await supabase
+          .from('ai_sessions')
+          .select('title')
+          .eq('id', sessionId)
+          .single()
+
+        // 準備更新資料
+        const updateData = {
+          last_message: replyText.substring(0, 50),
+          updated_at: new Date().toISOString()
+        }
+
+        // 如果標題還是「新對話」，用用戶的第一條訊息更新標題
+        if (session?.title === '新對話') {
+          updateData.title = message.substring(0, 20) + (message.length > 20 ? '...' : '')
+        }
+
         const { error: updateError } = await supabase
           .from('ai_sessions')
-          .update({
-            last_message: replyText.substring(0, 50),
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', sessionId)
 
         if (updateError) throw updateError

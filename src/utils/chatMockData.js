@@ -222,9 +222,7 @@ export const INITIAL_AI_DB = {
     description: '您的專屬寵物行為顧問',
     defaultPrompts: [
       { text: '寵物翻譯機', icon: 'fa-language' },
-      { text: '毛孩塔羅運勢', icon: 'fa-wand-magic-sparkles' },
-      { text: '萌寵行為解密', icon: 'fa-magnifying-glass-chart' },
-      { text: '活動推薦趣', icon: 'fa-map-location-dot' }
+      { text: '萌寵行為解密', icon: 'fa-magnifying-glass-chart' }
     ]
   },
   history: [
