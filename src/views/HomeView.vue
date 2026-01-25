@@ -18,7 +18,8 @@ const items = [
     iconName: '活動區.webp',
     routeName: 'Event',
     gridClass: 'col-start-1 row-start-1 row-span-3',
-    textPosition: 'bottom-[24%] right-[10%] lg:bottom-[-15%] lg:right-[5%]', // 手機版靠近圖片
+    textPosition:
+      'bottom-[22%] right-[10%] md:bottom-[-5%] md:right-[8%] lg:bottom-[-15%] lg:right-[5%]', // 三斷點響應式
     textRotate: '-rotate-[30deg]',
     animationDelay: '0.7s',
     animationDuration: '3.2s'
@@ -29,7 +30,8 @@ const items = [
     iconName: '交友區.webp',
     routeName: 'match',
     gridClass: 'col-start-3 row-start-1 row-span-3',
-    textPosition: 'bottom-[24%] left-[25%] lg:bottom-[-15%] lg:left-[15%]',
+    textPosition:
+      'bottom-[22%] left-[25%] md:bottom-[-5%] md:left-[20%] lg:bottom-[-15%] lg:left-[15%]',
     textRotate: 'rotate-[25deg]',
     animationDelay: '1.4s',
     animationDuration: '2.8s'
@@ -40,7 +42,8 @@ const items = [
     iconName: '聊天區.webp',
     routeName: 'chat-test',
     gridClass: 'col-start-1 row-start-4 row-span-3',
-    textPosition: 'bottom-[24%] right-[25%] lg:bottom-[-10%] lg:right-[15%]',
+    textPosition:
+      'bottom-[22%] right-[25%] md:bottom-0 md:right-[20%] lg:bottom-[-10%] lg:right-[15%]',
     textRotate: '-rotate-[30deg]',
     animationDelay: '0.2s',
     animationDuration: '3.5s'
@@ -51,7 +54,8 @@ const items = [
     iconName: '社交區.webp',
     routeName: 'Social',
     gridClass: 'col-start-3 row-start-4 row-span-3',
-    textPosition: 'bottom-[24%] left-[25%] lg:bottom-[-10%] lg:left-[15%]',
+    textPosition:
+      'bottom-[22%] left-[25%] md:bottom-0 md:left-[20%] lg:bottom-[-10%] lg:left-[15%]',
     textRotate: 'rotate-[30deg]',
     animationDelay: '2.1s',
     animationDuration: '3.0s'
@@ -89,7 +93,7 @@ const getIconUrl = (name) => {
           >
             <!-- 圖片佔滿整個區域 -->
             <div
-              class="jump-object absolute inset-0 scale-125 bg-contain bg-center bg-no-repeat transition-transform hover:scale-105 md:scale-100"
+              class="jump-object absolute inset-0 scale-125 bg-contain bg-center bg-no-repeat transition-transform hover:scale-105 md:scale-110 lg:scale-100"
               :style="{
                 backgroundImage: `url(${getIconUrl(item.iconName)})`,
                 animationDelay: item.animationDelay,
@@ -100,12 +104,12 @@ const getIconUrl = (name) => {
             <!-- 文字（傾斜，桌機版距離更遠） -->
             <div :class="['absolute z-10 flex flex-col', item.textPosition, item.textRotate]">
               <h3
-                class="text-fg-muted font-sans text-xs font-bold tracking-widest uppercase opacity-90 drop-shadow-md lg:text-lg"
+                class="text-fg-muted font-sans text-xs font-bold tracking-widest uppercase opacity-90 drop-shadow-md md:text-sm lg:text-lg"
               >
                 {{ item.labelEn }}
               </h3>
               <h2
-                class="text-fg-muted text-sm leading-tight font-bold tracking-wide drop-shadow-md lg:text-xl"
+                class="text-fg-muted text-sm leading-tight font-bold tracking-wide drop-shadow-md md:text-base lg:text-xl"
               >
                 {{ item.labelZh }}
               </h2>
