@@ -61,6 +61,11 @@ export const socialApi = {
       headers: getHeaders()
     })
   },
+  getBookmarkedPosts() {
+    return api.get('api/social/posts/bookmarks', {
+      headers: getHeaders()
+    })
+  },
   deletePost(id) {
     return api.delete(`api/social/posts/${id}`, {
       headers: getHeaders()

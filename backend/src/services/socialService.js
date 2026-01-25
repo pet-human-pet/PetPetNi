@@ -366,6 +366,119 @@ export const socialService = {
   },
 
   // ==========================================
+  // 取得已收藏的貼文列表 API
+  // ==========================================
+  getBookmarkedPosts: async (userId) => {
+    try {
+      const userIdInt = await getProfileId(userId)
+
+      // 1. 先取得用戶所有收藏的 post_id
+      const { data: bookmarks, error: bookmarksError } = await supabase
+        .from('bookmarks')
+        .select('post_id')
+        .eq('user_id_int', userIdInt)
+        .order('created_at', { ascending: false })
+
+      if (bookmarksError) {
+        console.error('❌ 取得收藏列表失敗:', bookmarksError)
+        throw bookmarksError
+      }
+
+      if (!bookmarks || bookmarks.length === 0) {
+        return { data: [] }
+      }
+
+      const bookmarkedPostIds = bookmarks.map((b) => b.post_id)
+
+      // 2. 取得這些貼文的詳細資料
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          user_id_int,
+          profiles:user_id_int (
+            user_id,
+            nick_name,
+            avatar_url
+          ),
+          post_images (
+            display_order,
+            is_deleted,
+            images (
+              url
+            )
+          ),
+          post_likes(count),
+          post_comments(count)
+        `
+        )
+        .in('id', bookmarkedPostIds)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+
+      if (postsError) {
+        console.error('❌ 取得收藏貼文詳情失敗:', postsError)
+        throw postsError
+      }
+
+      if (!postsData || postsData.length === 0) {
+        return { data: [] }
+      }
+
+      // 3. 查詢用戶按讚狀態
+      let userLikedPostIds = new Set()
+
+      const { data: likesData, error: likesError } = await supabase
+        .from('post_likes')
+        .select('post_id')
+        .eq('user_id_int', userIdInt)
+        .in('post_id', bookmarkedPostIds)
+
+      if (likesError) console.error('[SocialService] Error fetching likes:', likesError)
+      if (likesData) {
+        likesData.forEach((l) => userLikedPostIds.add(l.post_id))
+      }
+
+      // 4. 格式化貼文資料
+      const posts = postsData.map((p) => {
+        const images =
+          p.post_images
+            ?.filter((pi) => !pi.is_deleted)
+            ?.sort((a, b) => a.display_order - b.display_order)
+            ?.map((pi) => pi.images?.url)
+            ?.filter(Boolean) || []
+
+        const likeCount = p.post_likes?.[0]?.count || 0
+        const commentCount = p.post_comments?.[0]?.count || 0
+
+        return {
+          id: p.id,
+          author: p.profiles?.nick_name || 'Unknown',
+          authorId: p.profiles?.user_id || '',
+          authorAvatar: p.profiles?.avatar_url || '',
+          content: p.content,
+          images: images,
+          audience: 'public',
+          isLiked: userLikedPostIds.has(p.id),
+          likeCount: likeCount,
+          commentCount: commentCount,
+          isBookmarked: true, // 收藏列表中的貼文都是已收藏的
+          createdAt: p.created_at,
+          isNew: false
+        }
+      })
+
+      return { data: posts }
+    } catch (error) {
+      console.error('❌ getBookmarkedPosts 發生錯誤:', error)
+      throw error
+    }
+  },
+
+  // ==========================================
   // 更新貼文 API
   // ==========================================
   updatePost: async (userId, postId, { content, images, audience }) => {

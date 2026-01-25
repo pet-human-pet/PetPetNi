@@ -17,10 +17,7 @@ export const usePostStore = defineStore('post', () => {
   const { error: showError } = useToast()
 
   const getErrorMessage = (err, fallback) =>
-    err?.response?.data?.error ||
-    err?.response?.data?.message ||
-    err?.message ||
-    fallback
+    err?.response?.data?.error || err?.response?.data?.message || err?.message || fallback
 
   const postsWithAuth = computed(() => {
     return posts.value.map((p) => ({
@@ -54,6 +51,22 @@ export const usePostStore = defineStore('post', () => {
       showError(getErrorMessage(err, '貼文載入失敗，請稍後再試'))
     } finally {
       isLoading.value = false
+    }
+  }
+
+  // 已收藏的貼文列表
+  const bookmarkedPosts = ref([])
+
+  const fetchBookmarkedPosts = async () => {
+    try {
+      const res = await socialApi.getBookmarkedPosts()
+      console.log('[fetchBookmarkedPosts] API response:', res)
+      const data = Array.isArray(res.data) ? res.data : res.data?.data || []
+      console.log('[fetchBookmarkedPosts] Processed data:', data)
+      bookmarkedPosts.value = data
+    } catch (err) {
+      console.error('[fetchBookmarkedPosts] Error:', err)
+      showError(getErrorMessage(err, '收藏貼文載入失敗，請稍後再試'))
     }
   }
 
@@ -143,8 +156,12 @@ export const usePostStore = defineStore('post', () => {
     try {
       if (post.isBookmarked) {
         await socialApi.bookmarkPost(id)
+        if (!bookmarkedPosts.value.find((p) => p.id === id)) {
+          bookmarkedPosts.value.unshift(post)
+        }
       } else {
         await socialApi.unbookmarkPost(id)
+        bookmarkedPosts.value = bookmarkedPosts.value.filter((p) => p.id !== id)
       }
     } catch (err) {
       post.isBookmarked = originalState
@@ -180,9 +197,11 @@ export const usePostStore = defineStore('post', () => {
   return {
     posts,
     postsWithAuth,
+    bookmarkedPosts,
     isLoading,
     pagination,
     fetchPosts,
+    fetchBookmarkedPosts,
     createPost,
     updatePost,
     likePost,
