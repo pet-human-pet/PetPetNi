@@ -41,7 +41,7 @@ const getIconUrl = (name) => {
             ? iconSizeClass
             : isList
               ? 'mr-4 h-10 w-10'
-              : 'mb-2 h-24 w-24 sm:h-28 sm:w-28'
+              : 'mb-2 h-24 w-24 sm:h-28 sm:w-28 md:h-52 md:max-h-[25vh] md:w-52'
         ]"
         :style="{
           animationDelay: animationDelay,
