@@ -46,8 +46,8 @@ const headerClasses = computed(() => [
 
 const containerClasses = computed(() => [
   'h-(--header-h) w-full mx-auto flex items-center justify-between relative',
-  // TODO: Magic Number: px-[30px], px-[50px], max-w-300 違反 Guide 5.3 (Magic Numbers)
-  isHomePage.value ? 'w-full px-[30px] md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
+  // TODO: Magic Number: px-[30px] 剛好等於首頁跑馬燈寬度，導致重疊，故增加為 px-12 (48px)
+  isHomePage.value ? 'w-full px-12 md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
 ])
 
 // 方法
