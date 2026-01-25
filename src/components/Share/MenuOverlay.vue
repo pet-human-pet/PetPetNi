@@ -58,48 +58,22 @@ const getIconUrl = (name) => {
       <BackgroundGrid class="pointer-events-none fixed inset-0 opacity-40" />
 
       <!-- 手機版佈局 -->
-      <div class="relative flex min-h-screen flex-col px-6 pt-24 pb-10 md:hidden">
-        <div class="pointer-events-auto mb-8 flex flex-col gap-6">
-          <div class="flex items-center justify-end">
-            <div class="mr-12 flex gap-2">
-              <!-- ✅ GitHub 連結 -->
-              <a
-                href="https://github.com/pet-human-pet/PetPetNi"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
-              >
-                GitHub
-              </a>
-              <!-- ✅ 登出按鈕（已登入時顯示） -->
-              <button
-                v-if="isLoggedIn"
-                type="button"
-                class="text-brand-primary flex items-center rounded bg-white px-3 py-2 text-xs font-bold transition-colors hover:bg-gray-100 sm:rounded-full"
-                @click="handleLogout"
-              >
-                登出
-              </button>
+      <div class="relative flex min-h-screen flex-col px-6 pt-20 pb-10 md:hidden">
+        <!-- 頂部標語區 (Header) -->
+        <div class="pointer-events-auto mb-10 border-b border-white/10 pb-6">
+          <div class="flex items-start gap-8">
+            <div class="writing-vertical-rl pt-1 text-[10px] tracking-widest text-white opacity-80">
+              PetPetNi 寵物社交平台
+            </div>
+            <div class="text-4xl leading-none font-bold tracking-widest text-white drop-shadow-md">
+              <div class="mb-1">Pet到</div>
+              <div>心坎裡</div>
             </div>
           </div>
         </div>
 
-        <!-- 垂直標語 -->
-        <div class="pointer-events-none absolute top-32 right-4 bottom-20 z-0 w-8">
-          <div
-            class="writing-vertical-rl flex h-full items-center justify-center text-3xl leading-none font-bold tracking-widest text-white opacity-20"
-          >
-            Pet到心坎裡
-          </div>
-          <div
-            class="writing-vertical-rl absolute top-0 right-full mr-2 h-auto text-xs tracking-widest text-white opacity-80"
-          >
-            PetPetNi 寵物社交平台
-          </div>
-        </div>
-
-        <!-- 選單項目 (手機版) -->
-        <div class="pointer-events-auto z-10 flex flex-1 flex-col gap-0 pr-10">
+        <!-- 選單項目 (Body) -->
+        <div class="pointer-events-auto z-10 flex flex-1 flex-col gap-0 pr-4">
           <NavIcon
             v-for="item in menuItems"
             :key="item.en"
@@ -119,6 +93,30 @@ const getIconUrl = (name) => {
               />
             </template>
           </NavIcon>
+        </div>
+
+        <!-- 底部按鈕區 (Footer) -->
+        <div class="pointer-events-auto mt-auto flex flex-col items-start gap-3 pt-10">
+          <!-- ✅ GitHub 連結 -->
+          <a
+            href="https://github.com/pet-human-pet/PetPetNi"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group text-brand-primary flex w-full max-w-[220px] items-center justify-between rounded-full bg-white px-8 py-3 text-sm font-bold transition-colors hover:bg-gray-100"
+          >
+            <span>GitHub</span>
+            <span class="text-lg transition-transform group-hover:translate-x-1">→</span>
+          </a>
+          <!-- ✅ 登出按鈕 (已登入時顯示) -->
+          <button
+            v-if="isLoggedIn"
+            type="button"
+            class="group text-brand-primary flex w-full max-w-[220px] items-center justify-between rounded-full bg-white px-8 py-3 text-sm font-bold transition-colors hover:bg-gray-100"
+            @click="handleLogout"
+          >
+            <span class="tracking-widest">登出</span>
+            <span class="text-lg transition-transform group-hover:translate-x-1">→</span>
+          </button>
         </div>
       </div>
 
