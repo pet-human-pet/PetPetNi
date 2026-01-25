@@ -17,6 +17,8 @@ import { useEventMapStore } from '@/stores/EventMap'
 import { useFavoritesStore } from '@/stores/favorites'
 import { usePostStore } from '@/stores/usePostStore'
 import { getStatusBadge } from '@/utils/statusHelper'
+import defaultAvatar01 from '@/assets/images/avatar-cat.jpg'
+import defaultAvatar02 from '@/assets/images/avatar-dog.jpg'
 
 // Auth Store
 const authStore = useAuthStore()
@@ -67,6 +69,10 @@ const currentEvents = computed(() => {
 const confirmDialogRef = ref(null)
 const isDeleting = ref(false)
 
+const fallbackAvatar = ref(
+  [defaultAvatar01, defaultAvatar02][Math.floor(Math.random() * 2)]
+)
+
 const modalOverlayClass =
   'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
 
@@ -74,7 +80,7 @@ const profileDisplay = computed(() => {
   if (!userProfile.value) return {}
 
   return {
-    avatar: userProfile.value.avatar_url || 'https://via.placeholder.com/150',
+    avatar: userProfile.value.avatar_url || fallbackAvatar.value,
     name: userProfile.value.nick_name || user.value?.email,
     username: `@${userProfile.value.user_id_int || 'user'}`,
     hashtags: tags.value || [],
