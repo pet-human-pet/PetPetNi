@@ -142,7 +142,7 @@ export const followService = {
       .select(
         `
         follower_id_int,
-        profiles:follower_id_int (
+        profiles!follows_follower_fkey (
           user_id_int,
           nick_name,
           avatar_url
@@ -179,7 +179,7 @@ export const followService = {
       .select(
         `
         following_id_int,
-        profiles:following_id_int (
+        profiles!follows_following_fkey (
           user_id_int,
           nick_name,
           avatar_url
