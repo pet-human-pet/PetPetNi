@@ -188,8 +188,6 @@ export const userController = {
       }
 
       // ========== 6. 建立 Pet ==========
-
-      // ========== 6. 建立 Pet ==========
       const { data: petData, error: petError } = await supabase
         .from('pets')
         .insert({
