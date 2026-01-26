@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
   const tags = ref([]) // 寵物標籤
   const token = ref(null)
   const isLoading = ref(false)
+  const isReady = ref(false) // 初始化狀態
   const error = ref(null)
   const tempOAuthData = ref(null)
   const hasPet = ref(false)
@@ -23,6 +24,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Actions
   const initAuth = async () => {
+    // 防止重複初始化
+    if (isReady.value) return
+
     const savedToken = localStorage.getItem('token')
     if (savedToken) {
       token.value = savedToken
@@ -49,6 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
         logout(false) // 傳入 false 代表不呼叫 API，只清本地
       }
     }
+    isReady.value = true
   }
 
   const register = async (email, password) => {
@@ -332,6 +337,7 @@ export const useAuthStore = defineStore('auth', () => {
     hasPet,
     isPetOwner,
     setHasPet,
-    fetchProfile
+    fetchProfile,
+    isReady
   }
 })
