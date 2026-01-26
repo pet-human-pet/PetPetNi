@@ -1,14 +1,15 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat.js'
 import { useToast } from '@/composables/useToast'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useScrollLock } from '@vueuse/core'
 import ChatNavigation from '@/components/Chat/ChatNavigation.vue'
 import ChatListSection from '@/components/Chat/ChatListSection.vue'
 import ChatMessageArea from '@/components/Chat/ChatMessageArea.vue'
 
 const router = useRouter()
+const route = useRoute()
 const store = useChatStore()
 const toast = useToast()
 const isMoreMenuOpen = ref(false)
@@ -23,6 +24,26 @@ const goToPage = (routeName) => {
   }
   router.push({ name: routeName })
 }
+
+onMounted(async () => {
+  const roomId = route.params.roomId
+  if (roomId) {
+    try {
+      // 根據 ID 開啟對話
+      await store.openChat(roomId)
+
+      // 二次檢查：如果開啟後 activeChatId 仍為 null (代表找不到)
+      if (!store.activeChatId) {
+        throw new Error('Room not found')
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('⚠️ Invalid Room ID or join failed:', err)
+      toast.error('找不到該聊天室，已回到列表')
+      router.replace({ name: 'chat' }) // 導回列表模式 (無參數)
+    }
+  }
+})
 </script>
 
 <template>
