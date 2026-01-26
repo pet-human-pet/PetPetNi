@@ -10,6 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
   const userIdInt = ref(null) // 用戶自增 ID（主要識別碼）
   const token = ref(null)
   const isLoading = ref(false)
+  const isReady = ref(false) // 初始化狀態
   const error = ref(null)
   const tempOAuthData = ref(null)
   const hasPet = ref(false)
@@ -19,6 +20,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Actions
   const initAuth = async () => {
+    // 防止重複初始化
+    if (isReady.value) return
+
     const savedToken = localStorage.getItem('token')
     if (savedToken) {
       token.value = savedToken
@@ -41,6 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('token')
       }
     }
+    isReady.value = true
   }
 
   const register = async (email, password) => {
@@ -284,6 +289,7 @@ export const useAuthStore = defineStore('auth', () => {
     checkProfileExists,
     hasPet,
     isPetOwner,
-    setHasPet
+    setHasPet,
+    isReady
   }
 })
