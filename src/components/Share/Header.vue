@@ -37,9 +37,9 @@ const headerClasses = computed(() => [
   'h-(--header-h) fixed left-0 z-50 w-full transition-all duration-300',
   props.transparent || uiStore.isMenuOpen
     ? 'bg-transparent border-none shadow-none'
-    : 'bg-white border-b border-border-default shadow-shadow-card',
+    : 'bg-white border-b border-border-default/50 shadow-shadow-card',
   // TODO: Magic Number: top-[36px] 為跑馬燈高度，應抽成 CSS 變數 --marquee-h
-  isHomePage.value ? 'top-[36px]' : 'top-0',
+  isHomePage.value ? 'md:top-9 top-4' : 'top-0',
   // Menu 開啟時讓 Header 背景不擋住點擊，但 MenuButton 需設為 auto
   uiStore.isMenuOpen ? 'pointer-events-none' : ''
 ])
@@ -81,14 +81,14 @@ function handleLogoClick() {
           <router-link
             v-show="!uiStore.isMenuOpen"
             :to="{ name: 'login', query: { mode: 'register' } }"
-            class="hover:text-brand-primary text-brand-primary flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-bold tracking-wider transition-colors duration-300 hover:bg-gray-50"
+            class="hover:text-brand-primary text-brand-primary flex items-center justify-center rounded-full shadow-card bg-white px-3 py-2 text-sm font-bold tracking-wider transition-colors duration-300 hover:bg-gray-50 md:px-5 md:py-3"
           >
             註冊
           </router-link>
           <router-link
             v-show="!uiStore.isMenuOpen"
             :to="{ name: 'login' }"
-            class="bg-brand-primary hover:bg-brand-primary/80 flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold tracking-wider text-white transition-colors duration-300"
+            class="bg-brand-primary hover:bg-brand-primary/80 shadow-card flex items-center justify-center rounded-full px-3 py-2 text-sm font-bold tracking-wider text-white transition-colors duration-300 md:px-5 md:py-3"
           >
             登入
           </router-link>

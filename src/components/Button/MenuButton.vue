@@ -10,13 +10,14 @@ function handleClick() {
 
 <template>
   <button
-    class="group relative flex h-14 w-14 flex-col items-center justify-center overflow-hidden rounded-full transition-transform duration-300 hover:scale-110 active:scale-95"
+    class="group relative flex h-14 w-14 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-full transition-transform duration-300 hover:scale-110 active:scale-95"
+    :class="uiStore.isMenuOpen ? ' translate-y-2' : ''"
     type="button"
     @click="handleClick"
   >
     <!-- 背景動畫層 -->
     <div
-      class="absolute inset-0 origin-center rounded-full bg-white transition-all duration-300"
+      class="absolute inset-0 origin-center rounded-full transition-all duration-300"
       :class="uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'scale-0 group-hover:scale-150'"
     ></div>
 
@@ -29,27 +30,34 @@ function handleClick() {
         class="menu-line bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
           uiStore.isMenuOpen
-            ? 'translate-y-[5px] rotate-45 md:translate-y-[7px]'
+            ? 'translate-y-[5px] rotate-45 bg-white md:translate-y-[7px]'
             : 'group-hover:translate-y-[5px] group-hover:rotate-45 md:group-hover:translate-y-[7px]'
         "
       ></span>
       <span
         class="bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
-          uiStore.isMenuOpen ? 'scale-0 opacity-0' : 'group-hover:scale-0 group-hover:opacity-0'
+          uiStore.isMenuOpen
+            ? 'scale-0 bg-white opacity-0'
+            : 'group-hover:scale-0 group-hover:opacity-0'
         "
       ></span>
       <span
         class="menu-line bg-brand-primary h-0.5 w-full origin-center rounded-full transition-all duration-300"
         :class="
           uiStore.isMenuOpen
-            ? '-translate-y-[5px] -rotate-45 md:-translate-y-[7px]'
+            ? '-translate-y-[5px] -rotate-45 bg-white md:-translate-y-[7px]'
             : 'group-hover:-translate-y-[5px] group-hover:-rotate-45 md:group-hover:-translate-y-[7px]'
         "
       ></span>
     </div>
 
     <!-- 文字標籤 -->
-    <span class="menu-text text-brand-primary relative z-10 mt-1 text-xs font-bold"> MENU </span>
+    <span
+      class="menu-text text-brand-primary relative z-10 mt-1 text-xs font-bold transition-all duration-300"
+      :class="uiStore.isMenuOpen ? 'text-white' : ''"
+    >
+      MENU
+    </span>
   </button>
 </template>

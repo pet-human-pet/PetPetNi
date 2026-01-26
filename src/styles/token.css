@@ -141,8 +141,8 @@
   --shadow-dialog: 0 5px 10px rgba(0, 0, 0, 0.1);
 
   /* Header 高度定義 */
-  --header-height-desktop: 86px;
-  --header-height-mobile: 74px;
+  --header-height-desktop: 62px;
+  --header-height-mobile: 70px;
 }
 
 /* 全站預設，讓大家不用每個地方都重複寫 */
