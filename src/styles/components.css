@@ -477,6 +477,6 @@
   }
 
   .c-btn-back {
-    @apply text-fg-muted hover:text-brand-primary z-10 cursor-pointer transition-transform duration-200 ease-out will-change-transform hover:-translate-x-1 
+    @apply text-fg-muted hover:text-brand-primary z-10 cursor-pointer transition-transform duration-200 ease-out will-change-transform hover:-translate-x-1
   }
 }

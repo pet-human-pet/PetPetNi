@@ -184,8 +184,7 @@ const isDeleting = ref(false)
 
 const fallbackAvatar = ref([defaultAvatar01, defaultAvatar02][Math.floor(Math.random() * 2)])
 
-const modalOverlayClass =
-  'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+const modalOverlayClass = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
 
 const profileDisplay = computed(() => {
   // 如果是查看他人頁面
@@ -411,6 +410,7 @@ const fetchMyFollowCounts = async () => {
     myFollowingCount.value = res.data.data.followingCount
   } catch (error) {
     console.error('❌ 取得追蹤數失敗:', error)
+    showError('取得追蹤數失敗，請稍後再試')
   }
 }
 
