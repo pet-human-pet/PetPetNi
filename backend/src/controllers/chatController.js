@@ -211,5 +211,129 @@ export const chatController = {
       console.error('❌ Error fetching members:', error)
       res.status(500).json({ success: false, message: '取得成員列表失敗' })
     }
+  },
+
+  /**
+   * 取得單一聊天室資料
+   * GET /api/chat/rooms/:roomId
+   */
+  async getRoom(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { roomId } = req.params
+      const room = await chatService.getRoomByIdWithKnockStatus(roomId, user.userIdInt)
+
+      if (!room) {
+        return res.status(404).json({ success: false, message: '找不到該聊天室' })
+      }
+
+      res.status(200).json({ success: true, data: room })
+    } catch (error) {
+      console.error('❌ Error fetching room:', error)
+      res.status(500).json({ success: false, message: '取得聊天室失敗' })
+    }
+  },
+
+  // ========================================
+  // 敲敲門功能
+  // ========================================
+
+  /**
+   * 接受敲敲門
+   * POST /api/chat/knock/:roomId/accept
+   */
+  async acceptKnock(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { roomId } = req.params
+      await chatService.acceptKnock(roomId, user.userIdInt)
+
+      res.status(200).json({ success: true, message: '已接受敲敲門' })
+    } catch (error) {
+      console.error('❌ Error accepting knock:', error)
+      const message = error.message === '無效的操作' ? error.message : '接受敲敲門失敗'
+      res.status(error.message === '無效的操作' ? 400 : 500).json({
+        success: false,
+        message
+      })
+    }
+  },
+
+  /**
+   * 拒絕敲敲門
+   * POST /api/chat/knock/:roomId/reject
+   */
+  async rejectKnock(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { roomId } = req.params
+      await chatService.rejectKnock(roomId, user.userIdInt)
+
+      res.status(200).json({ success: true, message: '已拒絕敲敲門' })
+    } catch (error) {
+      console.error('❌ Error rejecting knock:', error)
+      res.status(500).json({ success: false, message: '拒絕敲敲門失敗' })
+    }
+  },
+
+  /**
+   * 確認成為好友
+   * POST /api/chat/knock/:roomId/confirm-friend
+   */
+  async confirmFriend(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { roomId } = req.params
+      const result = await chatService.confirmFriend(roomId, user.userIdInt)
+
+      res.status(200).json({
+        success: true,
+        isFriend: result.isFriend,
+        message: result.isFriend ? '恭喜成為好友！' : '已送出好友邀請，等待對方確認'
+      })
+    } catch (error) {
+      console.error('❌ Error confirming friend:', error)
+      res.status(500).json({ success: false, message: '確認好友失敗' })
+    }
+  },
+
+  /**
+   * 更新敲敲門訊息計數（發送訊息後呼叫）
+   * POST /api/chat/knock/:roomId/increment-count
+   */
+  async incrementKnockCount(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { roomId } = req.params
+      const result = await chatService.incrementKnockMessageCount(roomId, user.userIdInt)
+
+      res.status(200).json({
+        success: true,
+        data: result
+      })
+    } catch (error) {
+      console.error('❌ Error incrementing knock count:', error)
+      res.status(500).json({ success: false, message: '更新訊息計數失敗' })
+    }
   }
 }

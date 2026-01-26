@@ -2,7 +2,10 @@
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat.js'
 import { useToast } from '@/composables/useToast'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
 import { useScrollLock } from '@vueuse/core'
 import ChatNavigation from '@/components/Chat/ChatNavigation.vue'
 import ChatListSection from '@/components/Chat/ChatListSection.vue'
@@ -23,6 +26,27 @@ const goToPage = (routeName) => {
   }
   router.push({ name: routeName })
 }
+
+// 監聽網址變化，自動同步開啟的聊天室
+watch(
+  () => route.params.roomId,
+  (newId) => {
+    if (newId && newId !== store.activeChatId) {
+      store.openChat(newId)
+    }
+  },
+  { immediate: true }
+)
+
+// 同步 Store 到 URL
+watch(
+  () => store.activeChatId,
+  (newId) => {
+    if (newId && route.params.roomId !== newId) {
+      router.replace({ name: 'chat', params: { roomId: newId } })
+    }
+  }
+)
 </script>
 
 <template>

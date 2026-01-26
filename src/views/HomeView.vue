@@ -40,7 +40,7 @@ const items = [
     labelEn: 'CHAT',
     labelZh: '聊天',
     iconName: '聊天區.webp',
-    routeName: 'chat-test',
+    routeName: 'chat',
     gridClass: 'col-start-1 row-start-4 row-span-3',
     textPosition:
       'bottom-[22%] right-[25%] md:bottom-0 md:right-[20%] lg:bottom-[-10%] lg:right-[15%]',

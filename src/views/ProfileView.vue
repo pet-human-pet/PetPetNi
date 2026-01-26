@@ -22,6 +22,7 @@ import defaultAvatar01 from '@/assets/images/avatar-cat.jpg'
 import defaultAvatar02 from '@/assets/images/avatar-dog.jpg'
 import { followApi } from '@/api/follow'
 import { profileApi } from '@/api/profile'
+import { useChatStore } from '@/stores/chat'
 
 // Route
 const route = useRoute()
@@ -30,6 +31,9 @@ const router = useRouter()
 // Auth Store
 const authStore = useAuthStore()
 const { user, profile: userProfile, pet, tags } = storeToRefs(authStore)
+
+// Chat Store
+const chatStore = useChatStore()
 
 // ==========================================
 // 判斷是否為自己的頁面
@@ -59,8 +63,7 @@ const fetchOtherUserProfile = async (userIdInt) => {
     isLoadingProfile.value = true
     const profilePromise = followApi.getPublicProfile(userIdInt)
     // 追蹤狀態允許失敗
-    const statusPromise = followApi.getFollowStatus(userIdInt).catch((err) => {
-      console.warn('⚠️ 無法取得追蹤狀態:', err)
+    const statusPromise = followApi.getFollowStatus(userIdInt).catch(() => {
       return { data: { data: { isFollowing: false } } }
     })
     // 載入該用戶的貼文
@@ -71,7 +74,7 @@ const fetchOtherUserProfile = async (userIdInt) => {
     otherUserData.value = profileRes.data.data
     isFollowing.value = statusRes.data.data.isFollowing
   } catch (error) {
-    console.error('❌ 取得其他用戶資料失敗:', error)
+    // Silently fail or handle error UI
   } finally {
     isLoadingProfile.value = false
   }
@@ -109,6 +112,22 @@ const handleToggleFollow = async () => {
     console.error('❌ 追蹤操作失敗:', error)
   } finally {
     isFollowLoading.value = false
+  }
+}
+
+// 開始聊天
+const handleStartChat = async () => {
+  if (!targetUserIdInt.value || isLoadingProfile.value) return
+
+  try {
+    const result = await chatStore.startPrivateChat(targetUserIdInt.value)
+    if (result.success) {
+      router.push({ name: 'chat' })
+    } else {
+      showError(result.error || '無法開啟聊天室')
+    }
+  } catch (error) {
+    showError('無法開啟聊天室')
   }
 }
 
@@ -260,9 +279,7 @@ const isAboutVisible = ref(true)
 
 // 處理貼文分頁點擊
 const handlePostTabClick = (tabId) => {
-  console.log('handlePostTabClick:', tabId, '-> setting activeSubTab')
   activeSubTab.value = tabId
-  console.log('activeSubTab is now:', activeSubTab.value)
 }
 
 const showCropper = ref(false)
@@ -307,7 +324,6 @@ const syncTagsToProfile = async () => {
 
     showSuccess('標籤設定已儲存')
   } catch (err) {
-    console.error('❌ 更新標籤失敗:', err)
     showError('儲存失敗，請稍後再試')
   }
 }
@@ -424,13 +440,9 @@ const handleCropConfirm = (blob) => {
     userProfile.value.avatar_url = newAvatarUrl
   }
 
-  // TODO: Upload blob to server
-  console.log('Update avatar blob:', blob)
-
   showCropper.value = false
   cleanupTempImage()
 }
-
 const handleCropCancel = () => {
   showCropper.value = false
   cleanupTempImage()
@@ -500,7 +512,7 @@ const fetchMyEvents = async () => {
     const events = await eventStore.fetchMyEvents()
     createdEvents.value = events
   } catch (error) {
-    console.error('❌ 載入我的活動失敗:', error)
+    // Error logged in store
   }
 }
 
@@ -509,7 +521,7 @@ const fetchMyParticipatedEvents = async () => {
     const events = await eventStore.fetchMyParticipatedEvents()
     participatedEvents.value = events
   } catch (error) {
-    console.error('❌ 載入參加的活動失敗:', error)
+    // Error logged in store
   }
 }
 
@@ -635,6 +647,7 @@ onUnmounted(() => {
               @open-user-list="openUserList"
               @update-avatar="handleFileChange"
               @toggle-follow="handleToggleFollow"
+              @start-chat="handleStartChat"
               @back-to-my-profile="router.push({ name: 'Profile' })"
             />
           </div>

@@ -10,6 +10,9 @@ const router = express.Router()
 // 取得使用者的所有聊天室
 router.get('/rooms', chatController.getRooms)
 
+// 取得單一個聊天室
+router.get('/rooms/:roomId', chatController.getRoom)
+
 // 取得房間成員
 router.get('/rooms/:roomId/members', chatController.getRoomMembers)
 
@@ -35,5 +38,21 @@ router.post('/group/:roomId/members', chatController.addMembers)
 
 // 移除群組成員
 router.delete('/group/:roomId/members/:userId', chatController.removeMember)
+
+// ========================================
+// 敲敲門功能
+// ========================================
+
+// 接受敲敲門
+router.post('/knock/:roomId/accept', chatController.acceptKnock)
+
+// 拒絕敲敲門
+router.post('/knock/:roomId/reject', chatController.rejectKnock)
+
+// 確認成為好友
+router.post('/knock/:roomId/confirm-friend', chatController.confirmFriend)
+
+// 更新敲敲門訊息計數
+router.post('/knock/:roomId/increment-count', chatController.incrementKnockCount)
 
 export default router
