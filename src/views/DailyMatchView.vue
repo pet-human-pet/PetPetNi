@@ -50,30 +50,55 @@
           <MatchResultCard :match-data="matchResult" @go-to-chat="handleGoToChat" />
         </div>
       </main>
+
+      <!-- 非飼主提示 Modal (強制性) -->
+      <Teleport to="body">
+        <div v-if="showNonOwnerModal" class="modal-overlay">
+          <div class="modal-card">
+            <div class="modal-icon">🏠</div>
+            <h3 class="modal-title">配對功能僅限飼主使用</h3>
+            <p class="modal-desc">
+              您目前的身分是雲鏟屎官。<br />
+              想要開始配對，請先為您的毛孩建立檔案！
+            </p>
+            <div class="modal-actions">
+              <button class="modal-btn secondary" @click="goHome">回首頁</button>
+              <button class="modal-btn primary" @click="goToRegister">前往註冊寵物資料</button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useMatchingStore } from '@/stores/matching'
+import { useAuthStore } from '@/stores/auth'
 import { useMatching } from '@/composables/useMatching'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import CardPackSelector from '@/components/Matching/CardPackSelector.vue'
 import MatchResultCard from '@/components/Matching/MatchResultCard.vue'
-
-// Mock Data - TODO: 實際應從 API 取得
-import { mockPets } from '@/utils/matchingMock'
+import { useToast } from '@/composables/useToast'
 
 // Store 初始化
+const router = useRouter()
 const matchingStore = useMatchingStore()
 const { matchResult, canMatch, performMatch, goToChat } = useMatching()
+const authStore = useAuthStore()
+// Ensure auth data is ready (especially hasPet)
+// Note: authStore.initAuth() is called in App.vue, but we might want to ensure it's loaded.
+// However, checking isPetOwner in onMounted should be fine if auth state is persisted.
+const toast = useToast()
 
 // State
 const stage = ref('selection')
 const displayCard = ref(null)
 const isTilting = ref(false)
 const timeUntilReset = ref('')
+const showNonOwnerModal = ref(false) // 非飼主提示彈窗
 
 // 3D Tilt 常數
 const MAX_TILT = 15
@@ -93,6 +118,14 @@ function calculateTimeUntilReset() {
 }
 
 // Methods
+function goHome() {
+  router.push({ name: 'home' })
+}
+
+function goToRegister() {
+  router.push({ name: 'login', query: { mode: 'pet-onboarding' } })
+}
+
 async function handleCardSelect() {
   // 檢查是否可以配對（今日已配對過）
   if (!canMatch.value) {
@@ -105,18 +138,41 @@ async function handleCardSelect() {
   stage.value = 'display'
 
   try {
-    // 執行配對（背景處理）
-    const result = await performMatch(mockPets)
-    matchResult.value = result
+    // 執行配對（呼叫後端 API）
+    const result = await performMatch()
+    // result 已經是包含 roomId 的完整物件
+    matchResult.value = result // performMatch 內部也會更新 matchResult，這裡再次確保
     // eslint-disable-next-line no-console
-    console.log('✨ Match result:', result) // 保留：後端開發需要檢查 API 回傳
+    console.log('✨ Match result:', result)
   } catch (err) {
     // 處理配對錯誤
     // eslint-disable-next-line no-console
     console.error('❌ Match error:', err)
     stage.value = 'selection'
-    // TODO: 使用 Toast 顯示錯誤訊息
-    alert('配對過程發生錯誤，請重試')
+
+    // [Optimization] 處理特定錯誤
+    // 1. 無寵物資料 -> 導向 Onboarding
+    if (err.response?.data?.code === 'NO_PET_DATA') {
+      toast.error('您尚未建立寵物資料，請先完成設定！')
+      router.push({ name: 'Profile' }) // 假設 Profile 頁面包含 Onboarding
+      return
+    }
+
+    // 2. 每日限制 -> 顯示倒數
+    if (err.response?.data?.code === 'MATCH_LIMIT_REACHED') {
+      toast.info('今日配對次數已達上限！')
+      stage.value = 'cooldown'
+      calculateTimeUntilReset()
+      return
+    }
+
+    // 3. 網絡錯誤
+    if (err.code === 'ERR_NETWORK' || err.message.includes('Network')) {
+      toast.error('網路連線不穩，請檢查連線後重試 📶')
+      return
+    }
+
+    toast.error(err.response?.data?.error || err.message || '配對過程發生錯誤，請重試')
   }
 }
 
@@ -126,7 +182,7 @@ function viewLastMatch() {
     matchResult.value = lastMatch
     stage.value = 'result'
   } else {
-    alert('沒有配對記錄')
+    toast.info('沒有配對記錄')
   }
 }
 
@@ -180,14 +236,25 @@ function resetTilt() {
 }
 
 function handleGoToChat() {
-  if (!matchResult.value) return
-  goToChat(matchResult.value.pet.id)
+  if (!matchResult.value?.roomId) {
+    console.error('No roomId in match result')
+    return
+  }
+  goToChat(matchResult.value.roomId)
 }
 
 // Lifecycle
 onMounted(() => {
   // 載入之前的配對記錄（用於檢查是否已配對）
   matchingStore.loadFromStorage()
+
+  // 檢查是否為飼主（擁有寵物）
+  if (!authStore.isPetOwner) {
+    // 顯示提示並開啟彈窗，不再自動跳轉
+    toast.info('配對功能僅限飼主使用')
+    showNonOwnerModal.value = true
+    return
+  }
 
   // 如果今日已配對，顯示 cooldown 頁面
   if (!canMatch.value) {
@@ -512,5 +579,83 @@ onMounted(() => {
   .displayed-card::after {
     display: none;
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-card {
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-card);
+  padding: 2rem;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: var(--shadow-dialog);
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-fg-primary);
+  margin-bottom: 0.75rem;
+}
+
+.modal-desc {
+  color: var(--color-fg-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modal-btn {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-btn);
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  flex: 1;
+  transition: all 0.2s;
+}
+
+.modal-btn.primary {
+  background: var(--color-brand-primary);
+  color: white;
+}
+
+.modal-btn.secondary {
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-default);
+  color: var(--color-fg-primary);
+}
+
+.modal-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 </style>
