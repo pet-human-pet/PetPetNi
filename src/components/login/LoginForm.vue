@@ -31,14 +31,17 @@ const password = ref('')
 const showPassword = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
+const loginFailed = ref(false)
 
 // 監聽輸入變化，清除錯誤訊息
 watch(email, () => {
   emailError.value = ''
+  loginFailed.value = false
 })
 
 watch(password, () => {
   passwordError.value = ''
+  loginFailed.value = false
 })
 
 const togglePassword = () => {
@@ -72,6 +75,7 @@ const handleLogin = async () => {
   // 清空錯誤訊息
   emailError.value = ''
   passwordError.value = ''
+  loginFailed.value = false
 
   // 驗證 Email
   if (!email.value) {
@@ -106,6 +110,7 @@ const handleLogin = async () => {
     }
   } catch (error) {
     // 顯示錯誤訊息
+    loginFailed.value = true
     if (error.response?.data?.error) {
       emailError.value = error.response.data.error
     } else {
@@ -191,6 +196,7 @@ const handleLogin = async () => {
           v-model="password"
           :type="showPassword ? 'text' : 'password'"
           :error="passwordError"
+          :invalid="loginFailed"
           placeholder="Password"
           input-class="pr-12"
         >
