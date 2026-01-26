@@ -86,6 +86,15 @@ export const userController = {
         errors.push('手機號碼格式不正確')
       }
 
+      // 身分驗證 (簡單檢查)
+      const validRoles = ['owner', 'cloud'] // 根據 RoleSelection.vue
+      if (role && !validRoles.includes(role)) {
+        // 若傳入不合法的 role，可以選擇報錯或忽略，這裡選擇忽略並預設，或報錯
+        // 為避免卡住流程，若不合法可暫不處理或視為 null
+        // 但為了嚴謹，若有傳 role 但不合法則報錯
+        errors.push('無效的身分角色')
+      }
+
       // 寵物資料驗證 (僅當有提供 pet 時)
       if (pet) {
         if (!pet.name?.trim()) errors.push('請提供寵物名稱')
@@ -130,6 +139,21 @@ export const userController = {
       }
 
       // ========== 5. 建立 Profile ==========
+      const profileData = {
+        user_id: user.id,
+        real_name: sanitizeString(realName),
+        nick_name: sanitizeString(nickName),
+        phone: phone.trim(),
+        city: city ? sanitizeString(city) : null,
+        district: district ? sanitizeString(district) : null,
+        gender: gender === 'secret' ? null : gender
+      }
+
+      // 如果有傳入 role，則加入寫入
+      if (role) {
+        profileData.role = role
+      }
+
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .upsert(

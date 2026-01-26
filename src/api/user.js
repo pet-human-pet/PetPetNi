@@ -15,6 +15,7 @@ export const userApi = {
    * @param {string} data.pet.breed - 品種
    * @param {string} data.pet.birthday - 生日
    * @param {string} data.pet.gender - 性別 (male/female)
+   * @param {string} data.role - 用戶身分 (owner/cloud)
    * @param {string[]} data.optionalTags - 標籤陣列
    * @param {string} data.avatarUrl - 大頭貼網址
    * @returns {Promise}
