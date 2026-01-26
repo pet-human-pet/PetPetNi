@@ -185,7 +185,7 @@ const isDeleting = ref(false)
 const fallbackAvatar = ref([defaultAvatar01, defaultAvatar02][Math.floor(Math.random() * 2)])
 
 const modalOverlayClass =
-  'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
+  'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
 
 const profileDisplay = computed(() => {
   // 如果是查看他人頁面
@@ -479,8 +479,15 @@ const fetchUserList = async (type) => {
 const openUserList = async (type) => {
   await fetchUserList(type)
   userListTitle.value = type === 'followers' ? '粉絲名單' : '追蹤中名單'
-  currentUserList.value = type === 'followers' ? followersList : followingList
+  currentUserList.value =
+    type === 'followers' ? followersList.value : followingList.value
   showUserList.value = true
+}
+
+const handleViewProfile = (userIdInt) => {
+  if (!userIdInt) return
+  showUserList.value = false
+  router.push({ name: 'Profile', params: { userIdInt } })
 }
 
 const openDetail = (item) => {
@@ -849,6 +856,7 @@ onUnmounted(() => {
         :visible="showUserList"
         :title="userListTitle"
         :user-list="currentUserList"
+        @view-profile="handleViewProfile"
         @close="showUserList = false"
       />
 
