@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps({
+defineProps({
   visible: {
     type: Boolean,
     required: true
@@ -11,6 +11,10 @@ const props = defineProps({
   userList: {
     type: Array,
     default: () => []
+  },
+  listType: {
+    type: String,
+    default: ''
   }
 })
 
@@ -34,7 +38,13 @@ const modalOverlayClass = 'fixed inset-0 z-50 flex items-center justify-center b
         </div>
         <div class="scrollbar max-h-96 overflow-y-auto">
           <div v-if="userList.length === 0" class="text-fg-muted py-10 text-center">
-            {{ title === '粉絲名單' ? '沒有追蹤者' : '沒有追蹤人' }}
+            {{
+              listType === 'followers'
+                ? '沒有追蹤者'
+                : listType === 'following'
+                  ? '沒有追蹤人'
+                  : '沒有名單'
+            }}
           </div>
           <div v-else class="space-y-4">
             <div
@@ -53,7 +63,7 @@ const modalOverlayClass = 'fixed inset-0 z-50 flex items-center justify-center b
               </div>
               <button
                 class="bg-btn-primary cursor-pointer rounded-full border-2 px-4 py-2 text-sm text-white"
-                @click="emit('view-profile', user.id)"
+                @click.stop="emit('view-profile', user.id)"
               >
                 查看
               </button>

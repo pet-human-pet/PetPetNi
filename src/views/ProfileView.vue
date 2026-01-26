@@ -272,7 +272,14 @@ const tempImageSrc = ref('')
 const showTagPicker = ref(false)
 const showUserList = ref(false)
 const userListTitle = ref('')
-const currentUserList = ref([])
+const userListType = ref('')
+const currentUserList = computed(() =>
+  userListType.value === 'followers'
+    ? followersList.value
+    : userListType.value === 'following'
+      ? followingList.value
+      : []
+)
 
 const {
   requiredSelections,
@@ -314,7 +321,6 @@ const myPosts = computed(() => {
 })
 
 // 儲存的貼文 (從 postStore.bookmarkedPosts 取得已收藏的貼文)
-// 儲存的貼文 (從 postStore.bookmarkedPosts 取得已收藏的貼文)
 const savedPosts = computed(() => {
   return postStore.bookmarkedPosts
 })
@@ -340,16 +346,6 @@ const postTabs = computed(() => {
     { id: 'saved', label: '儲存的貼文', padding: 'px-6 md:px-10' }
   ]
 })
-
-// 發布貼文
-const handlePostSubmit = async (payload) => {
-  try {
-    await postStore.createPost(payload.content, payload.images, payload.audience)
-    showSuccess('貼文已發布')
-  } catch {
-    // 錯誤已由 store 統一處理
-  }
-}
 
 // 按讚
 const toggleLike = async (postId) => {
@@ -479,8 +475,7 @@ const fetchUserList = async (type) => {
 const openUserList = async (type) => {
   await fetchUserList(type)
   userListTitle.value = type === 'followers' ? '粉絲名單' : '追蹤中名單'
-  currentUserList.value =
-    type === 'followers' ? followersList.value : followingList.value
+  userListType.value = type
   showUserList.value = true
 }
 
@@ -856,6 +851,7 @@ onUnmounted(() => {
         :visible="showUserList"
         :title="userListTitle"
         :user-list="currentUserList"
+        :list-type="userListType"
         @view-profile="handleViewProfile"
         @close="showUserList = false"
       />
