@@ -38,7 +38,7 @@ const modalOverlayClass = 'fixed inset-0 z-50 flex items-center justify-center b
           </button>
         </div>
         <div class="scrollbar max-h-96 overflow-y-auto">
-          <div v-if="userList.length === 0" class="text-fg-muted py-15 md:py-20 text-center">
+          <div v-if="userList.length === 0" class="text-fg-muted py-15 text-center md:py-20">
             {{ title === '粉絲名單' ? '沒有追蹤者' : '沒有追蹤人' }}
           </div>
           <div v-else class="space-y-4">
@@ -59,6 +59,7 @@ const modalOverlayClass = 'fixed inset-0 z-50 flex items-center justify-center b
               <button
                 class="bg-btn-primary cursor-pointer rounded-full border-2 px-3 py-1.5 text-sm text-white md:px-4 md:py-2"
                 @click="emit('view-profile', user.id)"
+                @click.stop="emit('view-profile', user.id)"
               >
                 查看
               </button>
