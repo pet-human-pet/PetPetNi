@@ -86,12 +86,14 @@ export const userController = {
         errors.push('手機號碼格式不正確')
       }
 
-      // 寵物資料驗證
-      if (!pet?.name?.trim()) errors.push('請提供寵物名稱')
-      if (!pet?.type) {
-        errors.push('請提供寵物類型')
-      } else if (!isValidPetType(pet.type)) {
-        errors.push('寵物類型不正確')
+      // 寵物資料驗證 (僅當有提供 pet 時)
+      if (pet) {
+        if (!pet.name?.trim()) errors.push('請提供寵物名稱')
+        if (!pet.type) {
+          errors.push('請提供寵物類型')
+        } else if (!isValidPetType(pet.type)) {
+          errors.push('寵物類型不正確')
+        }
       }
 
       // optionalTags 驗證
@@ -109,19 +111,22 @@ export const userController = {
       }
 
       // ========== 4. 檢查是否已完成 Onboarding ==========
-      const { data: existingPet } = await supabase
-        .from('pets')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
+      // 如果這次請求包含 pet，才檢查是否已有 pet
+      if (pet) {
+        const { data: existingPet } = await supabase
+          .from('pets')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .single()
 
-      if (existingPet) {
-        console.warn('⚠️ 用戶已完成 Onboarding:', user.id)
-        return res.status(409).json({
-          error: '您已完成初始設定，請使用更新 API',
-          code: 'ALREADY_ONBOARDED'
-        })
+        if (existingPet) {
+          console.warn('⚠️ 用戶已完成 Onboarding (已有寵物):', user.id)
+          return res.status(409).json({
+            error: '您已完成寵物設定，請使用更新 API',
+            code: 'ALREADY_ONBOARDED'
+          })
+        }
       }
 
       // ========== 5. 建立 Profile ==========
@@ -200,9 +205,20 @@ export const userController = {
         })
         .select()
         .single()
-
-      if (petError) {
-        console.error('❌ Pet 建立失敗:', petError)
+      let tagsResult = { success: true, count: 0 }
+      if (pet) {
+        const { data: createdPet, error: petError } = await supabase
+          .from('pets')
+          .insert({
+            user_id_int: profile.user_id_int, // 只使用自增 ID
+            name: sanitizeString(pet.name),
+            type: pet.type,
+            breed: pet.breed ? sanitizeString(pet.breed) : null,
+            birthday: pet.birthday || null,
+            gender: pet.gender || null
+          })
+          .select()
+          .single()
 
         // 回滾：刪除已建立的相關資料
         const rollbackPromises = [supabase.from('profiles').delete().eq('user_id', user.id)]
@@ -227,11 +243,6 @@ export const userController = {
           details: petError.message
         })
       }
-
-      console.log('✅ Pet 建立成功:', petData.id)
-
-      // ========== 7. 建立 Tags ==========
-      const tagsResult = await createPetTags(petData.id, optionalTags)
 
       // Tags 失敗不中斷流程，但記錄在回應中
       const warnings = []
