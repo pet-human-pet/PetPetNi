@@ -38,11 +38,10 @@ const handleMoreItemClick = (item) => {
 
 const isNavActive = (item) => {
   if (item.key === 'match') {
-    return ['match', 'community', 'event'].includes(store.currentCategory)
+    return ['match', 'matching', 'knock'].includes(store.currentCategory)
   }
   return store.currentCategory === item.key
 }
-
 </script>
 
 <template>
@@ -59,7 +58,9 @@ const isNavActive = (item) => {
       :class="{ 'c-chat-nav-active': store.currentCategory === 'friendList' }"
       @click="store.switchCategory('friendList')"
     >
-      <div class="flex h-6 w-6 items-center justify-center"><i class="fa-solid fa-address-book text-base"></i></div>
+      <div class="flex h-6 w-6 items-center justify-center">
+        <i class="fa-solid fa-address-book text-base"></i>
+      </div>
       <div class="text-sm leading-none font-bold">好友列表</div>
     </div>
 
@@ -76,7 +77,9 @@ const isNavActive = (item) => {
       :class="{ 'c-chat-nav-active': store.currentCategory === item.key }"
       @click="store.switchCategory(item.key)"
     >
-      <div class="flex h-6 w-6 items-center justify-center"><i class="fa-solid text-base" :class="item.icon"></i></div>
+      <div class="flex h-6 w-6 items-center justify-center">
+        <i class="fa-solid text-base" :class="item.icon"></i>
+      </div>
       <div class="text-sm leading-none font-bold">{{ item.label }}</div>
       <div v-if="store.unreadCounts[item.key] > 0" class="c-badge c-badge--num top-auto right-3">
         {{ store.unreadCounts[item.key] > 99 ? '99+' : store.unreadCounts[item.key] }}
@@ -119,22 +122,49 @@ const isNavActive = (item) => {
     >
       <div class="relative flex h-6 w-6 items-center justify-center">
         <i class="fa-solid text-lg" :class="item.icon"></i>
-        <div v-if="store.unreadCounts[item.key] > 0" class="c-badge c-badge--num -top-1 left-3 border border-white">N</div>
+        <div
+          v-if="store.unreadCounts[item.key] > 0"
+          class="c-badge c-badge--num -top-1 left-3 border border-white"
+        >
+          N
+        </div>
       </div>
       <div class="text-xs font-black tracking-tighter">{{ item.label }}</div>
-      <div v-if="isNavActive(item) && !item.isAction" class="bg-brand-primary absolute -bottom-1.5 h-1 w-1 rounded-full"></div>
+      <div
+        v-if="isNavActive(item) && !item.isAction"
+        class="bg-brand-primary absolute -bottom-1.5 h-1 w-1 rounded-full"
+      ></div>
     </div>
   </nav>
 
   <!-- Mobile More Menu -->
   <div v-if="isMoreMenuOpen" class="fixed inset-0 z-100 flex items-end md:hidden">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" @click="emit('update:isMoreMenuOpen', false)"></div>
-    <div class="bg-bg-surface border-brand-primary/10 animate-slide-up relative w-full rounded-t-4xl border-t px-6 pt-3 pb-10 shadow-2xl" @click.stop>
-      <div class="mb-6 flex justify-center"><div class="bg-border-strong/30 h-1.5 w-12 rounded-full"></div></div>
-      <div class="mb-6 text-center text-brand-primary/50 text-sm font-black tracking-[0.2em] uppercase">探索更多功能</div>
+    <div
+      class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+      @click="emit('update:isMoreMenuOpen', false)"
+    ></div>
+    <div
+      class="bg-bg-surface border-brand-primary/10 animate-slide-up relative w-full rounded-t-4xl border-t px-6 pt-3 pb-10 shadow-2xl"
+      @click.stop
+    >
+      <div class="mb-6 flex justify-center">
+        <div class="bg-border-strong/30 h-1.5 w-12 rounded-full"></div>
+      </div>
+      <div
+        class="text-brand-primary/50 mb-6 text-center text-sm font-black tracking-[0.2em] uppercase"
+      >
+        探索更多功能
+      </div>
       <div class="grid grid-cols-2 gap-4">
-        <div v-for="item in MOBILE_MORE_ITEMS" :key="item.key" class="bg-bg-base flex flex-col items-center gap-3 rounded-2xl p-5 transition-all active:scale-95 cursor-pointer" @click="handleMoreItemClick(item)">
-          <div class="text-brand-primary flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
+        <div
+          v-for="item in MOBILE_MORE_ITEMS"
+          :key="item.key"
+          class="bg-bg-base flex cursor-pointer flex-col items-center gap-3 rounded-2xl p-5 transition-all active:scale-95"
+          @click="handleMoreItemClick(item)"
+        >
+          <div
+            class="text-brand-primary flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm"
+          >
             <i v-if="typeof item.icon === 'string'" class="fa-solid text-xl" :class="item.icon"></i>
             <div v-else class="h-6 w-6"><component :is="item.icon" /></div>
           </div>
@@ -142,7 +172,10 @@ const isNavActive = (item) => {
         </div>
       </div>
       <div class="mt-8 flex justify-center">
-        <div class="bg-brand-primary shadow-brand-primary/30 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg cursor-pointer" @click="emit('update:isMoreMenuOpen', false)">
+        <div
+          class="bg-brand-primary shadow-brand-primary/30 flex h-12 w-12 cursor-pointer items-center justify-center rounded-full text-white shadow-lg"
+          @click="emit('update:isMoreMenuOpen', false)"
+        >
           <i class="fa-solid fa-xmark text-lg"></i>
         </div>
       </div>
