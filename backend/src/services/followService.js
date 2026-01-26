@@ -16,8 +16,8 @@ export const followService = {
     const { data, error } = await supabase
       .from('follows')
       .insert({
-        follower: followerIdInt,
-        following: followingIdInt
+        follower_id_int: followerIdInt,
+        following_id_int: followingIdInt
       })
       .select()
       .single()
@@ -44,8 +44,8 @@ export const followService = {
     const { error } = await supabase
       .from('follows')
       .delete()
-      .eq('follower', followerIdInt)
-      .eq('following', followingIdInt)
+      .eq('follower_id_int', followerIdInt)
+      .eq('following_id_int', followingIdInt)
 
     if (error) {
       console.error('❌ 取消追蹤失敗:', error)
@@ -65,9 +65,9 @@ export const followService = {
   async isFollowing(followerIdInt, followingIdInt) {
     const { data, error } = await supabase
       .from('follows')
-      .select('id')
-      .eq('follower', followerIdInt)
-      .eq('following', followingIdInt)
+      .select('follower_id_int')
+      .eq('follower_id_int', followerIdInt)
+      .eq('following_id_int', followingIdInt)
       .maybeSingle()
 
     if (error) {
@@ -87,7 +87,7 @@ export const followService = {
     const { count, error } = await supabase
       .from('follows')
       .select('*', { count: 'exact', head: true })
-      .eq('following', userIdInt)
+      .eq('following_id_int', userIdInt)
 
     if (error) {
       console.error('❌ 取得粉絲數失敗:', error)
@@ -106,7 +106,7 @@ export const followService = {
     const { count, error } = await supabase
       .from('follows')
       .select('*', { count: 'exact', head: true })
-      .eq('follower', userIdInt)
+      .eq('follower_id_int', userIdInt)
 
     if (error) {
       console.error('❌ 取得追蹤數失敗:', error)
@@ -141,8 +141,8 @@ export const followService = {
       .from('follows')
       .select(
         `
-        follower,
-        profiles:follower (
+        follower_id_int,
+        profiles:follower_id_int (
           user_id_int,
           nick_name,
           avatar_url
@@ -150,7 +150,7 @@ export const followService = {
         created_at
       `
       )
-      .eq('following', userIdInt)
+      .eq('following_id_int', userIdInt)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -178,8 +178,8 @@ export const followService = {
       .from('follows')
       .select(
         `
-        following,
-        profiles:following (
+        following_id_int,
+        profiles:following_id_int (
           user_id_int,
           nick_name,
           avatar_url
@@ -187,7 +187,7 @@ export const followService = {
         created_at
       `
       )
-      .eq('follower', userIdInt)
+      .eq('follower_id_int', userIdInt)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
