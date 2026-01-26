@@ -12,7 +12,6 @@ import userRoutes from './routes/user.js'
 import eventRoutes from './routes/event.js'
 import socialRoutes from './routes/social.js'
 import followRoutes from './routes/followRoutes.js'
-import { chatService } from './services/chatService.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 dotenv.config({ path: path.resolve(__dirname, '../.env') })
@@ -36,7 +35,7 @@ app.use('/api/follow', followRoutes)
 
 // Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PetPetNi API Server is running!' })
+  res.json({ status: 'ok', message: 'PetPetNi API Server is ALIVE!' })
 })
 
 // 3. 啟動伺服器

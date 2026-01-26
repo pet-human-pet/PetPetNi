@@ -124,6 +124,7 @@ const handleComplete = async () => {
       city: ownerData.value.city,
       district: ownerData.value.district,
       gender: ownerData.value.gender, // 新增：傳遞性別
+      avatarUrl: ownerData.value.avatarUrl, // 新增：傳遞大頭貼
       pet: {
         name: petData.value.name,
         type: petData.value.type,

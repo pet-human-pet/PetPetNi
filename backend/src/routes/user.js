@@ -7,7 +7,7 @@ router.post('/profile', userController.createProfile)
 router.put('/profile', userController.updateProfile)
 router.get('/profile', userController.getProfile)
 
-// 取得其他用戶的公開 Profile（根據 userIdInt）
+// 取得其他用戶的公開 Profile
 router.get('/profile/:userIdInt', userController.getPublicProfile)
 
 export default router

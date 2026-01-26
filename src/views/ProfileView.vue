@@ -13,6 +13,7 @@ import ProfileHeader from '@/components/Profile/ProfileHeader.vue'
 import FansListModal from '@/components/Profile/FansListModal.vue'
 import EventListItem from '@/components/Profile/EventListItem.vue'
 import { useImagePreview } from '@/composables/useImagePreview'
+import { useImageUpload } from '@/composables/useImageUpload'
 import { useToast } from '@/composables/useToast'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useFavoritesStore } from '@/stores/favorites'
@@ -175,7 +176,12 @@ const eventTabs = [
 const eventStore = useEventMapStore()
 const favoritesStore = useFavoritesStore()
 const postStore = usePostStore()
-const { error: showError, success: showSuccess } = useToast()
+const { uploadToCloudinary, compressImage, getDynamicUrl } = useImageUpload()
+const { error: showError, success: showSuccess, info: showInfo } = useToast()
+
+const tempImageSrc = ref('')
+const currentPublicId = ref('')
+const showCropper = ref(false)
 
 // Event data
 const createdEvents = ref([])
@@ -281,9 +287,6 @@ const isAboutVisible = ref(true)
 const handlePostTabClick = (tabId) => {
   activeSubTab.value = tabId
 }
-
-const showCropper = ref(false)
-const tempImageSrc = ref('')
 
 const showTagPicker = ref(false)
 const showUserList = ref(false)
@@ -399,15 +402,27 @@ const handleUpdatePost = async ({ id, content, audience }) => {
   showSuccess('貼文已更新')
 }
 
-const handleFileChange = (e) => {
+const handleFileChange = async (e) => {
   const file = e.target.files[0]
-  if (file) {
-    if (tempImageSrc.value && tempImageSrc.value.startsWith('blob:')) {
-      URL.revokeObjectURL(tempImageSrc.value)
-    }
-    tempImageSrc.value = URL.createObjectURL(file)
+  if (!file) return
+
+  try {
+    showInfo('正在準備圖片...')
+    // 1. 壓縮原圖
+    const { blob: compressedBlob } = await compressImage(file)
+
+    // 2. 先上傳到 Cloudinary (原圖)
+    showInfo('正在預傳送圖片...')
+    const result = await uploadToCloudinary(compressedBlob, { folder: 'petpetni/avatars' })
+
+    currentPublicId.value = result.publicId
+    tempImageSrc.value = result.url // 使用原始網址供裁切器顯示
     showCropper.value = true
+
     e.target.value = ''
+  } catch (err) {
+    console.error('❌ 預傳圖片失敗:', err)
+    showError(err.message || '圖片讀取失敗')
   }
 }
 
@@ -430,18 +445,29 @@ const fetchMyFollowCounts = async () => {
   }
 }
 
-const handleCropConfirm = (blob) => {
-  const newAvatarUrl = URL.createObjectURL(blob)
-
-  if (userProfile.value) {
-    if (userProfile.value.avatar_url?.startsWith('blob:')) {
-      URL.revokeObjectURL(userProfile.value.avatar_url)
-    }
-    userProfile.value.avatar_url = newAvatarUrl
-  }
-
+const handleCropConfirm = async ({ coordinates }) => {
   showCropper.value = false
-  cleanupTempImage()
+  showInfo('正在更新個人頭像...')
+
+  try {
+    // 1. 根據座標生成 Cloudinary 動態裁切網址
+    const avatarUrl = getDynamicUrl(currentPublicId.value, coordinates)
+    console.log('🔗 生成動態裁切網址:', avatarUrl)
+
+    // 2. 呼叫 API 更新後端
+    const response = await profileApi.updateProfile({ avatarUrl })
+    console.log('📬 API 回應:', response.data)
+
+    // 3. 重新載入自己的 Profile 以更新網頁顯示
+    await authStore.fetchProfile()
+
+    showSuccess('頭像已更新')
+  } catch (err) {
+    console.error('❌ 更新頭像失敗:', err)
+    showError('更新頭像失敗，請稍後再試')
+  } finally {
+    cleanupTempImage()
+  }
 }
 const handleCropCancel = () => {
   showCropper.value = false

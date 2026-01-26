@@ -72,6 +72,7 @@ export const userController = {
       // ========== 2. 解構並清理輸入 ==========
       const { realName, nickName, phone, city, district, gender, pet, optionalTags, avatarUrl } =
         req.body
+      console.log('📦 createProfile body:', req.body)
 
       // ========== 3. 輸入驗證 ==========
       const errors = []
@@ -151,34 +152,42 @@ export const userController = {
         })
       }
 
-      console.log('✅ Profile 建立成功:', profile.id)
-      console.log('📊 User ID (UUID):', user.id)
+      console.log('✅ Profile 建立成功，ID:', profile.id)
       console.log('📊 User ID (Int):', profile.user_id_int)
 
-      // ========== 5.5 處理頭像關聯 (New!) ==========
+      // ========== 5.1 處理頭像關聯 (New!) ==========
       if (avatarUrl) {
-        console.log('🖼️ 處理頭像關聯:', avatarUrl)
         try {
-          // 1. 在 images 表尋找或新增 (使用 upsert 簡化)
+          console.log('🖼️ 正在建立頭像紀錄:', avatarUrl)
+          // 1. 在 images 表尋找或新增
           const { data: imgData, error: imgError } = await supabase
             .from('images')
             .upsert({ url: avatarUrl, folder: 'avatars' }, { onConflict: 'url' })
             .select('id')
             .single()
 
-          if (!imgError && imgData) {
+          if (imgError) {
+            console.error('⚠️ images 表寫入失敗:', imgError.message)
+          } else if (imgData) {
+            console.log('📸 圖片 ID:', imgData.id)
             // 2. 建立 profile_images 關聯
-            await supabase.from('profile_images').insert({
+            const { error: relError } = await supabase.from('profile_images').insert({
               profile_id: profile.id,
               image_id: imgData.id,
               is_current: true
             })
-            console.log('✅ 頭像關聯建立成功')
+            if (relError) {
+              console.error('⚠️ profile_images 關聯失敗:', relError.message)
+            } else {
+              console.log('✅ 頭像中間表建立成功')
+            }
           }
         } catch (err) {
-          console.error('⚠️ 頭像處理發生錯誤 (不中斷流程):', err.message)
+          console.error('⚠️ 頭像階段發生非預期錯誤:', err.message)
         }
       }
+
+      // ========== 6. 建立 Pet ==========
 
       // ========== 6. 建立 Pet ==========
       const { data: petData, error: petError } = await supabase
@@ -278,15 +287,20 @@ export const userController = {
       }
 
       // 2. 解構輸入
-      const { realName, nickName, phone, city, district, gender, pet, optionalTags, avatarUrl } =
-        req.body
+      const { realName, nickname, phone, city, district, gender, pet, optionalTags } = req.body
+      const nickName = req.body.nickName || nickname
+      const avatarUrl = req.body.avatarUrl || req.body.avatar_url
+      console.log('📦 updateProfile body:', JSON.stringify(req.body, null, 2))
+      console.log('🖼️ avatarUrl resolved:', avatarUrl)
 
       // 3. 輸入驗證 (簡單版，與 createProfile 類似)
       // 注意：這裡假設更新時會傳完整資料，或是部分更新
       // 為簡化邏輯，我們假設前端會傳送需要更新的欄位
 
       // 4. 更新 Profile
-      const updateData = {}
+      const updateData = {
+        updated_at: new Date().toISOString() // 手動補上時間格式，確保 Supabase 認得是 1/27
+      }
       if (realName !== undefined) updateData.real_name = sanitizeString(realName)
       if (nickName !== undefined) updateData.nick_name = sanitizeString(nickName)
       if (phone !== undefined) updateData.phone = phone.trim()
@@ -297,7 +311,9 @@ export const userController = {
 
       let profile = null
 
-      if (Object.keys(updateData).length > 0) {
+      if (Object.keys(updateData).length > 1) {
+        console.log(`👤 正在為 User UUID: [${user.id}] 更新 profiles 表...`)
+
         const { data, error } = await supabase
           .from('profiles')
           .update(updateData)
@@ -305,8 +321,18 @@ export const userController = {
           .select()
           .single()
 
-        if (error) throw error
+        if (error) {
+          console.error('❌ profiles 表更新發生 Supabase 錯誤:', error.message)
+          throw error
+        }
+
+        if (!data) {
+          console.error('⚠️ 警告: profiles 表沒有更新任何資料！請檢查 User UUID。')
+          return res.status(404).json({ error: '找不到對應的使用者資料進行更新' })
+        }
+
         profile = data
+        console.log('✅ profiles 表更新成功，同步時間:', profile.updated_at)
       } else {
         // 如果沒更新 profile，先查出來以便後續使用 (例如 user_id_int)
         const { data, error } = await supabase
@@ -319,18 +345,28 @@ export const userController = {
         profile = data
       }
 
-      // 5.1 處理頭像更新 (New!)
-      if (avatarUrl !== undefined) {
+      // 5.1 處理頭像關聯更新
+      if (avatarUrl) {
         try {
-          // 1. 在 images 表尋找或新增
+          console.log('🖼️ 正在處理頭像關聯表更新 (過濾裁切參數中...)')
+
+          // 採納 Yuna 建議：存入紀錄表前移除裁切參數 (c_crop...)
+          // 這樣同一個原始圖片檔案就不會因為裁切範圍不同而產生多筆紀錄
+          const sanitizedUrl = avatarUrl.replace(/\/c_crop[^/]+\//, '/')
+
+          // 1. 在 images 表尋找或新增 (使用過濾後的原始網址)
           const { data: imgData, error: imgError } = await supabase
             .from('images')
-            .upsert({ url: avatarUrl, folder: 'avatars' }, { onConflict: 'url' })
+            .upsert({ url: sanitizedUrl, folder: 'avatars' }, { onConflict: 'url' })
             .select('id')
             .single()
 
-          if (!imgError && imgData) {
-            // 2. 將舊的頭像關聯設為非當前 (如果有需要歷史紀錄)
+          if (imgError) {
+            console.error('⚠️ images 表更新失敗:', imgError.message)
+          } else if (imgData) {
+            console.log('🖼️ 原始圖片紀錄 ID:', imgData.id)
+
+            // 2. 將舊的頭像關聯設為非當前
             await supabase
               .from('profile_images')
               .update({ is_current: false })
@@ -338,15 +374,25 @@ export const userController = {
               .eq('is_current', true)
 
             // 3. 建立新的 profile_images 關聯
-            await supabase.from('profile_images').insert({
+            const { error: relError } = await supabase.from('profile_images').insert({
               profile_id: profile.id,
               image_id: imgData.id,
               is_current: true
             })
-            console.log('✅ 頭像更新關聯成功')
+
+            if (relError) {
+              // RLS 錯誤 (42501) 僅記錄警告，不中斷主程序
+              if (relError.code === '42501') {
+                console.warn('⚠️ profile_images 寫入受限 (RLS)，但 profiles 主表已成功更新')
+              } else {
+                console.error('⚠️ profile_images 更新失敗:', relError.message)
+              }
+            } else {
+              console.log('✅ 頭像關聯表更新成功')
+            }
           }
         } catch (err) {
-          console.error('⚠️ 頭像更新發生錯誤 (不中斷流程):', err.message)
+          console.error('⚠️ 處理圖片關聯時發生非預期錯誤:', err.message)
         }
       }
 
