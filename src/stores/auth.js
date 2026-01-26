@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import authApi from '@/api/auth'
 import { supabase } from '@/lib/supabase'
 import router from '@/router'
@@ -12,6 +12,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const error = ref(null)
   const tempOAuthData = ref(null)
+  const hasPet = ref(false)
+
+  // Getters
+  const isPetOwner = computed(() => hasPet.value)
 
   // Actions
   const initAuth = async () => {
@@ -24,6 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await authApi.getCurrentUser()
         user.value = response.data.user
         userIdInt.value = response.data.profile.user_id_int
+        hasPet.value = response.data.has_pet || false
 
         console.log('✅ Token 驗證成功，已恢復登入狀態')
       } catch {
@@ -32,6 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = null
         userIdInt.value = null
         token.value = null
+        hasPet.value = false
         localStorage.removeItem('token')
       }
     }
@@ -50,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // user_id_int 需在 profile 建立後才會有，先設為 null
       userIdInt.value = null
+      hasPet.value = false
 
       console.log('✅ 註冊成功:', user.value.email)
       return response.data
@@ -87,6 +94,11 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
 
+      // 如果有 profile，重新 fetch 一次 getCurrentUser 以取得完整資訊包含 hasPet
+      // 或者後端 login API 也應該回傳 hasPet (但目前只改了 getCurrentUser)
+      // 為了保險起見，這裡可以呼叫 initAuth 或手動 fetch
+      await initAuth()
+
       console.log('✅ 已有 profile，登入完成')
       return {
         ...response.data,
@@ -116,6 +128,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       userIdInt.value = null
       token.value = null
+      hasPet.value = false
       localStorage.removeItem('token')
       isLoading.value = false
     }
@@ -128,6 +141,10 @@ export const useAuthStore = defineStore('auth', () => {
   const setUserIdInt = (id) => {
     userIdInt.value = id
     console.log('📊 已設定 User ID (Int):', id)
+  }
+
+  const setHasPet = (status) => {
+    hasPet.value = status
   }
 
   // OAuth (TODO)
@@ -264,6 +281,9 @@ export const useAuthStore = defineStore('auth', () => {
     handleOAuthCallback,
     registerWithEmail,
     handleSupabaseSession,
-    checkProfileExists
+    checkProfileExists,
+    hasPet,
+    isPetOwner,
+    setHasPet
   }
 })

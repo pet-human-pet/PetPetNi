@@ -62,7 +62,14 @@ export function useRealtimeChat() {
    * @param {string|null} imageUrl - 圖片 URL（可選）
    * @param {number|null} replyToId - 回覆的訊息 ID（可選）
    */
-  const sendMessage = async (roomId, content, senderIdInt, messageType = 'text', imageUrl = null, replyToId = null) => {
+  const sendMessage = async (
+    roomId,
+    content,
+    senderIdInt,
+    messageType = 'text',
+    imageUrl = null,
+    replyToId = null
+  ) => {
     try {
       const insertData = {
         room_id: roomId,
@@ -146,6 +153,62 @@ export function useRealtimeChat() {
   }
 
   /**
+   * 取得單一聊天室詳情 (含成員資料)
+   * @param {string} roomId
+   * @param {number} myUserIdInt
+   */
+  const fetchSingleChatRoom = async (roomId, myUserIdInt) => {
+    try {
+      // 1. 取得房間基本資料
+      const { data: room, error: roomError } = await supabase
+        .from('chat_rooms')
+        .select('*')
+        .eq('id', roomId)
+        .single()
+
+      if (roomError) throw roomError
+
+      // 2. 取得成員資料 (含 Profile)
+      const { data: participants, error: partError } = await supabase
+        .from('chat_room_participants')
+        .select(
+          `
+          user_id_int,
+          profiles:user_id_int (
+            user_id_int,
+            nick_name,
+            avatar_url
+          )
+        `
+        )
+        .eq('room_id', roomId)
+
+      if (partError) throw partError
+
+      // 3. 整理回傳資料
+      let partner = null
+      if (room.type === 'private') {
+        const other = participants.find((p) => p.user_id_int !== myUserIdInt)
+        if (other && other.profiles) {
+          partner = {
+            id: other.profiles.user_id_int,
+            name: other.profiles.nick_name,
+            avatar: other.profiles.avatar_url
+          }
+        }
+      }
+
+      return {
+        ...room,
+        partner
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch room details:', error)
+      return null
+    }
+  }
+
+  /**
    * 取消所有訂閱
    */
   const unsubscribeAll = () => {
@@ -169,6 +232,7 @@ export function useRealtimeChat() {
     sendMessage,
     getMessages,
     markMessagesAsRead,
+    fetchSingleChatRoom,
     unsubscribeAll
   }
 }
