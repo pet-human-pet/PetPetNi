@@ -141,8 +141,8 @@ watch(
 )
 
 // Local Data
-const followersList = ref([]) // TODO: Implement backend for followers
-const followingList = ref([]) // TODO: Implement backend for following
+const followersList = ref([])
+const followingList = ref([])
 const myFollowersCount = ref(0)
 const myFollowingCount = ref(0)
 
@@ -435,7 +435,38 @@ const handleTabChange = (tab) => {
   activeSubTab.value = tab === 'posts' ? 'my' : 'create'
 }
 
-const openUserList = (type) => {
+const mapFollowUser = (user) => ({
+  id: user.userIdInt,
+  name: user.nickName,
+  avatar: user.avatarUrl || defaultAvatar01
+})
+
+const fetchUserList = async (type) => {
+  const userIdInt = isOwnProfile.value ? userProfile.value?.user_id_int : targetUserIdInt.value
+  if (!userIdInt) return
+
+  try {
+    const res =
+      type === 'followers'
+        ? await followApi.getFollowersList(userIdInt)
+        : await followApi.getFollowingList(userIdInt)
+    const list = (res.data.data || []).map(mapFollowUser)
+
+    if (type === 'followers') {
+      followersList.value = list
+    } else {
+      followingList.value = list
+    }
+  } catch (error) {
+    console.error('❌ 取得名單失敗:', error)
+    showError('取得名單失敗，請稍後再試')
+  } finally {
+    // keep modal flow simple; no loading state for now
+  }
+}
+
+const openUserList = async (type) => {
+  await fetchUserList(type)
   userListTitle.value = type === 'followers' ? '粉絲名單' : '追蹤中名單'
   currentUserList.value = type === 'followers' ? followersList : followingList
   showUserList.value = true
