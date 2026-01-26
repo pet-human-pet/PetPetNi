@@ -99,6 +99,14 @@ const displayText = computed(() => {
       </div>
     </div>
 
+    <div v-if="!isFriendListMode && chat.unreadCount > 0" class="flex items-center pr-2">
+      <div
+        class="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white shadow-sm"
+      >
+        {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
+      </div>
+    </div>
+
     <slot name="action"></slot>
   </div>
 </template>
