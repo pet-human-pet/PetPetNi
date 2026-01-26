@@ -407,6 +407,17 @@ const cleanupTempImage = () => {
   }
 }
 
+const fetchMyFollowCounts = async () => {
+  if (!userProfile.value?.user_id_int) return
+  try {
+    const res = await followApi.getFollowCounts(userProfile.value.user_id_int)
+    myFollowersCount.value = res.data.data.followersCount
+    myFollowingCount.value = res.data.data.followingCount
+  } catch (error) {
+    console.error('❌ 取得追蹤數失敗:', error)
+  }
+}
+
 const handleCropConfirm = (blob) => {
   const newAvatarUrl = URL.createObjectURL(blob)
 
@@ -570,16 +581,19 @@ onMounted(async () => {
   await eventStore.fetchEvents()
 
   // 如果是查看自己的頁面，載入追蹤數據
-  if (isOwnProfile.value && userProfile.value?.user_id_int) {
-    try {
-      const res = await followApi.getFollowCounts(userProfile.value.user_id_int)
-      myFollowersCount.value = res.data.data.followersCount
-      myFollowingCount.value = res.data.data.followingCount
-    } catch (error) {
-      console.error('❌ 取得追蹤數失敗:', error)
-    }
+  if (isOwnProfile.value) {
+    await fetchMyFollowCounts()
   }
 })
+
+watch(
+  [() => isOwnProfile.value, () => userProfile.value?.user_id_int],
+  async ([isOwn, userIdInt]) => {
+    if (isOwn && userIdInt) {
+      await fetchMyFollowCounts()
+    }
+  }
+)
 
 onBeforeUnmount(() => {
   document.body.classList.remove('md:overflow-hidden')
