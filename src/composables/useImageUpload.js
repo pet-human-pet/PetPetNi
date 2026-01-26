@@ -29,10 +29,23 @@ export const useImageUpload = () => {
     }
   }
 
+  // 生成 Cloudinary 動態裁切網址
+  const getDynamicUrl = (publicId, coordinates = null) => {
+    if (!publicId) return ''
+
+    // 如果有裁切座標，加入 c_crop 參數
+    // 格式：c_crop,w_[width],h_[height],x_[x],y_[y]
+    const transformation = coordinates
+      ? `c_crop,w_${Math.round(coordinates.width)},h_${Math.round(coordinates.height)},x_${Math.round(coordinates.left)},y_${Math.round(coordinates.top)}/`
+      : ''
+
+    return `https://res.cloudinary.com/${CLOUDINARY_NAME}/image/upload/${transformation}f_webp,q_auto/${publicId}`
+  }
+
   // 上傳到 Cloudinary
-  const uploadToCloudinary = async (blob, { folder = 'petpetni/posts' } = {}, onProgress) => {
+  const uploadToCloudinary = async (fileOrBlob, { folder = 'petpetni/posts' } = {}, onProgress) => {
     const formData = new FormData()
-    formData.append('file', blob)
+    formData.append('file', fileOrBlob)
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
     formData.append('folder', folder)
 
@@ -43,7 +56,6 @@ export const useImageUpload = () => {
         {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
-            // Axios內建的進度監聽器
             if (progressEvent.total && onProgress) {
               const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
               onProgress(percent)
@@ -53,13 +65,14 @@ export const useImageUpload = () => {
       )
 
       const publicId = res.data.public_id
-      const webpUrl = `https://res.cloudinary.com/${CLOUDINARY_NAME}/image/upload/f_webp,q_auto/${publicId}`
 
       return {
-        url: webpUrl, // 現在這個 url 就是 webp
-        publicId, // 可留（未來刪圖、換尺寸）
+        url: res.data.secure_url, // 原始網址
+        publicId,
         width: res.data.width,
-        height: res.data.height
+        height: res.data.height,
+        // 預設提供一個基本的最佳化網址
+        optimizedUrl: getDynamicUrl(publicId)
       }
     } catch {
       throw new Error('圖片上傳失敗，請檢查網路或稍後再試')
@@ -68,6 +81,7 @@ export const useImageUpload = () => {
 
   return {
     compressImage,
-    uploadToCloudinary
+    uploadToCloudinary,
+    getDynamicUrl
   }
 }
