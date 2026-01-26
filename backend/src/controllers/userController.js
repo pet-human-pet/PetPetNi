@@ -15,9 +15,7 @@ const sanitizeString = (str) => {
   return str.trim().slice(0, 100) // 限制長度
 }
 
-/**
- * 建立寵物標籤
- */
+// 建立寵物標籤
 const createPetTags = async (petId, tags) => {
   if (!tags?.length) {
     return { success: true, count: 0 }
@@ -227,9 +225,130 @@ export const userController = {
     }
   },
 
-  // ==========================================
-  // 📝 取得個人檔案 API
-  // ==========================================
+  // 更新個人檔案 API (含寵物與標籤)
+  updateProfile: async (req, res) => {
+    try {
+      // 1. Token 驗證
+      const authHeader = req.headers.authorization
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: '未提供授權 token' })
+      }
+
+      const token = authHeader.split(' ')[1]
+      const {
+        data: { user },
+        error: authError
+      } = await supabase.auth.getUser(token)
+
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Token 無效或已過期' })
+      }
+
+      // 2. 解構輸入
+      const { realName, nickName, phone, city, district, gender, pet, optionalTags } = req.body
+
+      // 3. 輸入驗證 (簡單版，與 createProfile 類似)
+      // 注意：這裡假設更新時會傳完整資料，或是部分更新
+      // 為簡化邏輯，我們假設前端會傳送需要更新的欄位
+
+      // 4. 更新 Profile
+      const updateData = {}
+      if (realName !== undefined) updateData.real_name = sanitizeString(realName)
+      if (nickName !== undefined) updateData.nick_name = sanitizeString(nickName)
+      if (phone !== undefined) updateData.phone = phone.trim()
+      if (city !== undefined) updateData.city = sanitizeString(city)
+      if (district !== undefined) updateData.district = sanitizeString(district)
+      if (gender !== undefined) updateData.gender = gender === 'secret' ? null : gender
+
+      let profile = null
+
+      if (Object.keys(updateData).length > 0) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('user_id', user.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        profile = data
+      } else {
+        // 如果沒更新 profile，先查出來以便後續使用 (例如 user_id_int)
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+
+        if (error) throw error
+        profile = data
+      }
+
+      // 5. 更新 Pet
+      let petData = null
+      if (pet) {
+        const petUpdateData = {}
+        if (pet.name !== undefined) petUpdateData.name = sanitizeString(pet.name)
+        if (pet.type !== undefined) petUpdateData.type = pet.type
+        if (pet.breed !== undefined) petUpdateData.breed = sanitizeString(pet.breed)
+        if (pet.birthday !== undefined) petUpdateData.birthday = pet.birthday || null
+        if (pet.gender !== undefined) petUpdateData.gender = pet.gender || null
+
+        if (Object.keys(petUpdateData).length > 0) {
+          const { data, error } = await supabase
+            .from('pets')
+            .update(petUpdateData)
+            .eq('user_id_int', profile.user_id_int)
+            .select()
+            .single()
+
+          if (error) {
+            console.error('Pet Update Error:', error)
+            // 如果找不到 pet (可能還沒建立?)，嘗試建立?
+            // 這裡假設 createProfile 已經建立過 pet
+          } else {
+            petData = data
+          }
+        }
+      }
+
+      // 確保取得 petData (為了更新 tags)
+      if (!petData) {
+        const { data } = await supabase
+          .from('pets')
+          .select('*')
+          .eq('user_id_int', profile.user_id_int)
+          .single()
+        petData = data
+      }
+
+      // 6. 更新 Tags (全刪全建)
+      let tagsCount = 0
+      if (optionalTags !== undefined && Array.isArray(optionalTags) && petData) {
+        // 刪除舊 tags
+        await supabase.from('pet_tags').delete().eq('pet_id', petData.id)
+
+        // 建立新 tags
+        const tagsResult = await createPetTags(petData.id, optionalTags)
+        tagsCount = tagsResult.count
+      }
+
+      res.json({
+        success: true,
+        message: '個人資料更新成功',
+        data: {
+          profile,
+          pet: petData,
+          tagsCount
+        }
+      })
+    } catch (error) {
+      console.error('❌ updateProfile 錯誤:', error)
+      res.status(500).json({ error: '更新失敗，請稍後再試' })
+    }
+  },
+
+  // 取得個人檔案 API
   getProfile: async (req, res) => {
     try {
       // 1. Token 驗證
@@ -251,7 +370,7 @@ export const userController = {
       // 2. 查詢 Profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*') // 已包含 role
         .eq('user_id', user.id)
         .single()
 
@@ -295,6 +414,84 @@ export const userController = {
       })
     } catch (error) {
       console.error('❌ getProfile 錯誤:', error)
+      res.status(500).json({ error: '伺服器錯誤' })
+    }
+  },
+
+  // 取得其他用戶的公開 Profile API
+  getPublicProfile: async (req, res) => {
+    try {
+      const userIdInt = parseInt(req.params.userIdInt, 10)
+
+      if (isNaN(userIdInt)) {
+        return res.status(400).json({ error: '無效的用戶 ID' })
+      }
+
+      // 1. 查詢 Profile（根據 user_id_int）
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id_int, nick_name, avatar_url, city, district, role')
+        .eq('user_id_int', userIdInt)
+        .single()
+
+      if (profileError) {
+        return res.status(404).json({ error: '找不到使用者資料' })
+      }
+
+      // 2. 查詢寵物資料
+      const { data: pet } = await supabase
+        .from('pets')
+        .select('name, type, breed, birthday, gender')
+        .eq('user_id_int', userIdInt)
+        .single()
+
+      // 3. 查詢標籤（如果有寵物）
+      let tags = []
+      if (pet) {
+        const { data: petData } = await supabase
+          .from('pets')
+          .select('id')
+          .eq('user_id_int', userIdInt)
+          .single()
+
+        if (petData) {
+          const { data: petTags } = await supabase
+            .from('pet_tags')
+            .select('tag')
+            .eq('pet_id', petData.id)
+
+          if (petTags) {
+            tags = petTags.map((t) => t.tag)
+          }
+        }
+      }
+
+      // 4. 查詢追蹤數量
+      const { count: followersCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following', userIdInt)
+
+      const { count: followingCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower', userIdInt)
+
+      // 5. 回傳公開資料
+      res.status(200).json({
+        success: true,
+        data: {
+          profile: {
+            ...profile,
+            followersCount: followersCount || 0,
+            followingCount: followingCount || 0
+          },
+          pet,
+          tags
+        }
+      })
+    } catch (error) {
+      console.error('❌ getPublicProfile 錯誤:', error)
       res.status(500).json({ error: '伺服器錯誤' })
     }
   }

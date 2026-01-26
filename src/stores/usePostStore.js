@@ -25,13 +25,13 @@ export const usePostStore = defineStore('post', () => {
       isMine: p.authorId === authStore.user?.id
     }))
   })
-  const fetchPosts = async ({ page = 1, limit = 10, loadMore = false } = {}) => {
+  const fetchPosts = async ({ page = 1, limit = 10, loadMore = false, ...otherParams } = {}) => {
     if (isLoading.value) return
     if (loadMore && !pagination.value.hasMore) return
 
     isLoading.value = true
     try {
-      const params = { page, limit }
+      const params = { page, limit, ...otherParams }
       const res = await socialApi.getPosts(params)
       const data = Array.isArray(res.data) ? res.data : res.data?.data || []
       const hasNext = data.length >= limit
@@ -147,21 +147,29 @@ export const usePostStore = defineStore('post', () => {
 
   // 收藏
   const bookmarkPost = async (id) => {
-    const post = posts.value.find((p) => p.id === id)
-    if (!post) return
+    // 使用寬鬆比較以避免型別問題 (string vs number)
+    const post = posts.value.find((p) => p.id == id)
+    if (!post) {
+      console.warn('[bookmarkPost] Post not found in store:', id)
+      return
+    }
 
     const originalState = post.isBookmarked
+    // 強制更新屬性，確保 Vue 偵測到變化
     post.isBookmarked = !originalState
+    console.log(`[bookmarkPost] Toggling bookmark for ${id} to ${post.isBookmarked}`)
 
     try {
       if (post.isBookmarked) {
         await socialApi.bookmarkPost(id)
-        if (!bookmarkedPosts.value.find((p) => p.id === id)) {
+        // 檢查是否已存在於收藏列表中
+        const exists = bookmarkedPosts.value.some((p) => p.id == id)
+        if (!exists) {
           bookmarkedPosts.value.unshift(post)
         }
       } else {
         await socialApi.unbookmarkPost(id)
-        bookmarkedPosts.value = bookmarkedPosts.value.filter((p) => p.id !== id)
+        bookmarkedPosts.value = bookmarkedPosts.value.filter((p) => p.id != id)
       }
     } catch (err) {
       post.isBookmarked = originalState

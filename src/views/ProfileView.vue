@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onUnmounted, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onUnmounted, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { useTagSelection } from '@/composables/useTagSelection.js'
@@ -19,19 +20,131 @@ import { usePostStore } from '@/stores/usePostStore'
 import { getStatusBadge } from '@/utils/statusHelper'
 import defaultAvatar01 from '@/assets/images/avatar-cat.jpg'
 import defaultAvatar02 from '@/assets/images/avatar-dog.jpg'
+import { followApi } from '@/api/follow'
+import { profileApi } from '@/api/profile'
+
+// Route
+const route = useRoute()
+const router = useRouter()
 
 // Auth Store
 const authStore = useAuthStore()
 const { user, profile: userProfile, pet, tags } = storeToRefs(authStore)
 
+// ==========================================
+// 判斷是否為自己的頁面
+// ==========================================
+const targetUserIdInt = computed(() => {
+  const param = route.params.userIdInt
+  return param ? parseInt(param, 10) : null
+})
+
+const isOwnProfile = computed(() => {
+  // 如果沒有路由參數，或路由參數等於當前用戶的 ID，就是自己的頁面
+  if (!targetUserIdInt.value) return true
+  return targetUserIdInt.value === userProfile.value?.user_id_int
+})
+
+// ==========================================
+// 其他用戶資料（當查看他人頁面時）
+// ==========================================
+const otherUserData = ref(null)
+const isFollowing = ref(false)
+const isLoadingProfile = ref(false)
+const isFollowLoading = ref(false)
+
+// 取得其他用戶資料
+const fetchOtherUserProfile = async (userIdInt) => {
+  try {
+    isLoadingProfile.value = true
+    const profilePromise = followApi.getPublicProfile(userIdInt)
+    // 追蹤狀態允許失敗
+    const statusPromise = followApi.getFollowStatus(userIdInt).catch((err) => {
+      console.warn('⚠️ 無法取得追蹤狀態:', err)
+      return { data: { data: { isFollowing: false } } }
+    })
+    // 載入該用戶的貼文
+    const postsPromise = postStore.fetchPosts({ authorId: userIdInt })
+
+    const [profileRes, statusRes] = await Promise.all([profilePromise, statusPromise, postsPromise])
+
+    otherUserData.value = profileRes.data.data
+    isFollowing.value = statusRes.data.data.isFollowing
+  } catch (error) {
+    console.error('❌ 取得其他用戶資料失敗:', error)
+  } finally {
+    isLoadingProfile.value = false
+  }
+}
+
+// 追蹤/取消追蹤
+const handleToggleFollow = async () => {
+  if (!targetUserIdInt.value || isFollowLoading.value) return
+
+  try {
+    isFollowLoading.value = true
+
+    if (isFollowing.value) {
+      // 取消追蹤
+      const res = await followApi.unfollowUser(targetUserIdInt.value)
+      isFollowing.value = false
+      // 更新對方的粉絲數
+      if (otherUserData.value?.profile) {
+        otherUserData.value.profile.followersCount = res.data.data.targetFollowersCount
+      }
+      // 更新自己的追蹤數
+      myFollowingCount.value = res.data.data.myFollowingCount
+    } else {
+      // 追蹤
+      const res = await followApi.followUser(targetUserIdInt.value)
+      isFollowing.value = true
+      // 更新對方的粉絲數
+      if (otherUserData.value?.profile) {
+        otherUserData.value.profile.followersCount = res.data.data.targetFollowersCount
+      }
+      // 更新自己的追蹤數
+      myFollowingCount.value = res.data.data.myFollowingCount
+    }
+  } catch (error) {
+    console.error('❌ 追蹤操作失敗:', error)
+  } finally {
+    isFollowLoading.value = false
+  }
+}
+
+// 監聽路由變化
+watch(
+  [() => route.params.userIdInt, () => userProfile.value?.user_id_int],
+  async ([newUserIdInt, myUserIdInt]) => {
+    // 如果有路由參數，且不是自己的 ID
+    if (newUserIdInt) {
+      const targetId = parseInt(newUserIdInt, 10)
+      if (myUserIdInt && targetId === myUserIdInt) {
+        // 是自己的頁面
+        otherUserData.value = null
+        isFollowing.value = false
+        // 確保載入自己的資料（如果之前是看別人的）
+        await Promise.all([postStore.fetchPosts(), postStore.fetchBookmarkedPosts()])
+      } else {
+        // 他人頁面
+        await fetchOtherUserProfile(targetId)
+      }
+    } else {
+      // 沒有路由參數，是自己的頁面
+      otherUserData.value = null
+      isFollowing.value = false
+      // 確保載入自己的資料
+      await Promise.all([postStore.fetchPosts(), postStore.fetchBookmarkedPosts()])
+    }
+  },
+  { immediate: true }
+)
+
 // Local Data
 const followersList = ref([]) // TODO: Implement backend for followers
 const followingList = ref([]) // TODO: Implement backend for following
-
-const postTabs = [
-  { id: 'my', label: '我的貼文', padding: 'px-6 md:px-10' },
-  { id: 'saved', label: '儲存的貼文', padding: 'px-6 md:px-10' }
-]
+const myFollowersCount = ref(0)
+const myFollowingCount = ref(0)
 
 const eventTabs = [
   { id: 'create', label: '發起活動', padding: 'px-4 md:px-8' },
@@ -69,23 +182,62 @@ const currentEvents = computed(() => {
 const confirmDialogRef = ref(null)
 const isDeleting = ref(false)
 
-const fallbackAvatar = ref(
-  [defaultAvatar01, defaultAvatar02][Math.floor(Math.random() * 2)]
-)
+const fallbackAvatar = ref([defaultAvatar01, defaultAvatar02][Math.floor(Math.random() * 2)])
 
 const modalOverlayClass =
   'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'
 
 const profileDisplay = computed(() => {
+  // 如果是查看他人頁面
+  if (!isOwnProfile.value) {
+    // 資料尚未載入時的暫位顯示
+    if (!otherUserData.value) {
+      return {
+        avatar: fallbackAvatar.value,
+        name: '載入中...',
+        username: '...',
+        hashtags: [],
+        followersCount: 0,
+        followingCount: 0,
+        petInfo: {
+          breed: '...',
+          birthday: '...',
+          gender: '...'
+        }
+      }
+    }
+
+    // 資料已載入
+    const otherProfile = otherUserData.value.profile
+    const otherPet = otherUserData.value.pet
+
+    return {
+      avatar: otherProfile?.avatar_url || fallbackAvatar.value,
+      name: otherProfile?.nick_name || '未知用戶',
+      username: `@${otherProfile?.user_id_int || 'user'}`,
+      role: otherProfile?.role || 'user',
+      hashtags: otherUserData.value.tags || [],
+      followersCount: otherProfile?.followersCount || 0,
+      followingCount: otherProfile?.followingCount || 0,
+      petInfo: {
+        breed: otherPet?.breed || '未知',
+        birthday: otherPet?.birthday || '未知',
+        gender: otherPet?.gender || '未知'
+      }
+    }
+  }
+
+  // 自己的頁面
   if (!userProfile.value) return {}
 
   return {
     avatar: userProfile.value.avatar_url || fallbackAvatar.value,
     name: userProfile.value.nick_name || user.value?.email,
     username: `@${userProfile.value.user_id_int || 'user'}`,
+    role: userProfile.value.role || 'user',
     hashtags: tags.value || [],
-    followersCount: followersList.value.length,
-    followingCount: followingList.value.length,
+    followersCount: myFollowersCount.value,
+    followingCount: myFollowingCount.value,
     petInfo: {
       breed: pet.value?.breed || '未知',
       birthday: pet.value?.birthday || '未知',
@@ -133,14 +285,25 @@ const {
   getSubmitData
 } = useTagSelection(tags.value || []) // Initialize with current tags
 
-const syncTagsToProfile = () => {
+const syncTagsToProfile = async () => {
   const { requiredTags, optionalTags: optional } = getSubmitData()
   const newTags = [...requiredTags, ...optional]
 
-  // 更新 Store
-  tags.value = newTags
-  // TODO: Call API to save tags
-  console.log('Update tags to:', newTags)
+  try {
+    // 更新 Store (雖然 fetchProfile 會更新，但立即更新可提升體驗嗎？最好等 API 回應)
+    // tags.value = newTags
+
+    // 呼叫 API 更新
+    await profileApi.updateProfile({ optionalTags: newTags })
+
+    // 重新載入 Profile 以更新 UI
+    await authStore.fetchProfile()
+
+    showSuccess('標籤設定已儲存')
+  } catch (err) {
+    console.error('❌ 更新標籤失敗:', err)
+    showError('儲存失敗，請稍後再試')
+  }
 }
 
 const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
@@ -151,8 +314,31 @@ const myPosts = computed(() => {
 })
 
 // 儲存的貼文 (從 postStore.bookmarkedPosts 取得已收藏的貼文)
+// 儲存的貼文 (從 postStore.bookmarkedPosts 取得已收藏的貼文)
 const savedPosts = computed(() => {
   return postStore.bookmarkedPosts
+})
+
+// 根據當前情境決定要顯示的貼文列表
+const displayedPosts = computed(() => {
+  if (!isOwnProfile.value) {
+    // 他人頁面：顯示所有從後端抓取的貼文（已用 authorId 篩選）
+    return postStore.postsWithAuth
+  }
+
+  // 自己頁面：根據子分頁顯示
+  return activeSubTab.value === 'my' ? myPosts.value : savedPosts.value
+})
+
+const postTabs = computed(() => {
+  if (!isOwnProfile.value) {
+    // 他人頁面只顯示「貼文」
+    return [{ id: 'my', label: '貼文', padding: 'px-6 md:px-10' }]
+  }
+  return [
+    { id: 'my', label: '我的貼文', padding: 'px-6 md:px-10' },
+    { id: 'saved', label: '儲存的貼文', padding: 'px-6 md:px-10' }
+  ]
 })
 
 // 發布貼文
@@ -184,7 +370,7 @@ const toggleLike = async (postId) => {
 // 收藏
 const toggleBookmark = async (postId) => {
   try {
-    const post = postStore.posts.find((p) => p.id === postId)
+    const post = postStore.posts.find((p) => p.id == postId)
     await postStore.bookmarkPost(postId)
     if (post && post.isBookmarked) {
       showSuccess('已收藏貼文')
@@ -260,8 +446,8 @@ const openDetail = (item) => {
   showDetail.value = true
 }
 
-const handleTagConfirm = () => {
-  syncTagsToProfile()
+const handleTagConfirm = async () => {
+  await syncTagsToProfile()
   showTagPicker.value = false
 }
 
@@ -351,6 +537,17 @@ onMounted(async () => {
   await fetchMyEvents()
   await fetchMyParticipatedEvents()
   await eventStore.fetchEvents()
+
+  // 如果是查看自己的頁面，載入追蹤數據
+  if (isOwnProfile.value && userProfile.value?.user_id_int) {
+    try {
+      const res = await followApi.getFollowCounts(userProfile.value.user_id_int)
+      myFollowersCount.value = res.data.data.followersCount
+      myFollowingCount.value = res.data.data.followingCount
+    } catch (error) {
+      console.error('❌ 取得追蹤數失敗:', error)
+    }
+  }
 })
 
 onBeforeUnmount(() => {
@@ -384,14 +581,20 @@ onUnmounted(() => {
               v-model:is-about-visible="isAboutVisible"
               :profile="profileDisplay"
               :pet-info-fields="petInfoFields"
+              :is-own-profile="isOwnProfile"
+              :is-following="isFollowing"
+              :is-follow-loading="isFollowLoading"
               @open-tag-picker="showTagPicker = true"
               @open-user-list="openUserList"
               @update-avatar="handleFileChange"
+              @toggle-follow="handleToggleFollow"
+              @back-to-my-profile="router.push({ name: 'Profile' })"
             />
           </div>
 
           <!--右欄-->
           <div class="c-card flex w-full min-w-0 flex-col md:h-[75vh] lg:h-full lg:min-h-0">
+            <!-- 右欄內容 -->
             <div
               class="sticky top-(--header-h) z-30 flex-none md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
             >
@@ -419,12 +622,15 @@ onUnmounted(() => {
               </div>
 
               <div class="bg-white/90 px-4 py-2 pt-2 md:p-4">
-                <div v-if="activeTab === 'posts'" class="flex justify-center gap-4 md:gap-6">
+                <div
+                  v-if="activeTab === 'posts' && isOwnProfile"
+                  class="flex justify-center gap-4 md:gap-6"
+                >
                   <button
                     v-for="tab in postTabs"
                     :key="tab.id"
                     type="button"
-                    class="c-btn cursor-pointer rounded-xl py-2 text-md font-bold shadow-sm md:py-2.5 md:text-sm"
+                    class="c-btn text-md cursor-pointer rounded-xl py-2 font-bold shadow-sm md:py-2.5 md:text-sm"
                     :class="[
                       tab.padding,
                       activeSubTab === tab.id ? 'bg-btn-primary text-white' : 'bg-white'
@@ -441,7 +647,7 @@ onUnmounted(() => {
                   <button
                     v-for="tab in eventTabs"
                     :key="tab.id"
-                    class="c-btn cursor-pointer rounded-xl py-2 text-md font-bold shadow-sm md:py-2.5 md:text-sm"
+                    class="c-btn text-md cursor-pointer rounded-xl py-2 font-bold shadow-sm md:py-2.5 md:text-sm"
                     :class="[
                       tab.padding,
                       activeSubTab === tab.id ? 'bg-btn-primary text-white' : 'bg-white'
@@ -463,7 +669,7 @@ onUnmounted(() => {
               >
                 <!-- 貼文列表 -->
                 <PostCard
-                  v-for="post in activeSubTab === 'my' ? myPosts : savedPosts"
+                  v-for="post in displayedPosts"
                   :key="post.id"
                   :post="post"
                   @like="toggleLike"
