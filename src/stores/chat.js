@@ -190,14 +190,12 @@ export const useChatStore = defineStore('chat', () => {
 
     if (chat) {
       // 標記訊息為已讀 (本地即時更新 UX)
+      chat.unreadCount = 0
       if (chat.msgs.length > 0) {
         chat.msgs.forEach((m) => {
           if (m.sender !== 'me') m.read = 1
         })
       }
-
-      // TODO: 呼叫後端 API 同步已讀狀態 (若後端有 endpoint)
-      // await chatApi.markAsRead(id)
 
       // 訂閱聊天室的 Realtime 更新
       realtime.subscribeToRoom(id, (newMessage) => {
@@ -238,10 +236,15 @@ export const useChatStore = defineStore('chat', () => {
             timestamp: new Date(newMessage.created_at).getTime(),
             read: isActiveChat ? true : false
           })
+
+          // 如果不是正開啟中的聊天室，且不是我發的，增加未讀數
+          if (!isActiveChat && !isMe) {
+            chat.unreadCount = (chat.unreadCount || 0) + 1
+          }
         }
       })
 
-      // 載入歷史訊息（優先使用 Supabase 資料）
+      // 載入歷史訊息
       try {
         const history = await realtime.getMessages(id)
         if (history.length > 0) {
@@ -252,11 +255,11 @@ export const useChatStore = defineStore('chat', () => {
             messageType: msg.message_type || 'text',
             image: msg.image_url,
             timestamp: new Date(msg.created_at).getTime(),
-            read: true // 進入聊天室後，歷史訊息皆視為已讀
+            read: true
           }))
         }
       } catch {
-        // Silently fail
+        /* Silently fail */
       }
     }
   }
@@ -592,6 +595,22 @@ export const useChatStore = defineStore('chat', () => {
       rooms.forEach((room) => {
         const formattedRoom = formatRoomToChat(room)
 
+        // 尋找現有房間以保留訊息內容 (避免切換列表時清空)
+        const findExisting = (id) => {
+          for (const key in db.value) {
+            if (Array.isArray(db.value[key])) {
+              const found = db.value[key].find((c) => c.id === id)
+              if (found) return found
+            }
+          }
+          return null
+        }
+
+        const existing = findExisting(formattedRoom.id)
+        if (existing) {
+          formattedRoom.msgs = existing.msgs
+        }
+
         if (room.type === 'private') {
           // 根據 knock 狀態分類
           if (formattedRoom.type === 'knock') {
@@ -672,7 +691,7 @@ export const useChatStore = defineStore('chat', () => {
       msgs: [],
       pinned: false,
       lastMessage: room.lastMessage,
-      unreadCount: room.unreadCount || 0,
+      unreadCount: room.id === activeChatId.value ? 0 : room.unreadCount || 0,
       participants: room.participants
     }
   }
