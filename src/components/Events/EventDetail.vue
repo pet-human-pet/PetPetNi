@@ -29,7 +29,7 @@ const locationLabel = computed(() => {
     <div class="mb-4 flex items-center gap-2">
       <button
         type="button"
-        class="text-fg-secondary hover:text-brand-accent flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-white hover:shadow-sm"
+        class="text-fg-secondary hover:text-brand-accent flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 transition-colors hover:bg-white hover:shadow-sm"
         aria-label="返回地圖"
         @click="emit('back')"
       >

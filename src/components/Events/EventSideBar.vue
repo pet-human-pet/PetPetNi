@@ -1,6 +1,7 @@
 <script setup>
 // 1. Imports
 import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useFavoritesStore } from '@/stores/favorites'
 import { useEventMapStore } from '@/stores/EventMap'
 
@@ -13,6 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['select', 'open-detail', 'open-form'])
 
 // 3. Store / State
+const router = useRouter()
 const fav = useFavoritesStore()
 const eventStore = useEventMapStore()
 
@@ -115,6 +117,11 @@ function isFull(evt) {
   return (evt.participantsCount || 0) >= evt.capacity
 }
 
+function handleViewProfile(userIdInt) {
+  if (!userIdInt) return
+  router.push({ name: 'Profile', params: { userIdInt } })
+}
+
 import { getStatusBadge } from '@/utils/statusHelper'
 
 function eventBadge(status) {
@@ -127,9 +134,13 @@ onMounted(() => {
 })
 
 // 監聽活動列表變化
-watch(() => props.events, () => {
-  checkAllParticipationStatus()
-}, { deep: true })
+watch(
+  () => props.events,
+  () => {
+    checkAllParticipationStatus()
+  },
+  { deep: true }
+)
 </script>
 
 <template>
@@ -138,10 +149,10 @@ watch(() => props.events, () => {
   >
     <!-- create card -->
     <div
-      class="border-brand-primary bg-bg-surface shadow-card flex h-40 w-60 flex-none snap-center flex-col items-center justify-center rounded-2xl border-2 border-dashed p-0 transition-all md:h-auto md:w-full md:flex-initial md:flex-row md:items-stretch md:justify-start md:rounded-xl md:p-4 md:shadow-none"
+      class="border-brand-primary bg-bg-surface shadow-card hover:bg-brand-tertiary/10 flex h-40 w-60 flex-none cursor-pointer snap-center flex-col items-center justify-center rounded-2xl border-2 border-dashed p-0 transition-all md:h-auto md:w-full md:flex-initial md:flex-row md:items-stretch md:justify-start md:rounded-xl md:p-4 md:shadow-none"
     >
       <button
-        class="text-brand-primary flex h-full w-full flex-col items-center justify-center gap-2 bg-transparent py-2 text-[14px] font-bold md:h-auto md:flex-row md:text-[16px]"
+        class="text-brand-primary flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 bg-transparent py-2 text-[14px] font-bold md:h-auto md:flex-row md:text-[16px]"
         type="button"
         @click="emit('open-form')"
       >
@@ -186,7 +197,7 @@ watch(() => props.events, () => {
               發起人：
               <span
                 class="text-brand-primary decoration-brand-primary/30 hover:decoration-brand-primary cursor-pointer font-bold underline underline-offset-2"
-                @click.stop="() => {} /* Placeholder for profile navigation */"
+                @click.stop="handleViewProfile(evt.initiator.id)"
               >
                 {{ evt.initiator.name }}
               </span>
@@ -223,7 +234,7 @@ watch(() => props.events, () => {
           <button
             v-else
             type="button"
-            class="h-8 flex-1 rounded-[17px] text-[12px] font-bold md:h-8.5"
+            class="h-8 flex-1 cursor-pointer rounded-[17px] text-[12px] font-bold md:h-8.5"
             :disabled="!canJoin(evt) || isJoining"
             :class="
               !canJoin(evt)
@@ -239,7 +250,7 @@ watch(() => props.events, () => {
 
           <button
             type="button"
-            class="h-8 flex-1 rounded-[17px] bg-gray-100 text-[12px] font-bold md:h-8.5"
+            class="h-8 flex-1 cursor-pointer rounded-[17px] bg-gray-100 text-[12px] font-bold hover:bg-gray-200 md:h-8.5"
             :class="fav.has(evt.id) ? 'text-func-danger' : 'text-fg-secondary'"
             :aria-pressed="fav.has(evt.id)"
             aria-label="收藏活動"
@@ -250,7 +261,7 @@ watch(() => props.events, () => {
 
           <button
             type="button"
-            class="text-fg-secondary h-8 flex-1 rounded-[17px] bg-gray-100 text-[12px] font-bold md:h-8.5"
+            class="text-fg-secondary h-8 flex-1 cursor-pointer rounded-[17px] bg-gray-100 text-[12px] font-bold hover:bg-gray-200 md:h-8.5"
             @click.stop="emit('open-detail', evt)"
           >
             <i class="fa-solid fa-circle-info"></i>
