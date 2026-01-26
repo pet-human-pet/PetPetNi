@@ -111,8 +111,7 @@ const router = createRouter({
 // Navigation Guard
 router.beforeEach(async (to, from, next) => {
   // 動態引入 store 避免循環依賴
-  const { useAuthStore } = await import('@/stores/auth')
-  const authStore = useAuthStore()
+  // const { useAuthStore } = await import('@/stores/auth')
 
   // 確保 auth 狀態已初始化 (如果需要)
   // if (!authStore.hasInit) await authStore.initAuth()
@@ -129,8 +128,9 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // 2. 已登入但訪問登入頁 -> 導向首頁或 Dashboard
-  if (to.name === 'login' && isLoggedIn) {
-    next({ name: 'home' }) // 或 'match'
+  // Exception: 如果有 mode 參數（例如 mode=role），允許進入（用於補全資料）
+  if (to.name === 'login' && isLoggedIn && !to.query.mode) {
+    next({ name: 'home' })
     return
   }
 
