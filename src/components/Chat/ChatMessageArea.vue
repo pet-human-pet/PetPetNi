@@ -40,7 +40,7 @@ const handleStartChat = (id) => {
 }
 
 const handleViewProfile = (id) => {
-  router.push({ name: 'Profile', params: { id } })
+  router.push({ name: 'Profile', params: { userIdInt: id } })
 }
 
 const handleRemoveFriend = async (id) => {
@@ -89,7 +89,18 @@ const handleBecomeFriendFromLimit = async () => {
     message: '確定要與對方成為好友嗎？',
     confirmText: '確定'
   })
-  if (isConfirmed) store.becomeFriend(store.activeChat.id)
+  if (isConfirmed) {
+    const result = await store.becomeFriend(store.activeChat.id)
+    if (result.success) {
+      if (result.isFriend) {
+        success('恭喜成為好友！')
+      } else {
+        success('已送出好友邀請，等待對方確認')
+      }
+    } else {
+      error(result.error || '操作失敗')
+    }
+  }
 }
 
 const handleRejectMatch = async () => {

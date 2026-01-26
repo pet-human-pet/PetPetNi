@@ -262,7 +262,7 @@ const removeEditImage = (index) => {
     </div>
     <p
       v-else
-      class="md:text-m text-fg-secondary mt-3 leading-6 break-words whitespace-pre-wrap sm:text-base"
+      class="md:text-m text-fg-secondary mt-3 leading-6 wrap-break-word whitespace-pre-wrap sm:text-base"
     >
       {{ post.content }}
     </p>
