@@ -1,11 +1,9 @@
 <script setup>
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { useAIStore } from '@/stores/ai'
-import { useChatStore } from '@/stores/chat'
 import { useTextareaAutosize, useDraggable, useWindowSize } from '@vueuse/core'
 
 const aiStore = useAIStore()
-const chatStore = useChatStore() // 用於取得個人資料 (頭像/名稱)
 
 onMounted(() => {
   aiStore.loadSessions()
@@ -243,15 +241,12 @@ const handleDeleteSession = (id) => {
               class="flex gap-3"
               :class="msg.sender === 'me' ? 'flex-row-reverse' : ''"
             >
+              <!-- AI 頭像 (只有 AI 訊息顯示) -->
               <div
+                v-if="msg.sender !== 'me'"
                 class="mt-1 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-black/5 bg-gray-100"
               >
-                <img
-                  :src="
-                    msg.sender === 'me' ? chatStore.db.myProfile.avatar : aiStore.aiDb.agent.avatar
-                  "
-                  class="h-full w-full object-cover"
-                />
+                <img :src="aiStore.aiDb.agent.avatar" class="h-full w-full object-cover" />
               </div>
               <div
                 class="max-w-[80%] space-y-1"
