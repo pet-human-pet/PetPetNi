@@ -21,9 +21,9 @@ const isLimitReached = computed(() => store.isLimitReached)
     <!-- 狀態 1: 互動已達上限 -->
     <div
       v-if="isLimitReached"
-      class="flex flex-col items-center gap-2 border-t border-border-default bg-bg-base p-4"
+      class="border-border-default bg-bg-base flex flex-col items-center gap-2 border-t p-4"
     >
-      <div class="text-sm font-bold text-brand-primary">互動已達上限，是否成為好友？</div>
+      <div class="text-brand-primary text-sm font-bold">互動已達上限，是否成為好友？</div>
       <div class="flex gap-4">
         <!-- 這裡暫時用 deleteChat 代表拒絕，實務上可能會有 rejectFriend -->
         <button
@@ -33,7 +33,7 @@ const isLimitReached = computed(() => store.isLimitReached)
           拒絕
         </button>
         <button
-          class="rounded-full bg-brand-primary px-6 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-brand-primary/90"
+          class="bg-brand-primary hover:bg-brand-primary/90 rounded-full px-6 py-1.5 text-sm font-medium text-white shadow-sm"
           @click="store.becomeFriend(chat.id)"
         >
           成為好友
@@ -46,7 +46,9 @@ const isLimitReached = computed(() => store.isLimitReached)
       v-else
       class="flex items-center justify-center border-b border-blue-100 bg-blue-50 px-4 py-2 text-xs font-medium text-blue-600"
     >
-      <span v-if="chat.type === 'knock'"> 🔔 敲敲門試聊：剩餘 {{ remaining }} 句 (限制 30 字) </span>
+      <span v-if="chat.type === 'knock'">
+        🔔 敲敲門試聊：剩餘 {{ remaining }} 句 (限制 30 字)
+      </span>
       <span v-else> 🔔 配對互動中：剩餘 {{ remaining }} 句 (限制 30 字) </span>
     </div>
   </div>

@@ -181,19 +181,21 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     if (chat) {
-      // 標記訊息為已讀
+      // 標記訊息為已讀 (本地即時更新 UX)
       if (chat.msgs.length > 0) {
         chat.msgs.forEach((m) => {
           if (m.sender !== 'me') m.read = 1
         })
       }
 
+      // TODO: 呼叫後端 API 同步已讀狀態 (若後端有 endpoint)
+      // await chatApi.markAsRead(id)
+
       // 訂閱聊天室的 Realtime 更新
       realtime.subscribeToRoom(id, (newMessage) => {
-        // 處理收到的新訊息
+        // ... (existing subscribe logic)
         const isMe = newMessage.sender_id_int === currentUserIdInt.value
 
-        // 如果是我發送的,優先尋找並更新「等待中(Pending)」的樂觀更新訊息
         if (isMe) {
           const pendingMsg = chat.msgs.find(
             (m) =>
@@ -203,7 +205,6 @@ export const useChatStore = defineStore('chat', () => {
           )
 
           if (pendingMsg) {
-            // 更新狀態為真實資料
             pendingMsg.id = newMessage.id
             pendingMsg.timestamp = new Date(newMessage.created_at).getTime()
             delete pendingMsg.isPending
@@ -211,7 +212,6 @@ export const useChatStore = defineStore('chat', () => {
           }
         }
 
-        // 如果不是我發送的,或是沒找到對應的 Pending 訊息,則直接加入
         if (!chat.msgs.find((m) => m.id === newMessage.id)) {
           const isActiveChat = activeChatId.value === id
           chat.msgs.push({
@@ -235,7 +235,7 @@ export const useChatStore = defineStore('chat', () => {
             content: msg.content,
             image: msg.image_url,
             timestamp: new Date(msg.created_at).getTime(),
-            read: msg.read || false
+            read: true // 進入聊天室後，歷史訊息皆視為已讀
           }))
         }
       } catch {
@@ -315,8 +315,7 @@ export const useChatStore = defineStore('chat', () => {
           incrementKnockCount(chat.id)
         }
       })
-      .catch((error) => {
-        console.error('❌ Failed to send message:', error)
+      .catch(() => {
         // 發送失敗時可以加入錯誤處理邏輯
         const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
         if (index !== -1) {
@@ -341,28 +340,17 @@ export const useChatStore = defineStore('chat', () => {
     if (activeChatId.value === chatId) activeChatId.value = null
   }
 
-  function becomeFriend(chatId) {
-    // 1. 檢查是否在陌生人(敲敲門)列表中
-    const strangerIndex = db.value.stranger.findIndex((c) => c.id === chatId)
-    if (strangerIndex !== -1) {
-      const chat = db.value.stranger[strangerIndex]
-      chat.status = 'friend'
-      chat.type = 'private'
-      chat.knockStatus = null
-      chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
-      db.value.match.unshift(chat)
-      db.value.stranger.splice(strangerIndex, 1)
-      currentCategory.value = 'match'
-      return
-    }
-
-    // 2. 檢查是否在配對列表中
-    const chat = db.value.match.find((c) => c.id === chatId)
-    if (chat) {
-      chat.status = 'friend'
-      chat.knockStatus = null
-      chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
-      currentCategory.value = 'match'
+  async function becomeFriend(chatId) {
+    try {
+      const result = await confirmFriendApi(chatId)
+      if (result.success) {
+        // API 內部已經處理了 db 狀態更新
+        return { success: true, isFriend: result.isFriend }
+      }
+      return { success: false, error: result.error }
+    } catch (err) {
+      console.error('❌ becomeFriend failed:', err)
+      return { success: false, error: '確認好友失敗' }
     }
   }
 
@@ -607,7 +595,10 @@ export const useChatStore = defineStore('chat', () => {
         db.value.match = [...friendRooms, ...db.value.match.filter((c) => c.id.startsWith('m'))]
       }
       if (knockRooms.length > 0) {
-        db.value.stranger = [...knockRooms, ...db.value.stranger.filter((c) => c.id.startsWith('s'))]
+        db.value.stranger = [
+          ...knockRooms,
+          ...db.value.stranger.filter((c) => c.id.startsWith('s'))
+        ]
       }
       if (groupRooms.length > 0) {
         db.value.community = [
@@ -658,6 +649,7 @@ export const useChatStore = defineStore('chat', () => {
       type: type,
       name: room.name || otherParticipant?.nickName || '未命名',
       avatar: room.avatar || otherParticipant?.avatar || '',
+      targetUserIdInt: otherParticipant?.id || otherParticipant?.user_id_int || null,
       status: status,
       knockStatus: room.myKnockStatus || null,
       knockMessageCount: room.myKnockMessageCount || 0,
