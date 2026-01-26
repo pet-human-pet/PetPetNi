@@ -49,7 +49,9 @@ export const usePostComposerImages = (maxCount = 4) => {
   }
 
   // 確認裁切
-  const onCropConfirm = (blob) => {
+  const onCropConfirm = (payload) => {
+    // 相容性處理：判斷是舊版 blob 還是新版 { blob, coordinates }
+    const blob = payload instanceof Blob ? payload : payload.blob
     const previewUrl = URL.createObjectURL(blob)
 
     if (isReCropping.value && reCropTargetId.value) {
