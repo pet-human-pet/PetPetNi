@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMatchingStore } from '@/stores/matching'
 import { useAuthStore } from '@/stores/auth'
@@ -244,9 +244,28 @@ function handleGoToChat() {
 }
 
 // Lifecycle
-onMounted(() => {
+// Lifecycle
+onMounted(async () => {
   // 載入之前的配對記錄（用於檢查是否已配對）
   matchingStore.loadFromStorage()
+
+  // 等待 Auth Store 初始化完成
+  if (!authStore.isReady) {
+    // 可以選擇顯示 loading，或簡單地等待
+
+    await new Promise((resolve) => {
+      const stopWatch = watch(
+        () => authStore.isReady,
+        (ready) => {
+          if (ready) {
+            stopWatch()
+            resolve()
+          }
+        },
+        { immediate: true }
+      )
+    })
+  }
 
   // 檢查是否為飼主（擁有寵物）
   if (!authStore.isPetOwner) {
@@ -271,18 +290,24 @@ onMounted(() => {
 
 <style scoped>
 .daily-match-container {
-  position: relative;
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   background: var(--color-bg-base);
+  z-index: 0; /* Ensure it doesn't cover fixed headers with higher z-index */
 }
 
 .daily-match-view {
-  min-height: 100%;
+  height: 100%;
   color: var(--color-fg-primary);
   position: relative;
-  overflow-x: hidden;
   padding: 2rem 1rem;
-  padding-top: calc(var(--header-h) + 2rem); /* Header 高度 + spacing */
+  padding-top: calc(var(--header-h) + 2rem);
+  display: flex;
+  flex-direction: column;
 }
 
 .match-content {
