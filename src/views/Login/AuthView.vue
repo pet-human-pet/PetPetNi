@@ -179,11 +179,20 @@ const handleComplete = async () => {
     console.log('✅ Profile 建立成功')
 
     // 從回應中取得 user_id_int 並儲存到 authStore
-    if (response.data?.profile?.user_id_int) {
+    // userController 回傳格式為 { success: true, data: { profile: ... } }
+    const profileData = response.data.data?.profile || response.data.profile
+    if (profileData?.user_id_int) {
       const { useAuthStore } = await import('@/stores/auth')
       const authStore = useAuthStore()
-      authStore.setUserIdInt(response.data.profile.user_id_int)
-      console.log('📊 User ID (Int) 已儲存:', response.data.profile.user_id_int)
+      authStore.setUserIdInt(profileData.user_id_int)
+
+      // 如果有建立寵物資料，更新 store 狀態
+      if (petData.value) {
+        authStore.setHasPet(true)
+        console.log('🐶 已更新身份為飼主')
+      }
+
+      console.log('📊 User ID (Int) 已儲存:', profileData.user_id_int)
     }
 
     // 顯示註冊完成頁面，3秒後自動跳轉首頁
