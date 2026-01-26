@@ -23,6 +23,10 @@ defineProps({
   inputClass: {
     type: String,
     default: ''
+  },
+  invalid: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -42,7 +46,7 @@ const emit = defineEmits(['blur', 'focus'])
         :placeholder="placeholder"
         :class="[
           'w-full rounded-xl border-2 px-4 py-3 transition-all duration-200 focus:outline-none',
-          error
+          error || invalid
             ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200'
             : 'border-gray-300 hover:border-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-200',
           inputClass
