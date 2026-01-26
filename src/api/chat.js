@@ -112,5 +112,13 @@ export const chatApi = {
    */
   incrementKnockCount(roomId) {
     return api.post(`/api/chat/knock/${roomId}/increment-count`)
+  },
+
+  /**
+   * 標記房間訊息為已讀
+   * @param {string} roomId - 房間 ID
+   */
+  markAsRead(roomId) {
+    return api.post(`/api/chat/rooms/${roomId}/read`)
   }
 }

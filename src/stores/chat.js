@@ -159,6 +159,68 @@ export const useChatStore = defineStore('chat', () => {
     selectedFriendId.value = null
   }
 
+  const subscribedRoomIds = new Set()
+
+  function setupRoomSubscription(id) {
+    if (subscribedRoomIds.has(id)) return
+    subscribedRoomIds.add(id)
+
+    realtime.subscribeToRoom(id, (newMessage) => {
+      // 處理系統訊息 (觸發狀態更新)
+      const isMe = newMessage.sender_id_int === currentUserIdInt.value
+
+      if (newMessage.message_type === 'system' && (!isMe || newMessage.sender_id_int === 0)) {
+        loadUserRooms()
+      }
+
+      // 尋找房間
+      let foundChat = null
+      for (const cat in db.value) {
+        if (Array.isArray(db.value[cat])) {
+          foundChat = db.value[cat].find((c) => c.id === id)
+          if (foundChat) break
+        }
+      }
+
+      if (foundChat) {
+        // 樂觀更新比對 (Pending Message Match)
+        if (isMe) {
+          const pendingMsg = foundChat.msgs.find(
+            (m) =>
+              m.isPending &&
+              m.content === newMessage.content &&
+              (m.image === newMessage.image_url || (!m.image && !newMessage.image_url))
+          )
+          if (pendingMsg) {
+            pendingMsg.id = newMessage.id
+            pendingMsg.timestamp = new Date(newMessage.created_at).getTime()
+            delete pendingMsg.isPending
+            return
+          }
+        }
+
+        // 避開重複
+        if (!foundChat.msgs.find((m) => m.id === newMessage.id)) {
+          const isActiveChat = activeChatId.value === id
+          foundChat.msgs.push({
+            id: newMessage.id,
+            sender: isMe ? 'me' : 'other',
+            content: newMessage.content,
+            messageType: newMessage.message_type || 'text',
+            image: newMessage.image_url,
+            timestamp: new Date(newMessage.created_at).getTime(),
+            read: isActiveChat ? true : false
+          })
+
+          // 更新未讀數 (如果不是目前視窗，且不是自己發的)
+          if (!isActiveChat && !isMe) {
+            foundChat.unreadCount = (foundChat.unreadCount || 0) + 1
+          }
+        }
+      }
+    })
+  }
+
   async function openChat(id) {
     if (!id) return
     activeChatId.value = id
@@ -191,58 +253,19 @@ export const useChatStore = defineStore('chat', () => {
     if (chat) {
       // 標記訊息為已讀 (本地即時更新 UX)
       chat.unreadCount = 0
-      if (chat.msgs.length > 0) {
-        chat.msgs.forEach((m) => {
-          if (m.sender !== 'me') m.read = 1
-        })
+      chat.msgs.forEach((m) => {
+        if (m.sender !== 'me') m.read = true
+      })
+
+      // 呼叫後端同步
+      try {
+        await chatApi.markAsRead(id)
+      } catch {
+        /* Silently fail */
       }
 
-      // 訂閱聊天室的 Realtime 更新
-      realtime.subscribeToRoom(id, (newMessage) => {
-        const isMe = newMessage.sender_id_int === currentUserIdInt.value
-
-        // 處理系統訊息 (觸發狀態更新)
-        if (newMessage.message_type === 'system') {
-          // 只有當發送者不是我，或者系統發送時，才觸發重整
-          if (!isMe || newMessage.sender_id_int === 0) {
-            loadUserRooms()
-          }
-        }
-
-        if (isMe) {
-          const pendingMsg = chat.msgs.find(
-            (m) =>
-              m.isPending &&
-              m.content === newMessage.content &&
-              (m.image === newMessage.image_url || (!m.image && !newMessage.image_url))
-          )
-
-          if (pendingMsg) {
-            pendingMsg.id = newMessage.id
-            pendingMsg.timestamp = new Date(newMessage.created_at).getTime()
-            delete pendingMsg.isPending
-            return
-          }
-        }
-
-        if (!chat.msgs.find((m) => m.id === newMessage.id)) {
-          const isActiveChat = activeChatId.value === id
-          chat.msgs.push({
-            id: newMessage.id,
-            sender: isMe ? 'me' : 'other',
-            content: newMessage.content,
-            messageType: newMessage.message_type || 'text',
-            image: newMessage.image_url,
-            timestamp: new Date(newMessage.created_at).getTime(),
-            read: isActiveChat ? true : false
-          })
-
-          // 如果不是正開啟中的聊天室，且不是我發的，增加未讀數
-          if (!isActiveChat && !isMe) {
-            chat.unreadCount = (chat.unreadCount || 0) + 1
-          }
-        }
-      })
+      // 確保訂閱 (背景監控)
+      setupRoomSubscription(id)
 
       // 載入歷史訊息
       try {
@@ -646,6 +669,11 @@ export const useChatStore = defineStore('chat', () => {
       }
 
       console.log('✅ 聊天室列表已載入:', rooms.length, '個房間')
+
+      // 4. 自動為所有房間建立 Realtime 訂閱（確保不打開視窗也能收到更新）
+      rooms.forEach((r) => {
+        setupRoomSubscription(r.id)
+      })
     } catch {
       // Error handled
     }
@@ -664,18 +692,31 @@ export const useChatStore = defineStore('chat', () => {
 
     if (room.myKnockStatus) {
       type = 'knock'
-      switch (room.myKnockStatus) {
-        case 'receiver_pending':
-          status = 'pending' // LOCKED 模式
-          break
-        case 'initiator_trial':
-        case 'receiver_trial':
-          status = 'trial' // PET_MODE
-          break
-        case 'friend_pending':
-        case 'friend_confirmed':
-          status = 'friend_pending' // 等待確認好友
-          break
+      const otherConfirmed = room.participants?.some(
+        (p) =>
+          (p.knockStatus === 'friend_confirmed' || p.knock_status === 'friend_confirmed') &&
+          p.id !== currentUserIdInt.value
+      )
+
+      if (
+        otherConfirmed &&
+        (room.myKnockStatus === 'initiator_trial' || room.myKnockStatus === 'receiver_trial')
+      ) {
+        status = 'friend_pending'
+      } else {
+        switch (room.myKnockStatus) {
+          case 'receiver_pending':
+            status = 'pending' // LOCKED 模式
+            break
+          case 'initiator_trial':
+          case 'receiver_trial':
+            status = 'trial' // PET_MODE
+            break
+          case 'friend_pending':
+          case 'friend_confirmed':
+            status = 'friend_pending' // 等待確認好友
+            break
+        }
       }
     }
 

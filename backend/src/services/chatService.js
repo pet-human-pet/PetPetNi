@@ -556,6 +556,7 @@ export const chatService = {
         `
         user_id_int,
         role,
+        knock_status,
         profiles ( nick_name, avatar_url )
       `
       )
@@ -659,6 +660,7 @@ export const chatService = {
             `
             user_id_int,
             role,
+            knock_status,
             profiles ( nick_name, avatar_url )
           `
           )
@@ -698,6 +700,7 @@ export const chatService = {
         `
         user_id_int,
         role,
+        knock_status,
         profiles ( nick_name, avatar_url )
       `
       )
@@ -711,8 +714,26 @@ export const chatService = {
     return data.map((p) => ({
       id: p.user_id_int,
       role: p.role || 'member',
+      knockStatus: p.knock_status,
       nickName: p.profiles?.nick_name,
       avatar: p.profiles?.avatar_url
     }))
+  },
+
+  /**
+   * 標記房間訊息為已讀
+   */
+  markMessagesAsRead: async (roomId, userIdInt) => {
+    const { error } = await supabase
+      .from('chat_messages')
+      .update({ read: true })
+      .eq('room_id', roomId)
+      .neq('sender_id_int', userIdInt)
+      .eq('read', false)
+
+    if (error) {
+      console.error('❌ Error marking as read:', error)
+    }
+    return { success: true }
   }
 }
