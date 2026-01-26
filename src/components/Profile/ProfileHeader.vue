@@ -67,12 +67,12 @@ const handleFollowClick = () => {
         <!-- 返回我的頁面按鈕（只有他人頁面顯示） -->
         <button
           v-if="!isOwnProfile"
-          class="text-fg-muted hover:text-brand-primary absolute -top-2 left-0 z-10 cursor-pointer text-xl transition-transform duration-200 ease-out will-change-transform hover:-translate-x-1 md:text-2xl"
+          class="c-btn-back absolute -top-2 -left-1 z-10 text-xl hover:-translate-x-1 md:left-0 md:text-2xl"
           type="button"
           title="返回我的個人頁面"
           @click="emit('back-to-my-profile')"
         >
-          <i class="fa-solid fa-left-long"></i>
+          <i class="fa-solid fa-arrow-left"></i>
         </button>
 
         <!-- 頭像容器 -->
@@ -81,7 +81,7 @@ const handleFollowClick = () => {
           @click="handleAvatarClick"
         >
           <div
-            class="relative h-20 w-20 overflow-hidden rounded-full border-4 border-white shadow-md md:h-36 md:w-36"
+            class="relative h-20 w-20 overflow-hidden rounded-full border-3 border-white shadow-md md:h-36 md:w-36 md:border-4"
           >
             <img :src="profile.avatar" class="h-full w-full object-cover" alt="avatar" />
           </div>
