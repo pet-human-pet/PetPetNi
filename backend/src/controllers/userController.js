@@ -470,12 +470,12 @@ export const userController = {
       const { count: followersCount } = await supabase
         .from('follows')
         .select('*', { count: 'exact', head: true })
-        .eq('following', userIdInt)
+        .eq('following_id_int', userIdInt)
 
       const { count: followingCount } = await supabase
         .from('follows')
         .select('*', { count: 'exact', head: true })
-        .eq('follower', userIdInt)
+        .eq('follower_id_int', userIdInt)
 
       // 5. 回傳公開資料
       res.status(200).json({
