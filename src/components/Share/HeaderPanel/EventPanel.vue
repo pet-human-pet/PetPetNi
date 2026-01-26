@@ -85,7 +85,7 @@ const onSelectFavorite = (evt) => {
             </div>
             <button
               type="button"
-              class="rounded-btn text-brand-primary hover:bg-bg-base shrink-0 px-3 py-1 text-sm font-semibold"
+              class="rounded-btn text-brand-primary hover:bg-bg-base text-md shrink-0 cursor-pointer px-3 py-1 font-semibold"
               @click="onSelectFavorite(e)"
             >
               查看
