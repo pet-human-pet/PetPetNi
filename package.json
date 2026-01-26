@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "reset-match": "node backend/scripts/reset-match.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.91.1",
