@@ -452,11 +452,8 @@ const handleCropConfirm = async ({ coordinates }) => {
   try {
     // 1. 根據座標生成 Cloudinary 動態裁切網址
     const avatarUrl = getDynamicUrl(currentPublicId.value, coordinates)
-    console.log('🔗 生成動態裁切網址:', avatarUrl)
-
     // 2. 呼叫 API 更新後端
-    const response = await profileApi.updateProfile({ avatarUrl })
-    console.log('📬 API 回應:', response.data)
+    await profileApi.updateProfile({ avatarUrl })
 
     // 3. 重新載入自己的 Profile 以更新網頁顯示
     await authStore.fetchProfile()

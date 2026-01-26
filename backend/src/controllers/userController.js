@@ -312,8 +312,6 @@ export const userController = {
       let profile = null
 
       if (Object.keys(updateData).length > 1) {
-        console.log(`👤 正在為 User UUID: [${user.id}] 更新 profiles 表...`)
-
         const { data, error } = await supabase
           .from('profiles')
           .update(updateData)
@@ -332,7 +330,6 @@ export const userController = {
         }
 
         profile = data
-        console.log('✅ profiles 表更新成功，同步時間:', profile.updated_at)
       } else {
         // 如果沒更新 profile，先查出來以便後續使用 (例如 user_id_int)
         const { data, error } = await supabase
@@ -348,8 +345,6 @@ export const userController = {
       // 5.1 處理頭像關聯更新
       if (avatarUrl) {
         try {
-          console.log('🖼️ 正在處理頭像關聯表更新 (過濾裁切參數中...)')
-
           // 採納 Yuna 建議：存入紀錄表前移除裁切參數 (c_crop...)
           // 這樣同一個原始圖片檔案就不會因為裁切範圍不同而產生多筆紀錄
           const sanitizedUrl = avatarUrl.replace(/\/c_crop[^/]+\//, '/')
@@ -364,8 +359,6 @@ export const userController = {
           if (imgError) {
             console.error('⚠️ images 表更新失敗:', imgError.message)
           } else if (imgData) {
-            console.log('🖼️ 原始圖片紀錄 ID:', imgData.id)
-
             // 2. 將舊的頭像關聯設為非當前
             await supabase
               .from('profile_images')
