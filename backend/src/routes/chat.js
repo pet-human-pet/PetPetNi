@@ -55,4 +55,7 @@ router.post('/knock/:roomId/confirm-friend', chatController.confirmFriend)
 // 更新敲敲門訊息計數
 router.post('/knock/:roomId/increment-count', chatController.incrementKnockCount)
 
+// 標記已讀
+router.post('/rooms/:roomId/read', chatController.markAsRead)
+
 export default router

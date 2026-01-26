@@ -335,5 +335,26 @@ export const chatController = {
       console.error('❌ Error incrementing knock count:', error)
       res.status(500).json({ success: false, message: '更新訊息計數失敗' })
     }
+  },
+
+  /**
+   * 標記房間訊息為已讀
+   * POST /api/chat/rooms/:roomId/read
+   */
+  async markAsRead(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { roomId } = req.params
+      await chatService.markMessagesAsRead(roomId, user.userIdInt)
+
+      res.status(200).json({ success: true })
+    } catch (error) {
+      console.error('❌ Error marking as read:', error)
+      res.status(500).json({ success: false, message: '標記已讀失敗' })
+    }
   }
 }

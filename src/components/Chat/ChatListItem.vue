@@ -23,7 +23,18 @@ const displayTime = computed(() => {
 
 const displayText = computed(() => {
   if (props.chat.isBlocked) return '已封鎖此用戶'
-  return lastMsg.value ? lastMsg.value.content || lastMsg.value.text : '點擊開始聊天'
+  const msg = lastMsg.value
+  if (!msg) return '點擊開始聊天'
+
+  // 系統訊息對應文字
+  if (msg.messageType === 'system' || msg.message_type === 'system') {
+    const text = msg.content || msg.text
+    if (text === 'FRIEND_CONFIRMED_BY_OTHER') return '對方已確認好友請求'
+    if (text === 'FRIENDSHIP_ESTABLISHED') return '你們已正式成為好友'
+    return text
+  }
+
+  return msg.content || msg.text
 })
 </script>
 
@@ -99,9 +110,10 @@ const displayText = computed(() => {
       </div>
     </div>
 
+    <!-- Unread Badge -->
     <div v-if="!isFriendListMode && chat.unreadCount > 0" class="flex items-center pr-2">
       <div
-        class="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white shadow-sm"
+        class="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white shadow-sm ring-2 ring-white"
       >
         {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
       </div>
