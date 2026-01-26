@@ -145,11 +145,11 @@ watch(
 
 <template>
   <section
-    class="no-scrollbar pointer-events-auto flex flex-row gap-3 overflow-x-auto pb-1.25 md:flex-col md:gap-3.75 md:overflow-visible md:pb-0"
+    class="no-scrollbar pointer-events-auto flex flex-row gap-3 overflow-x-auto px-3 pb-1.25 md:flex-col md:gap-3.75 md:overflow-visible md:pb-0"
   >
     <!-- create card -->
     <div
-      class="border-brand-primary bg-bg-surface shadow-card hover:bg-brand-tertiary/10 flex h-40 w-60 flex-none cursor-pointer snap-center flex-col items-center justify-center rounded-2xl border-2 border-dashed p-0 transition-all md:h-auto md:w-full md:flex-initial md:flex-row md:items-stretch md:justify-start md:rounded-xl md:p-4 md:shadow-none"
+      class="border-brand-primary bg-bg-surface shadow-card hover:bg-brand-tertiary/10 flex h-45 w-25 flex-none cursor-pointer snap-center flex-col items-center justify-center rounded-2xl border-2 border-dashed p-0 transition-all md:h-auto md:w-full md:flex-initial md:flex-row md:items-stretch md:justify-start md:rounded-xl md:p-4 md:shadow-none"
     >
       <button
         class="text-brand-primary flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 bg-transparent py-2 text-[14px] font-bold md:h-auto md:flex-row md:text-[16px]"
@@ -225,8 +225,8 @@ watch(
             :disabled="isLeaving"
             @click.stop="handleLeaveEvent(evt)"
           >
-            <i v-if="isLeaving" class="fa-solid fa-spinner fa-spin mr-1"></i>
-            <i v-else class="fa-solid fa-right-from-bracket mr-1"></i>
+            <i v-if="isLeaving" class="fa-solid fa-spinner fa-spin"></i>
+            <i v-else class="fa-solid fa-right-from-bracket"></i>
             {{ isLeaving ? '取消中...' : '取消報名' }}
           </button>
 
@@ -285,7 +285,7 @@ watch(
 
         <button
           type="button"
-          class="c-btn--primary mt-4 w-full p-3 text-[14px]"
+          class="c-btn--primary mt-4 w-full cursor-pointer p-3 text-[14px]"
           @click="closeJoinModal"
         >
           確定
