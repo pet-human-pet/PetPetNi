@@ -4,6 +4,7 @@ import { INITIAL_DB } from '@/utils/chatMockData'
 import { useRealtimeChat } from '@/composables/useRealtimeChat'
 import { checkSensitiveContent } from '@/utils/validators'
 import { useAuthStore } from '@/stores/auth'
+import { chatApi } from '@/api/chat'
 
 export const useChatStore = defineStore('chat', () => {
   // --- 0. Supabase Realtime 整合 ---
@@ -382,6 +383,172 @@ export const useChatStore = defineStore('chat', () => {
     createAiChat(title)
   }
 
+  // ========================================
+  // 私訊與群聊功能
+  // ========================================
+
+  /**
+   * 從 API 載入使用者的所有聊天室
+   */
+  async function loadUserRooms() {
+    if (!currentUserIdInt.value) {
+      console.warn('⚠️ 尚未登入，無法載入聊天室')
+      return
+    }
+
+    try {
+      const response = await chatApi.getRooms()
+      const rooms = response.data.data || []
+
+      // 依照房間類型分類
+      const privateRooms = []
+      const groupRooms = []
+      const eventRooms = []
+
+      rooms.forEach((room) => {
+        const formattedRoom = formatRoomToChat(room)
+        if (room.type === 'private') {
+          privateRooms.push(formattedRoom)
+        } else if (room.type === 'group') {
+          groupRooms.push(formattedRoom)
+        } else if (room.type === 'event') {
+          eventRooms.push(formattedRoom)
+        }
+      })
+
+      // 更新 db（保留 mock 資料作為 fallback）
+      if (privateRooms.length > 0) {
+        db.value.match = [...privateRooms, ...db.value.match.filter((c) => c.id.startsWith('m'))]
+      }
+      if (groupRooms.length > 0) {
+        db.value.community = [
+          ...groupRooms,
+          ...db.value.community.filter((c) => c.id.startsWith('c'))
+        ]
+      }
+      if (eventRooms.length > 0) {
+        db.value.event = [...eventRooms, ...db.value.event.filter((c) => c.id.startsWith('e'))]
+      }
+
+      console.log('✅ 聊天室列表已載入:', rooms.length, '個房間')
+    } catch (error) {
+      console.error('❌ 載入聊天室失敗:', error)
+    }
+  }
+
+  /**
+   * 將 API 回傳的房間格式轉換為前端格式
+   */
+  function formatRoomToChat(room) {
+    // 找出對方的資訊（私訊時）
+    const otherParticipant = room.participants?.find((p) => p.id !== currentUserIdInt.value)
+
+    return {
+      id: room.id,
+      type: room.type,
+      name: room.name || otherParticipant?.nickName || '未命名',
+      avatar: room.avatar || otherParticipant?.avatar || '',
+      status: 'friend', // 預設為朋友狀態
+      msgs: [],
+      pinned: false,
+      lastMessage: room.lastMessage,
+      unreadCount: room.unreadCount || 0,
+      participants: room.participants
+    }
+  }
+
+  /**
+   * 開始私訊（找到或建立私訊房間）
+   * @param {number} targetUserId - 對方的 user_id_int
+   */
+  async function startPrivateChat(targetUserId) {
+    try {
+      const response = await chatApi.startPrivateChat(targetUserId)
+      const { data: room, isNew } = response.data
+
+      // 格式化房間資料
+      const formattedRoom = formatRoomToChat(room)
+
+      // 如果是新房間，加入列表
+      if (isNew) {
+        db.value.match.unshift(formattedRoom)
+      } else {
+        // 檢查是否已存在，如果不存在則加入
+        const exists = db.value.match.find((c) => c.id === room.id)
+        if (!exists) {
+          db.value.match.unshift(formattedRoom)
+        }
+      }
+
+      // 開啟聊天室
+      currentCategory.value = 'match'
+      await openChat(room.id)
+
+      return { success: true, room: formattedRoom, isNew }
+    } catch (error) {
+      console.error('❌ 開始私訊失敗:', error)
+      return { success: false, error: error.response?.data?.message || '開始私訊失敗' }
+    }
+  }
+
+  /**
+   * 建立群組聊天室
+   * @param {string} name - 群組名稱
+   * @param {number[]} memberIds - 成員 ID 陣列
+   * @param {string} avatar - 群組頭像 URL（可選）
+   */
+  async function createGroup(name, memberIds, avatar = null) {
+    try {
+      const response = await chatApi.createGroup({ name, memberIds, avatar })
+      const room = response.data.data
+
+      // 格式化並加入列表
+      const formattedRoom = formatRoomToChat(room)
+      db.value.community.unshift(formattedRoom)
+
+      // 開啟聊天室
+      currentCategory.value = 'community'
+      await openChat(room.id)
+
+      return { success: true, room: formattedRoom }
+    } catch (error) {
+      console.error('❌ 建立群組失敗:', error)
+      return { success: false, error: error.response?.data?.message || '建立群組失敗' }
+    }
+  }
+
+  /**
+   * 加入群組成員
+   * @param {string} roomId - 房間 ID
+   * @param {number[]} memberIds - 要加入的成員 ID 陣列
+   */
+  async function addGroupMembers(roomId, memberIds) {
+    try {
+      const response = await chatApi.addMembers(roomId, memberIds)
+      console.log('✅ 成員已加入:', response.data.data)
+      return { success: true, ...response.data.data }
+    } catch (error) {
+      console.error('❌ 加入成員失敗:', error)
+      return { success: false, error: error.response?.data?.message || '加入成員失敗' }
+    }
+  }
+
+  /**
+   * 移除群組成員
+   * @param {string} roomId - 房間 ID
+   * @param {number} userId - 要移除的成員 ID
+   */
+  async function removeGroupMember(roomId, userId) {
+    try {
+      await chatApi.removeMember(roomId, userId)
+      console.log('✅ 成員已移除')
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 移除成員失敗:', error)
+      return { success: false, error: error.response?.data?.message || '移除成員失敗' }
+    }
+  }
+
   return {
     currentCategory,
     activeChatId,
@@ -412,6 +579,12 @@ export const useChatStore = defineStore('chat', () => {
     removeFriend,
     clearNotice,
     unblockChat,
-    isConnected
+    isConnected,
+    // 私訊與群聊
+    loadUserRooms,
+    startPrivateChat,
+    createGroup,
+    addGroupMembers,
+    removeGroupMember
   }
 })
