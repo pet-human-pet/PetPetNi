@@ -23,12 +23,11 @@ const defaultSize = ({ imageSize }) => {
 }
 
 const onConfirm = () => {
-  const result = cropperRef.value.getResult()
-  const { canvas, coordinates } = result
+  const { canvas } = cropperRef.value.getResult()
   if (canvas) {
     canvas.toBlob(
       (blob) => {
-        emit('confirm', { blob, coordinates })
+        emit('confirm', blob)
       },
       'image/jpeg',
       0.9

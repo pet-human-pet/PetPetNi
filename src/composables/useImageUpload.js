@@ -1,7 +1,7 @@
 import imageCompression from 'browser-image-compression'
 import axios from 'axios'
 
-// 圖片上傳：負責壓縮 +上傳到 Cloudinary
+// 圖片上傳：負責壓縮 + 上傳到 Cloudinary
 export const useImageUpload = () => {
   const CLOUDINARY_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
   const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
@@ -29,19 +29,6 @@ export const useImageUpload = () => {
     }
   }
 
-  // 生成 Cloudinary 動態裁切網址
-  const getDynamicUrl = (publicId, coordinates = null) => {
-    if (!publicId) return ''
-
-    // 如果有裁切座標，加入 c_crop 參數
-    // 格式：c_crop,w_[width],h_[height],x_[x],y_[y]
-    const transformation = coordinates
-      ? `c_crop,w_${Math.round(coordinates.width)},h_${Math.round(coordinates.height)},x_${Math.round(coordinates.left)},y_${Math.round(coordinates.top)}/`
-      : ''
-
-    return `https://res.cloudinary.com/${CLOUDINARY_NAME}/image/upload/${transformation}f_webp,q_auto/${publicId}`
-  }
-
   // 上傳到 Cloudinary
   const uploadToCloudinary = async (fileOrBlob, { folder = 'petpetni/posts' } = {}, onProgress) => {
     const formData = new FormData()
@@ -65,14 +52,13 @@ export const useImageUpload = () => {
       )
 
       const publicId = res.data.public_id
+      const webpUrl = `https://res.cloudinary.com/${CLOUDINARY_NAME}/image/upload/f_webp,q_auto/${publicId}`
 
       return {
-        url: res.data.secure_url, // 原始網址
+        url: webpUrl, // 保持 webp 優化網址以相容舊有的顯示邏輯
         publicId,
         width: res.data.width,
-        height: res.data.height,
-        // 預設提供一個基本的最佳化網址
-        optimizedUrl: getDynamicUrl(publicId)
+        height: res.data.height
       }
     } catch {
       throw new Error('圖片上傳失敗，請檢查網路或稍後再試')
@@ -81,7 +67,6 @@ export const useImageUpload = () => {
 
   return {
     compressImage,
-    uploadToCloudinary,
-    getDynamicUrl
+    uploadToCloudinary
   }
 }
