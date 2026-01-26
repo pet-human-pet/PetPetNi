@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { INITIAL_DB } from '@/utils/chatMockData'
 import { useRealtimeChat } from '@/composables/useRealtimeChat'
 import { checkSensitiveContent } from '@/utils/validators'
@@ -27,29 +27,38 @@ export const useChatStore = defineStore('chat', () => {
 
   const db = ref(INITIAL_DB)
 
-  // --- 內部輔助 ---
-  function findChat(id) {
-    if (id === currentUserIdInt.value) return db.value.myProfile
-    for (const key in db.value) {
-      if (Array.isArray(db.value[key])) {
-        const found = db.value[key].find((c) => c.id === id)
-        if (found) return found
+  // --- 核心邏輯：自動初始化 ---
+  // 監聽用戶 ID，一旦準備好就載入聊天室列表
+  watch(
+    () => currentUserIdInt.value,
+    (newId) => {
+      if (newId) {
+        loadUserRooms()
       }
-    }
-    return null
-  }
+    },
+    { immediate: true }
+  )
 
   // --- 計算屬性 ---
   const unreadCounts = computed(() => {
-    const counts = { match: 0, community: 0, event: 0 }
-    ;['match', 'community', 'event', 'stranger'].forEach((cat) => {
-      if (!db.value[cat]) return
-      db.value[cat].forEach((chat) => {
-        const unreadInChat = chat.msgs.filter((m) => m.sender !== 'me' && !m.read).length
-        const targetCat = cat === 'stranger' ? 'match' : cat
-        counts[targetCat] += unreadInChat
-      })
+    const counts = { match: 0, matching: 0, knock: 0 }
+
+    // 統計 match 列表中的未讀 (包含 friend 和 matching)
+    db.value.match.forEach((chat) => {
+      const unreadInChat = chat.msgs.filter((m) => m.sender !== 'me' && !m.read).length
+      if (chat.status === 'friend') {
+        counts.match += unreadInChat
+      } else {
+        counts.matching += unreadInChat
+      }
     })
+
+    // 統計 stranger 中的未讀 (敲敲門)
+    db.value.stranger.forEach((chat) => {
+      const unreadInChat = chat.msgs.filter((m) => m.sender !== 'me' && !m.read).length
+      counts.knock += unreadInChat
+    })
+
     return counts
   })
 
@@ -83,12 +92,31 @@ export const useChatStore = defineStore('chat', () => {
     const chat = activeChat.value
     if (!chat) return 'LOCKED'
 
-    if (chat.type === 'community' || chat.type === 'event' || chat.status === 'friend') {
+    // 社群和活動永遠是 REAL_MODE
+    if (chat.type === 'community' || chat.type === 'event') {
       return 'REAL_MODE'
     }
+
+    // 好友狀態
+    if (chat.status === 'friend') {
+      return 'REAL_MODE'
+    }
+
+    // 敲敲門：接收者未接受
     if (chat.type === 'knock' && chat.status === 'pending') {
       return 'LOCKED'
     }
+
+    // 敲敲門：試聊中或等待確認好友
+    if (chat.type === 'knock' && ['trial', 'friend_pending'].includes(chat.status)) {
+      return 'PET_MODE'
+    }
+
+    // 配對中
+    if (chat.status === 'matching') {
+      return 'PET_MODE'
+    }
+
     return 'PET_MODE'
   })
 
@@ -102,12 +130,17 @@ export const useChatStore = defineStore('chat', () => {
     const chat = activeChat.value
     if (!chat || chatMode.value !== 'PET_MODE') return false
 
-    if (chat.type === 'knock' && chat.status === 'trial') {
-      return myMessageCount.value >= 3
+    // 敲敲門模式：使用 knockMessageCount 或計算 myMessageCount
+    if (chat.type === 'knock') {
+      const count = chat.knockMessageCount || myMessageCount.value
+      return count >= 3
     }
+
+    // 配對模式
     if (chat.type === 'match' && chat.status === 'matching') {
       return myMessageCount.value >= 10
     }
+
     return false
   })
 
@@ -119,10 +152,33 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function openChat(id) {
+    if (!id) return
     activeChatId.value = id
     selectedFriendId.value = null
     replyingMsg.value = null
-    const chat = activeChat.value
+
+    // 1. 如果本地 db 找不到，主動去後端抓取房間資料
+    let chat = activeChat.value
+    if (!chat && !id.toString().startsWith('ai')) {
+      try {
+        const response = await chatApi.getRoom(id)
+        const room = response.data.data
+        if (room) {
+          const formatted = formatRoomToChat(room)
+          // 根據類型存入對應分類
+          if (room.type === 'private') {
+            db.value.match.unshift(formatted)
+          } else if (room.type === 'group') {
+            db.value.community.unshift(formatted)
+          } else if (room.type === 'event') {
+            db.value.event.unshift(formatted)
+          }
+          chat = formatted
+        }
+      } catch {
+        // Automatically caught below
+      }
+    }
 
     if (chat) {
       // 標記訊息為已讀
@@ -151,7 +207,6 @@ export const useChatStore = defineStore('chat', () => {
             pendingMsg.id = newMessage.id
             pendingMsg.timestamp = new Date(newMessage.created_at).getTime()
             delete pendingMsg.isPending
-            console.log('🔄 Updated pending message with real data:', newMessage.id)
             return
           }
         }
@@ -183,8 +238,8 @@ export const useChatStore = defineStore('chat', () => {
             read: msg.read || false
           }))
         }
-      } catch (error) {
-        console.error('❌ Failed to load chat history:', error)
+      } catch {
+        // Silently fail
       }
     }
   }
@@ -254,6 +309,12 @@ export const useChatStore = defineStore('chat', () => {
         isImage ? text : null,
         replyTo?.id || null
       )
+      .then(() => {
+        // 如果是敲敲門模式，更新訊息計數
+        if (chat.type === 'knock' && chat.knockStatus) {
+          incrementKnockCount(chat.id)
+        }
+      })
       .catch((error) => {
         console.error('❌ Failed to send message:', error)
         // 發送失敗時可以加入錯誤處理邏輯
@@ -281,22 +342,125 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function becomeFriend(chatId) {
+    // 1. 檢查是否在陌生人(敲敲門)列表中
     const strangerIndex = db.value.stranger.findIndex((c) => c.id === chatId)
     if (strangerIndex !== -1) {
       const chat = db.value.stranger[strangerIndex]
       chat.status = 'friend'
+      chat.type = 'private'
+      chat.knockStatus = null
       chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
-      db.value.match.push(chat)
+      db.value.match.unshift(chat)
       db.value.stranger.splice(strangerIndex, 1)
-      privateSubTab.value = 'friend'
+      currentCategory.value = 'match'
       return
     }
 
+    // 2. 檢查是否在配對列表中
     const chat = db.value.match.find((c) => c.id === chatId)
     if (chat) {
       chat.status = 'friend'
+      chat.knockStatus = null
       chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
-      privateSubTab.value = 'friend'
+      currentCategory.value = 'match'
+    }
+  }
+
+  // ========================================
+  // 敲敲門功能（API 版本）
+  // ========================================
+
+  /**
+   * 接受敲敲門（呼叫後端 API）
+   */
+  async function acceptKnockApi(chatId) {
+    try {
+      await chatApi.acceptKnock(chatId)
+
+      const chat = db.value.stranger.find((c) => c.id === chatId)
+      if (chat) {
+        chat.status = 'trial'
+        chat.knockStatus = 'receiver_trial'
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 接受敲敲門失敗:', error)
+      return { success: false, error: error.response?.data?.message || '接受敲敲門失敗' }
+    }
+  }
+
+  /**
+   * 拒絕敲敲門（呼叫後端 API）
+   */
+  async function rejectKnockApi(chatId) {
+    try {
+      await chatApi.rejectKnock(chatId)
+
+      db.value.stranger = db.value.stranger.filter((c) => c.id !== chatId)
+      if (activeChatId.value === chatId) activeChatId.value = null
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 拒絕敲敲門失敗:', error)
+      return { success: false, error: error.response?.data?.message || '拒絕敲敲門失敗' }
+    }
+  }
+
+  /**
+   * 確認成為好友（呼叫後端 API）
+   */
+  async function confirmFriendApi(chatId) {
+    try {
+      const response = await chatApi.confirmFriend(chatId)
+      const { isFriend } = response.data
+
+      const chat = db.value.stranger.find((c) => c.id === chatId)
+
+      if (isFriend && chat) {
+        // 雙方都確認，移至好友列表
+        chat.status = 'friend'
+        chat.type = 'private'
+        chat.knockStatus = null
+        chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
+
+        db.value.match.unshift(chat)
+        db.value.stranger = db.value.stranger.filter((c) => c.id !== chatId)
+        currentCategory.value = 'match'
+      } else if (chat) {
+        // 等待對方確認
+        chat.knockStatus = 'friend_confirmed'
+        chat.notice = '已送出好友邀請，等待對方確認'
+      }
+
+      return { success: true, isFriend }
+    } catch (error) {
+      console.error('❌ 確認好友失敗:', error)
+      return { success: false, error: error.response?.data?.message || '確認好友失敗' }
+    }
+  }
+
+  /**
+   * 更新敲敲門訊息計數（發送訊息後呼叫）
+   */
+  async function incrementKnockCount(chatId) {
+    try {
+      const response = await chatApi.incrementKnockCount(chatId)
+      const { newCount, newStatus } = response.data.data
+
+      const chat = db.value.stranger.find((c) => c.id === chatId)
+      if (chat) {
+        chat.knockMessageCount = newCount
+        if (newStatus === 'friend_pending') {
+          chat.status = 'friend_pending'
+          chat.knockStatus = newStatus
+        }
+      }
+
+      return { success: true, newCount, newStatus }
+    } catch (error) {
+      console.error('❌ 更新訊息計數失敗:', error)
+      return { success: false }
     }
   }
 
@@ -387,16 +551,6 @@ export const useChatStore = defineStore('chat', () => {
 
   function createAiChat(title = '新對話') {
     const newChatId = 'ai_' + Date.now()
-    const newChat = {
-      id: newChatId,
-      name: '波波',
-      title: title,
-      avatar: '/src/assets/images/ai-avatar.webp',
-      type: 'ai',
-      pinned: false,
-      msgs: [],
-      timestamp: Date.now()
-    }
     // 這裡我們暫時用 mock 資料模擬，實務上會呼叫 aiStore
     currentCategory.value = 'ai'
     activeChatId.value = newChatId
@@ -425,15 +579,22 @@ export const useChatStore = defineStore('chat', () => {
       const response = await chatApi.getRooms()
       const rooms = response.data.data || []
 
-      // 依照房間類型分類
-      const privateRooms = []
+      // 依照房間類型和 knock 狀態分類
+      const friendRooms = [] // 好友私訊
+      const knockRooms = [] // 敲敲門（陌生人）
       const groupRooms = []
       const eventRooms = []
 
       rooms.forEach((room) => {
         const formattedRoom = formatRoomToChat(room)
+
         if (room.type === 'private') {
-          privateRooms.push(formattedRoom)
+          // 根據 knock 狀態分類
+          if (formattedRoom.type === 'knock') {
+            knockRooms.push(formattedRoom)
+          } else {
+            friendRooms.push(formattedRoom)
+          }
         } else if (room.type === 'group') {
           groupRooms.push(formattedRoom)
         } else if (room.type === 'event') {
@@ -442,8 +603,11 @@ export const useChatStore = defineStore('chat', () => {
       })
 
       // 更新 db（保留 mock 資料作為 fallback）
-      if (privateRooms.length > 0) {
-        db.value.match = [...privateRooms, ...db.value.match.filter((c) => c.id.startsWith('m'))]
+      if (friendRooms.length > 0) {
+        db.value.match = [...friendRooms, ...db.value.match.filter((c) => c.id.startsWith('m'))]
+      }
+      if (knockRooms.length > 0) {
+        db.value.stranger = [...knockRooms, ...db.value.stranger.filter((c) => c.id.startsWith('s'))]
       }
       if (groupRooms.length > 0) {
         db.value.community = [
@@ -468,12 +632,35 @@ export const useChatStore = defineStore('chat', () => {
     // 找出對方的資訊（私訊時）
     const otherParticipant = room.participants?.find((p) => p.id !== currentUserIdInt.value)
 
+    // 根據 knock 狀態決定 status 和 type
+    let status = 'friend'
+    let type = room.type
+
+    if (room.myKnockStatus) {
+      type = 'knock'
+      switch (room.myKnockStatus) {
+        case 'receiver_pending':
+          status = 'pending' // LOCKED 模式
+          break
+        case 'initiator_trial':
+        case 'receiver_trial':
+          status = 'trial' // PET_MODE
+          break
+        case 'friend_pending':
+        case 'friend_confirmed':
+          status = 'friend_pending' // 等待確認好友
+          break
+      }
+    }
+
     return {
       id: room.id,
-      type: room.type,
+      type: type,
       name: room.name || otherParticipant?.nickName || '未命名',
       avatar: room.avatar || otherParticipant?.avatar || '',
-      status: 'friend', // 預設為朋友狀態
+      status: status,
+      knockStatus: room.myKnockStatus || null,
+      knockMessageCount: room.myKnockMessageCount || 0,
       msgs: [],
       pinned: false,
       lastMessage: room.lastMessage,
@@ -489,27 +676,36 @@ export const useChatStore = defineStore('chat', () => {
   async function startPrivateChat(targetUserId) {
     try {
       const response = await chatApi.startPrivateChat(targetUserId)
-      const { data: room, isNew } = response.data
+      const { data: room, isNew, isKnock } = response.data
 
       // 格式化房間資料
       const formattedRoom = formatRoomToChat(room)
 
-      // 如果是新房間，加入列表
-      if (isNew) {
-        db.value.match.unshift(formattedRoom)
-      } else {
-        // 檢查是否已存在，如果不存在則加入
-        const exists = db.value.match.find((c) => c.id === room.id)
-        if (!exists) {
-          db.value.match.unshift(formattedRoom)
+      // 根據是否為敲敲門決定放入哪個列表
+      if (isKnock || formattedRoom.type === 'knock') {
+        // 敲敲門：放入 stranger 列表
+        const existsInStranger = db.value.stranger.find((c) => c.id === room.id)
+        if (!existsInStranger) {
+          db.value.stranger.unshift(formattedRoom)
         }
+        currentCategory.value = 'knock'
+      } else {
+        // 好友：放入 match 列表
+        if (isNew) {
+          db.value.match.unshift(formattedRoom)
+        } else {
+          const exists = db.value.match.find((c) => c.id === room.id)
+          if (!exists) {
+            db.value.match.unshift(formattedRoom)
+          }
+        }
+        currentCategory.value = 'match'
       }
 
       // 開啟聊天室
-      currentCategory.value = 'match'
       await openChat(room.id)
 
-      return { success: true, room: formattedRoom, isNew }
+      return { success: true, room: formattedRoom, isNew, isKnock }
     } catch (error) {
       console.error('❌ 開始私訊失敗:', error)
       return { success: false, error: error.response?.data?.message || '開始私訊失敗' }
@@ -610,6 +806,11 @@ export const useChatStore = defineStore('chat', () => {
     startPrivateChat,
     createGroup,
     addGroupMembers,
-    removeGroupMember
+    removeGroupMember,
+    // 敲敲門 API
+    acceptKnockApi,
+    rejectKnockApi,
+    confirmFriendApi,
+    incrementKnockCount
   }
 })

@@ -172,7 +172,7 @@ const handleFollowClick = () => {
             v-if="!isOwnProfile"
             class="c-btn text-md text-fg-muted w-full max-w-28 cursor-pointer truncate rounded-full bg-white py-1 font-bold whitespace-nowrap transition-all outline-none select-none hover:bg-gray-50 focus:outline-none focus-visible:outline-none md:w-auto md:px-6 md:py-1.5 md:text-sm"
             type="button"
-            @click="emit"
+            @click="emit('start-chat')"
           >
             聊天
           </button>

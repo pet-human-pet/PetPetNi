@@ -1,5 +1,14 @@
 import { supabase } from './supabase.js'
 
+// Knock 狀態常數
+const KNOCK_STATUS = {
+  INITIATOR_TRIAL: 'initiator_trial', // 發起者 - 試聊中
+  RECEIVER_PENDING: 'receiver_pending', // 接收者 - 待接受
+  RECEIVER_TRIAL: 'receiver_trial', // 接收者 - 已接受，試聊中
+  FRIEND_PENDING: 'friend_pending', // 達到3句，等待確認好友
+  FRIEND_CONFIRMED: 'friend_confirmed' // 已確認，等待對方
+}
+
 // Helper: 將 Supabase 格式轉換為前端所需格式
 const formatMessageForFrontend = (msg) => ({
   id: msg.id,
@@ -29,6 +38,185 @@ const formatRoomForFrontend = (room, participants = []) => ({
 })
 
 export const chatService = {
+  // ========================================
+  // 敲敲門相關功能
+  // ========================================
+
+  /**
+   * 檢查兩人是否互相追蹤（好友）
+   */
+  checkMutualFollow: async (userIdInt, targetUserIdInt) => {
+    // 檢查 A 追蹤 B
+    const { data: aFollowsB } = await supabase
+      .from('follows')
+      .select('id')
+      .eq('follower', userIdInt)
+      .eq('following', targetUserIdInt)
+      .maybeSingle()
+
+    if (!aFollowsB) return false
+
+    // 檢查 B 追蹤 A
+    const { data: bFollowsA } = await supabase
+      .from('follows')
+      .select('id')
+      .eq('follower', targetUserIdInt)
+      .eq('following', userIdInt)
+      .maybeSingle()
+
+    return !!bFollowsA
+  },
+
+  /**
+   * 建立互相追蹤關係（成為好友時使用）
+   */
+  createMutualFollow: async (userIdInt, targetUserIdInt) => {
+    // 檢查並建立 A -> B
+    const { data: existsAB } = await supabase
+      .from('follows')
+      .select('id')
+      .eq('follower', userIdInt)
+      .eq('following', targetUserIdInt)
+      .maybeSingle()
+
+    if (!existsAB) {
+      await supabase.from('follows').insert({
+        follower: userIdInt,
+        following: targetUserIdInt
+      })
+    }
+
+    // 檢查並建立 B -> A
+    const { data: existsBA } = await supabase
+      .from('follows')
+      .select('id')
+      .eq('follower', targetUserIdInt)
+      .eq('following', userIdInt)
+      .maybeSingle()
+
+    if (!existsBA) {
+      await supabase.from('follows').insert({
+        follower: targetUserIdInt,
+        following: userIdInt
+      })
+    }
+  },
+
+  /**
+   * 接受敲敲門
+   */
+  acceptKnock: async (roomId, userIdInt) => {
+    const { data: participant, error } = await supabase
+      .from('chat_room_participants')
+      .select('knock_status')
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+      .single()
+
+    if (error || participant?.knock_status !== KNOCK_STATUS.RECEIVER_PENDING) {
+      throw new Error('無效的操作')
+    }
+
+    await supabase
+      .from('chat_room_participants')
+      .update({ knock_status: KNOCK_STATUS.RECEIVER_TRIAL })
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+
+    return { success: true }
+  },
+
+  /**
+   * 拒絕敲敲門
+   */
+  rejectKnock: async (roomId, userIdInt) => {
+    await supabase
+      .from('chat_room_participants')
+      .update({ is_blocked: true, knock_status: 'rejected' })
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+
+    return { success: true }
+  },
+
+  /**
+   * 確認成為好友
+   */
+  confirmFriend: async (roomId, userIdInt) => {
+    // 更新自己的狀態為已確認
+    await supabase
+      .from('chat_room_participants')
+      .update({ knock_status: KNOCK_STATUS.FRIEND_CONFIRMED })
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+
+    // 檢查所有參與者的狀態
+    const { data: participants } = await supabase
+      .from('chat_room_participants')
+      .select('user_id_int, knock_status')
+      .eq('room_id', roomId)
+
+    const allConfirmed = participants.every(
+      (p) => p.knock_status === KNOCK_STATUS.FRIEND_CONFIRMED || p.knock_status === null
+    )
+
+    if (allConfirmed) {
+      // 雙方都確認，清除 knock 狀態，正式成為好友
+      await supabase
+        .from('chat_room_participants')
+        .update({ knock_status: null, knock_message_count: 0 })
+        .eq('room_id', roomId)
+
+      // 建立互相追蹤關係
+      const otherUser = participants.find((p) => p.user_id_int !== userIdInt)
+      if (otherUser) {
+        await chatService.createMutualFollow(userIdInt, otherUser.user_id_int)
+      }
+    }
+
+    return { success: true, isFriend: allConfirmed }
+  },
+
+  /**
+   * 更新敲敲門訊息計數（發送訊息後呼叫）
+   */
+  incrementKnockMessageCount: async (roomId, userIdInt) => {
+    const { data: participant } = await supabase
+      .from('chat_room_participants')
+      .select('knock_status, knock_message_count')
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+      .single()
+
+    const knockStatus = participant?.knock_status
+    if (
+      knockStatus === KNOCK_STATUS.INITIATOR_TRIAL ||
+      knockStatus === KNOCK_STATUS.RECEIVER_TRIAL
+    ) {
+      const newCount = (participant.knock_message_count || 0) + 1
+
+      // 如果達到 3 句，更新狀態為等待確認好友
+      const newStatus = newCount >= 3 ? KNOCK_STATUS.FRIEND_PENDING : knockStatus
+
+      await supabase
+        .from('chat_room_participants')
+        .update({
+          knock_message_count: newCount,
+          knock_status: newStatus
+        })
+        .eq('room_id', roomId)
+        .eq('user_id_int', userIdInt)
+
+      return { newCount, newStatus }
+    }
+
+    return { newCount: participant?.knock_message_count || 0, newStatus: knockStatus }
+  },
+
+  // ========================================
+  // 原有功能
+  // ========================================
+
   // 取得用戶參與的所有聊天室 ID
   // userId 為數字型的自增 ID
   getUserRooms: async (userId) => {
@@ -132,11 +320,14 @@ export const chatService = {
     // 1. 先檢查是否已有房間
     const existingRoomId = await chatService.findExistingPrivateRoom(userIdInt, targetUserIdInt)
     if (existingRoomId) {
-      const room = await chatService.getRoomById(existingRoomId)
-      return { room, isNew: false }
+      const room = await chatService.getRoomByIdWithKnockStatus(existingRoomId, userIdInt)
+      return { room, isNew: false, isKnock: !!room.myKnockStatus }
     }
 
-    // 2. 建立新房間
+    // 2. 檢查是否互相追蹤（好友）
+    const isFriend = await chatService.checkMutualFollow(userIdInt, targetUserIdInt)
+
+    // 3. 建立新房間
     const { data: newRoom, error: roomError } = await supabase
       .from('chat_rooms')
       .insert({ type: 'private' })
@@ -148,21 +339,42 @@ export const chatService = {
       throw roomError
     }
 
-    // 3. 加入兩位參與者
-    const { error: participantError } = await supabase.from('chat_room_participants').insert([
-      { room_id: newRoom.id, user_id_int: userIdInt, role: 'member' },
-      { room_id: newRoom.id, user_id_int: targetUserIdInt, role: 'member' }
-    ])
+    // 4. 根據好友狀態設定 knock_status
+    const now = new Date().toISOString()
+    const participantsData = isFriend
+      ? [
+          { room_id: newRoom.id, user_id_int: userIdInt, role: 'member', knock_status: null },
+          { room_id: newRoom.id, user_id_int: targetUserIdInt, role: 'member', knock_status: null }
+        ]
+      : [
+          {
+            room_id: newRoom.id,
+            user_id_int: userIdInt,
+            role: 'member',
+            knock_status: KNOCK_STATUS.INITIATOR_TRIAL,
+            knock_initiated_at: now
+          },
+          {
+            room_id: newRoom.id,
+            user_id_int: targetUserIdInt,
+            role: 'member',
+            knock_status: KNOCK_STATUS.RECEIVER_PENDING,
+            knock_initiated_at: now
+          }
+        ]
+
+    const { error: participantError } = await supabase
+      .from('chat_room_participants')
+      .insert(participantsData)
 
     if (participantError) {
       console.error('❌ Error adding participants:', participantError)
-      // 回滾：刪除房間
       await supabase.from('chat_rooms').delete().eq('id', newRoom.id)
       throw participantError
     }
 
-    const room = await chatService.getRoomById(newRoom.id)
-    return { room, isNew: true }
+    const room = await chatService.getRoomByIdWithKnockStatus(newRoom.id, userIdInt)
+    return { room, isNew: true, isKnock: !isFriend }
   },
 
   // ========================================
@@ -340,29 +552,64 @@ export const chatService = {
   },
 
   /**
+   * 取得房間詳細資料（含當前用戶的 knock 狀態）
+   */
+  getRoomByIdWithKnockStatus: async (roomId, userIdInt) => {
+    const room = await chatService.getRoomById(roomId)
+    if (!room) return null
+
+    // 取得當前用戶的 knock 狀態
+    const { data: myParticipant } = await supabase
+      .from('chat_room_participants')
+      .select('knock_status, knock_message_count')
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+      .single()
+
+    return {
+      ...room,
+      myKnockStatus: myParticipant?.knock_status || null,
+      myKnockMessageCount: myParticipant?.knock_message_count || 0
+    }
+  },
+
+  /**
    * 取得使用者的所有房間（含詳細資料）
    */
   getUserRoomsWithDetails: async (userIdInt) => {
-    // 1. 取得使用者參與的所有房間 ID
-    const { data: participations, error: partError } = await supabase
-      .from('chat_room_participants')
-      .select(
+    // 1. 取得使用者參與的所有房間 ID（含 knock 狀態）
+    let participations = []
+    try {
+      const { data, error: partError } = await supabase
+        .from('chat_room_participants')
+        .select(
+          `
+          room_id,
+          knock_status,
+          knock_message_count,
+          chat_rooms (
+            id,
+            type,
+            name,
+            avatar,
+            created_at
+          )
         `
-        room_id,
-        chat_rooms (
-          id,
-          type,
-          name,
-          avatar,
-          created_at
         )
-      `
-      )
-      .eq('user_id_int', userIdInt)
-      .eq('is_blocked', false)
+        .eq('user_id_int', userIdInt)
+        .eq('is_blocked', false)
 
-    if (partError) {
-      console.error('❌ Error getting user rooms:', partError)
+      if (partError) {
+        console.error('❌ Error getting user rooms:', partError)
+        return []
+      }
+      participations = data || []
+    } catch (err) {
+      console.error('❌ Exception in getUserRoomsWithDetails:', err)
+      return []
+    }
+
+    if (!participations.length) {
       return []
     }
 
@@ -402,6 +649,8 @@ export const chatService = {
 
         return {
           ...formatRoomForFrontend(room, participants || []),
+          myKnockStatus: p.knock_status || null,
+          myKnockMessageCount: p.knock_message_count || 0,
           lastMessage: lastMsg
             ? {
                 content: lastMsg.content,

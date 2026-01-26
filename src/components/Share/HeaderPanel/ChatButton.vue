@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 function goChat() {
-  router.push({ name: 'chat-test' })
+  router.push({ name: 'chat' })
 }
 </script>
 

@@ -13,6 +13,14 @@ export const chatApi = {
   },
 
   /**
+   * 取得單一個聊天室資訊
+   * @param {string} roomId - 房間 ID
+   */
+  getRoom(roomId) {
+    return api.get(`/api/chat/rooms/${roomId}`)
+  },
+
+  /**
    * 取得房間成員列表
    * @param {string} roomId - 房間 ID
    */
@@ -68,5 +76,41 @@ export const chatApi = {
    */
   removeMember(roomId, userId) {
     return api.delete(`/api/chat/group/${roomId}/members/${userId}`)
+  },
+
+  // ========================================
+  // 敲敲門功能
+  // ========================================
+
+  /**
+   * 接受敲敲門
+   * @param {string} roomId - 房間 ID
+   */
+  acceptKnock(roomId) {
+    return api.post(`/api/chat/knock/${roomId}/accept`)
+  },
+
+  /**
+   * 拒絕敲敲門
+   * @param {string} roomId - 房間 ID
+   */
+  rejectKnock(roomId) {
+    return api.post(`/api/chat/knock/${roomId}/reject`)
+  },
+
+  /**
+   * 確認成為好友
+   * @param {string} roomId - 房間 ID
+   */
+  confirmFriend(roomId) {
+    return api.post(`/api/chat/knock/${roomId}/confirm-friend`)
+  },
+
+  /**
+   * 更新敲敲門訊息計數
+   * @param {string} roomId - 房間 ID
+   */
+  incrementKnockCount(roomId) {
+    return api.post(`/api/chat/knock/${roomId}/increment-count`)
   }
 }

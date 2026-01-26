@@ -44,9 +44,10 @@ const router = createRouter({
     },
 
     {
-      path: '/chat-test',
-      name: 'chat-test',
+      path: '/chat/:roomId?',
+      name: 'chat',
       component: () => import('@/views/ChatRoomView.vue'),
+      props: true,
       meta: {
         requiresAuth: true,
         hideHeader: true,

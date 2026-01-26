@@ -77,7 +77,7 @@ export function useMatching() {
    * @param {string} petId - 配對對象的寵物 ID
    */
   function goToChat(petId) {
-    router.push({ name: 'chat-test', params: { id: petId } })
+    router.push({ name: 'chat', params: { id: petId } })
   }
 
   return {

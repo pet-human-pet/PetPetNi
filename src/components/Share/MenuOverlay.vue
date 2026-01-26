@@ -38,7 +38,7 @@ const handleLogout = async () => {
 
 // 選單項目
 const menuItems = [
-  { en: 'Chat', zh: '聊天區', icon: '聊天區.webp', path: '/chat-test' },
+  { en: 'Chat', zh: '聊天區', icon: '聊天區.webp', path: '/chat' },
   { en: 'Event', zh: '活動區', icon: '活動區.webp', path: '/event' },
   { en: 'Social', zh: '交友區', icon: '交友區.webp', path: '/social' },
   { en: 'Profile', zh: '個人資料', icon: '社交區.webp', path: '/profile' }
