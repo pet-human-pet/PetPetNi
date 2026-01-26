@@ -217,8 +217,16 @@ export const authController = {
         })
       }
 
-      // 6. 成功回傳
-      console.log('✅ 取得用戶資料成功:', authData.user.email)
+      // 6. 檢查是否擁有寵物
+      const { count } = await supabase
+        .from('pets')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id_int', profile.user_id_int)
+
+      const hasPet = count > 0
+
+      // 7. 成功回傳
+      console.log('✅ 取得用戶資料成功:', authData.user.email, '| Has Pet:', hasPet)
 
       res.status(200).json({
         user: {
@@ -228,12 +236,16 @@ export const authController = {
         },
         profile: {
           user_id_int: profile.user_id_int,
+          real_name: profile.real_name,
           nick_name: profile.nick_name,
           avatar_url: profile.avatar_url,
           phone: profile.phone,
           birthday: profile.birthday,
-          gender: profile.gender
-        }
+          gender: profile.gender,
+          city: profile.city,
+          district: profile.district
+        },
+        has_pet: hasPet
       })
     } catch (error) {
       console.error('❌ 取得用戶資料 API 發生錯誤:', error)

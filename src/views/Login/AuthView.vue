@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { userApi } from '@/api/user'
 import LoginForm from '@/components/login/LoginForm.vue'
@@ -28,24 +28,65 @@ const petData = ref(null) // 單隻寵物資料
 const petTagsData = ref(null) // 寵物標籤資料
 
 onMounted(() => {
-  // 支援 query parameter: /login?mode=register
-  if (route.query.mode === 'register') {
+  handleRouteQuery()
+})
+
+// 監聽路由參數變化，以支援同頁面透過 query 切換模式 (例如登入後導向註冊)
+// watch(() => route.query.mode, ...) // watch route directly
+watch(
+  () => route.query.mode,
+  (newMode) => {
+    if (newMode) {
+      handleRouteQuery()
+    }
+  }
+)
+
+function handleRouteQuery() {
+  const mode = route.query.mode
+  if (mode === 'register') {
     authMode.value = 'register'
-  } else if (route.query.mode === 'social_bind') {
+  } else if (mode === 'social_bind') {
     authMode.value = 'social_bind'
     isOAuthLogin.value = true // 標記為 OAuth 登入
-  } else if (route.query.mode === 'role') {
+  } else if (mode === 'role') {
     authMode.value = 'role'
-    // 檢查是否從 OAuth 登入來的（如果有 session 但沒有 profile）
+    // 檢查是否已登入（包含一般登入與 OAuth）
     import('@/stores/auth').then(({ useAuthStore }) => {
       const authStore = useAuthStore()
       if (authStore.user && authStore.user.email) {
         userEmail.value = authStore.user.email
-        isOAuthLogin.value = true
+      }
+    })
+  } else if (mode === 'pet-onboarding') {
+    // 直接跳轉至寵物填寫 (需先取得主人資料)
+    import('@/api/auth').then(async ({ default: authApi }) => {
+      try {
+        const res = await authApi.getCurrentUser()
+        const profile = res.data.profile
+
+        // 填入主人資料
+        ownerData.value = {
+          realName: profile.real_name,
+          nickname: profile.nick_name,
+          phone: profile.phone,
+          city: profile.city,
+          district: profile.district,
+          gender: profile.gender,
+          birthday: profile.birthday
+        }
+
+        userEmail.value = res.data.user.email
+        userRole.value = 'owner'
+        authMode.value = 'pet'
+        console.log('✅ 已載入主人資料，進入寵物填寫模式')
+      } catch (err) {
+        console.error('❌ 無法載入個人檔案:', err)
+        authMode.value = 'login' // 失敗則回登入頁
       }
     })
   }
-})
+}
 
 const switchToRegister = () => {
   authMode.value = 'register'
@@ -75,7 +116,6 @@ const handleRoleSelect = (role) => {
 const handleOwnerInfoSubmit = (data) => {
   // 儲存主人資料
   ownerData.value = data
-  console.log('主人資料:', data)
 
   if (userRole.value === 'owner') {
     // 飼主：進入寵物資料填寫
@@ -96,10 +136,6 @@ const handlePetSubmit = (data) => {
 const handlePetTagsSubmit = (data) => {
   // 儲存標籤資料
   petTagsData.value = data
-  console.log('=== 完整註冊資料 ===')
-  console.log('主人資料:', ownerData.value)
-  console.log('寵物資料:', petData.value)
-  console.log('標籤資料:', petTagsData.value)
   // 完成註冊
   handleComplete()
 }
@@ -116,6 +152,18 @@ const handleGoBack = () => {
 
 const handleComplete = async () => {
   try {
+    // 準備寵物資料 (如果有的話)
+    let petPayload = null
+    if (petData.value) {
+      petPayload = {
+        name: petData.value.name,
+        type: petData.value.type,
+        breed: petData.value.breed,
+        birthday: petData.value.birthday,
+        gender: petData.value.gender
+      }
+    }
+
     // 呼叫後端 API 建立 Profile
     const response = await userApi.createProfile({
       realName: ownerData.value.realName,
@@ -124,13 +172,7 @@ const handleComplete = async () => {
       city: ownerData.value.city,
       district: ownerData.value.district,
       gender: ownerData.value.gender, // 新增：傳遞性別
-      pet: {
-        name: petData.value.name,
-        type: petData.value.type,
-        breed: petData.value.breed,
-        birthday: petData.value.birthday,
-        gender: petData.value.gender
-      },
+      pet: petPayload,
       optionalTags: petTagsData.value?.optionalTags || []
     })
 
