@@ -368,11 +368,9 @@ const handleSubmit = () => {
         </button>
         <button
           type="submit"
-          class="flex-1 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
-          style="background-color: #ffa75f"
-          :disabled="!realName || !nickname || !phone || !city || !district || !gender || !birthday"
+          class="bg-brand-primary flex-1 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+          :disabled="false"
         >
-          <!-- TODO: Replace with CSS variable var(--app-primary) -->
           下一步
         </button>
       </div>

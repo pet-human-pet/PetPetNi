@@ -1,4 +1,6 @@
 <script setup>
+defineOptions({ inheritAttrs: false })
+
 const model = defineModel({ type: String })
 
 defineProps({
@@ -34,6 +36,7 @@ const emit = defineEmits(['blur', 'focus'])
     </label>
     <div class="relative">
       <input
+        v-bind="$attrs"
         v-model="model"
         :type="type"
         :placeholder="placeholder"

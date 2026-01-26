@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import authApi from '@/api/auth'
 import profileApi from '@/api/profile'
 import { supabase } from '@/lib/supabase'
@@ -16,6 +16,10 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoading = ref(false)
   const error = ref(null)
   const tempOAuthData = ref(null)
+  const hasPet = ref(false)
+
+  // Getters
+  const isPetOwner = computed(() => hasPet.value)
 
   // Actions
   const initAuth = async () => {
@@ -35,6 +39,7 @@ export const useAuthStore = defineStore('auth', () => {
         pet.value = data.pet
         tags.value = data.tags || []
         userIdInt.value = data.profile?.user_id_int
+        hasPet.value = data.has_pet ?? !!data.pet
 
         console.log('✅ Token 驗證成功，已恢復登入狀態')
         console.log('🐶 寵物資料:', pet.value?.name)
@@ -62,6 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
       profile.value = null
       pet.value = null
       tags.value = []
+      hasPet.value = false
 
       console.log('✅ 註冊成功:', user.value.email)
       return response.data
@@ -96,6 +102,8 @@ export const useAuthStore = defineStore('auth', () => {
         pet.value = data.pet
         tags.value = data.tags || []
         userIdInt.value = data.profile?.user_id_int
+
+        hasPet.value = data.has_pet ?? !!data.pet
 
         console.log('✅ 已取得完整 Profile')
         return {
@@ -142,6 +150,7 @@ export const useAuthStore = defineStore('auth', () => {
       pet.value = null
       tags.value = []
       token.value = null
+      hasPet.value = false
       localStorage.removeItem('token')
       isLoading.value = false
     }
@@ -154,6 +163,10 @@ export const useAuthStore = defineStore('auth', () => {
   const setUserIdInt = (id) => {
     userIdInt.value = id
     console.log('📊 已設定 User ID (Int):', id)
+  }
+
+  const setHasPet = (status) => {
+    hasPet.value = status
   }
 
   // OAuth (TODO)
@@ -232,6 +245,7 @@ export const useAuthStore = defineStore('auth', () => {
         pet.value = data.pet
         tags.value = data.tags || []
         userIdInt.value = data.profile?.user_id_int
+        hasPet.value = data.has_pet ?? !!data.pet
 
         console.log('✅ 已有 profile，登入成功')
         router.push('/')
@@ -288,6 +302,7 @@ export const useAuthStore = defineStore('auth', () => {
       pet.value = data.pet
       tags.value = data.tags || []
       userIdInt.value = data.profile?.user_id_int
+      hasPet.value = data.has_pet ?? !!data.pet
     } catch (e) {
       console.error('❌ 刷新 Profile 失敗', e)
     }
@@ -314,6 +329,9 @@ export const useAuthStore = defineStore('auth', () => {
     registerWithEmail,
     handleSupabaseSession,
     checkProfileExists,
+    hasPet,
+    isPetOwner,
+    setHasPet,
     fetchProfile
   }
 })
