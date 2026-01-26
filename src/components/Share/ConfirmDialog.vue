@@ -50,11 +50,11 @@ defineExpose({ show })
 
 <template>
   <Transition name="fade">
-    <div v-if="visible" class="c-dialog-overlay z-50">
+    <div v-if="visible" class="c-dialog-overlay z-100">
       <div class="c-dialog-box relative w-full max-w-[400px] rounded-2xl bg-white shadow-xl">
         <!-- Close Button -->
         <button
-          class="cursor-pointer absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-full bg-gray-100 hover:bg-gray-200"
+          class="absolute top-4 right-4 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-gray-100 hover:bg-gray-200"
           @click="handleCancel"
         >
           <i class="fa-solid fa-xmark text-gray-500"></i>

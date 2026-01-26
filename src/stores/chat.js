@@ -45,7 +45,12 @@ export const useChatStore = defineStore('chat', () => {
 
     // 統計 match 列表中的未讀 (包含 friend 和 matching)
     db.value.match.forEach((chat) => {
-      const unreadInChat = chat.msgs.filter((m) => m.sender !== 'me' && !m.read).length
+      const unreadInChat = chat.msgs.filter((m) => {
+        // me 發的不算未讀
+        if (m.sender === 'me') return false
+        // 系統訊息對他人來說也算一種提醒 (由 server 觸發，故 sender_id 為 0 或 他人ID)
+        return !m.read
+      }).length
       if (chat.status === 'friend') {
         counts.match += unreadInChat
       } else {
@@ -55,7 +60,10 @@ export const useChatStore = defineStore('chat', () => {
 
     // 統計 stranger 中的未讀 (敲敲門)
     db.value.stranger.forEach((chat) => {
-      const unreadInChat = chat.msgs.filter((m) => m.sender !== 'me' && !m.read).length
+      const unreadInChat = chat.msgs.filter((m) => {
+        if (m.sender === 'me') return false
+        return !m.read
+      }).length
       counts.knock += unreadInChat
     })
 
@@ -193,13 +201,15 @@ export const useChatStore = defineStore('chat', () => {
 
       // 訂閱聊天室的 Realtime 更新
       realtime.subscribeToRoom(id, (newMessage) => {
+        const isMe = newMessage.sender_id_int === currentUserIdInt.value
+
         // 處理系統訊息 (觸發狀態更新)
         if (newMessage.message_type === 'system') {
-          loadUserRooms()
-          // 仍然加入訊息列表以便顯示（可自訂處理）
+          // 只有當發送者不是我，或者系統發送時，才觸發重整
+          if (!isMe || newMessage.sender_id_int === 0) {
+            loadUserRooms()
+          }
         }
-
-        const isMe = newMessage.sender_id_int === currentUserIdInt.value
 
         if (isMe) {
           const pendingMsg = chat.msgs.find(
@@ -223,6 +233,7 @@ export const useChatStore = defineStore('chat', () => {
             id: newMessage.id,
             sender: isMe ? 'me' : 'other',
             content: newMessage.content,
+            messageType: newMessage.message_type || 'text',
             image: newMessage.image_url,
             timestamp: new Date(newMessage.created_at).getTime(),
             read: isActiveChat ? true : false
@@ -238,6 +249,7 @@ export const useChatStore = defineStore('chat', () => {
             id: msg.id,
             sender: msg.sender_id_int === currentUserIdInt.value ? 'me' : 'other',
             content: msg.content,
+            messageType: msg.message_type || 'text',
             image: msg.image_url,
             timestamp: new Date(msg.created_at).getTime(),
             read: true // 進入聊天室後，歷史訊息皆視為已讀
@@ -353,8 +365,7 @@ export const useChatStore = defineStore('chat', () => {
         return { success: true, isFriend: result.isFriend }
       }
       return { success: false, error: result.error }
-    } catch (err) {
-      console.error('❌ becomeFriend failed:', err)
+    } catch {
       return { success: false, error: '確認好友失敗' }
     }
   }
@@ -616,8 +627,8 @@ export const useChatStore = defineStore('chat', () => {
       }
 
       console.log('✅ 聊天室列表已載入:', rooms.length, '個房間')
-    } catch (error) {
-      console.error('❌ 載入聊天室失敗:', error)
+    } catch {
+      // Error handled
     }
   }
 
