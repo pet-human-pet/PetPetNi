@@ -135,11 +135,33 @@ export const useChatStore = defineStore('chat', () => {
       // 訂閱聊天室的 Realtime 更新
       realtime.subscribeToRoom(id, (newMessage) => {
         // 處理收到的新訊息
+        const isMe = newMessage.sender_id_int === currentUserIdInt.value
+
+        // 如果是我發送的,優先尋找並更新「等待中(Pending)」的樂觀更新訊息
+        if (isMe) {
+          const pendingMsg = chat.msgs.find(
+            (m) =>
+              m.isPending &&
+              m.content === newMessage.content &&
+              (m.image === newMessage.image_url || (!m.image && !newMessage.image_url))
+          )
+
+          if (pendingMsg) {
+            // 更新狀態為真實資料
+            pendingMsg.id = newMessage.id
+            pendingMsg.timestamp = new Date(newMessage.created_at).getTime()
+            delete pendingMsg.isPending
+            console.log('🔄 Updated pending message with real data:', newMessage.id)
+            return
+          }
+        }
+
+        // 如果不是我發送的,或是沒找到對應的 Pending 訊息,則直接加入
         if (!chat.msgs.find((m) => m.id === newMessage.id)) {
           const isActiveChat = activeChatId.value === id
           chat.msgs.push({
             id: newMessage.id,
-            sender: newMessage.sender_id_int === currentUserIdInt.value ? 'me' : 'other',
+            sender: isMe ? 'me' : 'other',
             content: newMessage.content,
             image: newMessage.image_url,
             timestamp: new Date(newMessage.created_at).getTime(),
@@ -210,33 +232,36 @@ export const useChatStore = defineStore('chat', () => {
 
     // 樂觀更新：立即顯示訊息
     const tempMsg = {
-      id: Date.now(),
+      id: `temp-${Date.now()}`,
       sender: 'me',
       content: isImage ? '[圖片]' : text,
       image: isImage ? text : null,
       timestamp: Date.now(),
       read: false,
-      replyTo: replyTo
+      replyTo: replyTo,
+      isPending: true // 標記為等待資料庫回傳
     }
 
     chat.msgs.push(tempMsg)
 
     // 發送訊息到 Supabase（異步處理）
-    realtime.sendMessage(
-      chat.id,
-      tempMsg.content,
-      currentUserIdInt.value || 0,
-      isImage ? 'image' : 'text',
-      isImage ? text : null,
-      replyTo?.id || null
-    ).catch((error) => {
-      console.error('❌ Failed to send message:', error)
-      // 發送失敗時可以加入錯誤處理邏輯
-      const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
-      if (index !== -1) {
-        chat.msgs[index].error = true
-      }
-    })
+    realtime
+      .sendMessage(
+        chat.id,
+        tempMsg.content,
+        currentUserIdInt.value || 0,
+        isImage ? 'image' : 'text',
+        isImage ? text : null,
+        replyTo?.id || null
+      )
+      .catch((error) => {
+        console.error('❌ Failed to send message:', error)
+        // 發送失敗時可以加入錯誤處理邏輯
+        const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
+        if (index !== -1) {
+          chat.msgs[index].error = true
+        }
+      })
 
     return { success: true }
   }
