@@ -193,7 +193,12 @@ export const useChatStore = defineStore('chat', () => {
 
       // 訂閱聊天室的 Realtime 更新
       realtime.subscribeToRoom(id, (newMessage) => {
-        // ... (existing subscribe logic)
+        // 處理系統訊息 (觸發狀態更新)
+        if (newMessage.message_type === 'system') {
+          loadUserRooms()
+          // 仍然加入訊息列表以便顯示（可自訂處理）
+        }
+
         const isMe = newMessage.sender_id_int === currentUserIdInt.value
 
         if (isMe) {

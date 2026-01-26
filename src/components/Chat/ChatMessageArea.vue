@@ -265,23 +265,32 @@ const handleMenuOpen = (msgId) => {
         <div v-else>
           <div v-if="store.chatMode === 'PET_MODE'" class="w-full shrink-0">
             <div
-              v-if="store.isLimitReached"
+              v-if="store.isLimitReached || store.activeChat.status === 'friend_pending'"
               class="border-border-default bg-bg-base flex flex-col items-center gap-2 border-t p-4"
             >
-              <div class="text-brand-primary text-sm font-bold">互動已達上限，是否成為好友？</div>
+              <div class="text-brand-primary text-sm font-bold">{{ friendshipPrompt }}</div>
               <div class="flex gap-4">
                 <button
+                  v-if="
+                    store.activeChat.status !== 'friend_pending' ||
+                    store.activeChat.knockStatus !== 'friend_confirmed'
+                  "
                   class="rounded-full bg-zinc-200 px-6 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-300"
                   @click="handleRejectMatch"
                 >
                   拒絕
                 </button>
                 <button
+                  v-if="
+                    store.activeChat.status !== 'friend_pending' ||
+                    store.activeChat.knockStatus !== 'friend_confirmed'
+                  "
                   class="bg-brand-primary hover:bg-brand-primary/90 rounded-full px-6 py-1.5 text-sm font-medium text-white shadow-sm"
                   @click="handleBecomeFriendFromLimit"
                 >
                   成為好友
                 </button>
+                <div v-else class="text-xs text-zinc-400">正在等待對方回應...</div>
               </div>
             </div>
             <div

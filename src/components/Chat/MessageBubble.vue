@@ -29,10 +29,32 @@ const formatTime = (timestamp) => {
 const handleAction = (action) => {
   emit('action', action, props.msg)
 }
+
+const isSystem = computed(() => props.msg.messageType === 'system')
+
+const systemText = computed(() => {
+  if (props.msg.content === 'FRIEND_CONFIRMED_BY_OTHER') {
+    return '對方已確認好友請求'
+  }
+  if (props.msg.content === 'FRIENDSHIP_ESTABLISHED') {
+    return '你們已正式成為好友，現在可以無限制聊天囉！'
+  }
+  return props.msg.content
+})
 </script>
 
 <template>
-  <div class="flex" :class="isMe ? 'justify-end' : 'justify-start'">
+  <!-- System Message -->
+  <div v-if="isSystem" class="my-4 flex w-full justify-center px-4">
+    <div
+      class="text-fg-muted/80 rounded-full bg-black/5 px-4 py-1.5 text-center text-xs font-medium tracking-wide backdrop-blur-sm"
+    >
+      <i class="fa-solid fa-circle-info mr-1.5 opacity-60"></i>
+      {{ systemText }}
+    </div>
+  </div>
+
+  <div v-else class="flex" :class="isMe ? 'justify-end' : 'justify-start'">
     <!-- Avatar -->
     <div
       v-if="!isMe && showAvatar"

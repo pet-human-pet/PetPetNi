@@ -143,14 +143,23 @@ export const chatService = {
    * 確認成為好友
    */
   confirmFriend: async (roomId, userIdInt) => {
-    // 更新自己的狀態為已確認
+    // 1. 更新自己的狀態為已確認
     await supabase
       .from('chat_room_participants')
       .update({ knock_status: KNOCK_STATUS.FRIEND_CONFIRMED })
       .eq('room_id', roomId)
       .eq('user_id_int', userIdInt)
 
-    // 檢查所有參與者的狀態
+    // 2. 插入一則系統訊息，觸發對方的 Realtime 更新與未讀通知
+    await supabase.from('chat_messages').insert({
+      room_id: roomId,
+      content: 'FRIEND_CONFIRMED_BY_OTHER',
+      message_type: 'system',
+      sender_id_int: userIdInt,
+      read: false
+    })
+
+    // 3. 檢查所有參與者的狀態
     const { data: participants } = await supabase
       .from('chat_room_participants')
       .select('user_id_int, knock_status')
@@ -161,13 +170,22 @@ export const chatService = {
     )
 
     if (allConfirmed) {
-      // 雙方都確認，清除 knock 狀態，正式成為好友
+      // 4. 雙方都確認，清除 knock 狀態，正式成為好友
       await supabase
         .from('chat_room_participants')
         .update({ knock_status: null, knock_message_count: 0 })
         .eq('room_id', roomId)
 
-      // 建立互相追蹤關係
+      // 5. 插入「正式成為好友」的系統訊息
+      await supabase.from('chat_messages').insert({
+        room_id: roomId,
+        content: 'FRIENDSHIP_ESTABLISHED',
+        message_type: 'system',
+        sender_id_int: 0, // 0 表示系統發送
+        read: false
+      })
+
+      // 6. 建立互相追蹤關係
       const otherUser = participants.find((p) => p.user_id_int !== userIdInt)
       if (otherUser) {
         await chatService.createMutualFollow(userIdInt, otherUser.user_id_int)
@@ -416,7 +434,6 @@ export const chatService = {
       .insert(participants)
 
     if (participantError) {
-      console.error('❌ Error adding group participants:', participantError)
       // 回滾
       await supabase.from('chat_rooms').delete().eq('id', newRoom.id)
       throw participantError
