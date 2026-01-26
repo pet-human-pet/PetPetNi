@@ -183,41 +183,75 @@ export const matchController = {
       console.log(`✨ 配對成功: ${myPet.name} <-> ${matchedPet.name}`)
 
       // 6. 計算雷達圖分數 (5 Angles)
+      const MATCH_SCORE_CONSTANTS = {
+        GEO_BASE: 40,
+        GEO_SAME_CITY: 90,
+        GEO_SAME_DISTRICT: 95,
+        GEO_RANDOM_RANGE: 21,
+        TRAITS_BASE: 60,
+        TRAITS_MATCH_BONUS: 15,
+        TRAITS_MAX: 100,
+        TRAITS_RANDOM_BONUS: 10,
+        RESONANCE_BASE: 50,
+        RESONANCE_MULTIPLIER: 10,
+        RESONANCE_MAX: 100,
+        CHEMISTRY_THRESHOLD: 60,
+        CHEMISTRY_HIGH_BASE: 80,
+        CHEMISTRY_HIGH_RANDOM: 20,
+        CHEMISTRY_LOW_BASE: 60,
+        CHEMISTRY_LOW_RANDOM: 30,
+        DESTINY_BASE: 75,
+        DESTINY_RANDOM: 25
+      }
+
       const partnerTags = matchedPet.pet_tags ? matchedPet.pet_tags.map((t) => t.tag) : []
 
       // (1) 地緣 (Geo)
-      let scoreGeo = 40
+      let scoreGeo = MATCH_SCORE_CONSTANTS.GEO_BASE
       if (myProfile.city === partnerProfile.city) {
-        scoreGeo = 90
+        scoreGeo = MATCH_SCORE_CONSTANTS.GEO_SAME_CITY
         if (myProfile.district === partnerProfile.district) {
-          scoreGeo = 95
+          scoreGeo = MATCH_SCORE_CONSTANTS.GEO_SAME_DISTRICT
         }
       } else {
-        scoreGeo = 40 + Math.floor(Math.random() * 21)
+        scoreGeo =
+          MATCH_SCORE_CONSTANTS.GEO_BASE +
+          Math.floor(Math.random() * MATCH_SCORE_CONSTANTS.GEO_RANDOM_RANGE)
       }
 
       // (2) 特質 (Traits) - 硬性條件
-      let scoreTraits = 60
-      if (myPet.type === matchedPet.type) scoreTraits += 15
-      if (myPet.breed === matchedPet.breed) scoreTraits += 15
-      scoreTraits = Math.min(100, scoreTraits + Math.floor(Math.random() * 10))
+      let scoreTraits = MATCH_SCORE_CONSTANTS.TRAITS_BASE
+      if (myPet.type === matchedPet.type) scoreTraits += MATCH_SCORE_CONSTANTS.TRAITS_MATCH_BONUS
+      if (myPet.breed === matchedPet.breed) scoreTraits += MATCH_SCORE_CONSTANTS.TRAITS_MATCH_BONUS
+      scoreTraits = Math.min(
+        MATCH_SCORE_CONSTANTS.TRAITS_MAX,
+        scoreTraits + Math.floor(Math.random() * MATCH_SCORE_CONSTANTS.TRAITS_RANDOM_BONUS)
+      )
 
       // (3) 共鳴 (Resonance) - 興趣標籤
       const intersection = myTags.filter((t) => partnerTags.includes(t))
-      let scoreResonance = 50 + intersection.length * 10
-      scoreResonance = Math.min(100, scoreResonance)
+      let scoreResonance =
+        MATCH_SCORE_CONSTANTS.RESONANCE_BASE +
+        intersection.length * MATCH_SCORE_CONSTANTS.RESONANCE_MULTIPLIER
+      scoreResonance = Math.min(MATCH_SCORE_CONSTANTS.RESONANCE_MAX, scoreResonance)
 
       // (4) 契合 (Chemistry)
       const avg = (scoreGeo + scoreTraits + scoreResonance) / 3
       let scoreChemistry = 0
-      if (avg < 60) {
-        scoreChemistry = 80 + Math.floor(Math.random() * 20)
+      if (avg < MATCH_SCORE_CONSTANTS.CHEMISTRY_THRESHOLD) {
+        scoreChemistry =
+          MATCH_SCORE_CONSTANTS.CHEMISTRY_HIGH_BASE +
+          Math.floor(Math.random() * MATCH_SCORE_CONSTANTS.CHEMISTRY_HIGH_RANDOM)
       } else {
-        scoreChemistry = 60 + Math.floor(Math.random() * 30)
+        scoreChemistry =
+          MATCH_SCORE_CONSTANTS.CHEMISTRY_LOW_BASE +
+          Math.floor(Math.random() * MATCH_SCORE_CONSTANTS.CHEMISTRY_LOW_RANDOM)
       }
 
       // (5) 星運 (Destiny)
-      const scoreDestiny = 75 + Math.floor(Math.random() * 25)
+      const scoreDestiny =
+        MATCH_SCORE_CONSTANTS.DESTINY_BASE +
+        Math.floor(Math.random() * MATCH_SCORE_CONSTANTS.DESTINY_RANDOM)
 
       const radarScores = [scoreGeo, scoreTraits, scoreResonance, scoreChemistry, scoreDestiny]
 
