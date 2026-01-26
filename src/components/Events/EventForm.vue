@@ -76,7 +76,7 @@ function createAnother() {
       </div>
 
       <button
-        class="text-fg-muted hover:bg-bg-base hover:text-brand-accent flex h-8.5 w-8.5 items-center justify-center rounded-[10px] bg-gray-100 transition"
+        class="text-fg-muted hover:bg-bg-base hover:text-brand-accent hover:shadow-card flex h-8.5 w-8.5 cursor-pointer items-center justify-center rounded-full bg-gray-100 transition"
         type="button"
         aria-label="關閉"
         @click="handleCancel"
@@ -229,10 +229,14 @@ function createAnother() {
       </div>
 
       <!-- 送出按鈕 -->
-      <button class="c-btn c-btn--primary" type="button" @click="submit">立即發起</button>
+      <button class="c-btn c-btn--primary cursor-pointer" type="button" @click="submit">
+        立即發起
+      </button>
 
       <!-- 取消按鈕 -->
-      <button class="c-btn c-btn--secondary" type="button" @click="handleCancel">取消返回</button>
+      <button class="c-btn c-btn--secondary cursor-pointer" type="button" @click="handleCancel">
+        取消返回
+      </button>
     </div>
   </div>
 </template>
