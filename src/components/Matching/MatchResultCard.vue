@@ -4,13 +4,42 @@
       <!-- 左側：寵物資訊 -->
       <div ref="petCard" class="pet-info-section" :class="{ tilting: isTilting }">
         <div class="mb-6 text-center">
-          <div class="pet-avatar-large">{{ matchData.pet.avatarUrl }}</div>
+          <!-- 頭像：支援圖片或 Emoji -->
+          <div class="pet-avatar-large">
+            <img
+              v-if="isImageUrl(matchData.pet.avatarUrl)"
+              :src="matchData.pet.avatarUrl"
+              :alt="matchData.pet.name"
+              class="avatar-image"
+            />
+            <span v-else>{{ matchData.pet.avatarUrl }}</span>
+          </div>
+
           <h2 class="text-fg-primary mb-2 text-3xl font-bold">
             {{ matchData.pet.name }}
           </h2>
           <div class="species-badge">
             {{ matchData.pet.species === 'DOG' ? '🐕 狗狗' : '🐱 貓貓' }}
           </div>
+
+          <!-- 必選標籤 (基本資料) -->
+          <div class="tags-container mt-4">
+            <div class="tags-group">
+              <span v-for="tag in mandatoryTags" :key="tag" class="tag-pill mandatory">
+                {{ formatTag(tag) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 非必選標籤 (個性特質) -->
+          <div class="tags-container mt-2">
+            <div class="tags-group">
+              <span v-for="tag in optionalTags" :key="tag" class="tag-pill optional">
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+
           <p class="text-fg-secondary mt-4 text-sm">
             {{ matchData.pet.bio }}
           </p>
@@ -20,10 +49,6 @@
           <div class="detail-row">
             <span class="detail-icon">📍</span>
             <span>位置：{{ matchData.pet.location }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-icon">🏷️</span>
-            <span>特質：{{ matchData.pet.tags.join('、') }}</span>
           </div>
         </div>
       </div>
@@ -53,10 +78,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import RadarChart from './RadarChart.vue'
 
-defineProps({
+const props = defineProps({
   matchData: {
     type: Object,
     required: true
@@ -64,6 +89,31 @@ defineProps({
 })
 
 defineEmits(['go-to-chat'])
+
+// Helper Methods
+function isImageUrl(url) {
+  return url && (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:'))
+}
+
+// 格式化標籤顯示 (去除 #key: 前綴)
+function formatTag(tag) {
+  if (tag.startsWith('#')) {
+    const parts = tag.split(':')
+    return parts.length > 1 ? parts[1] : tag.substring(1)
+  }
+  return tag
+}
+
+// Computed for Tags
+const mandatoryTags = computed(() => {
+  if (!props.matchData?.pet?.tags) return []
+  return props.matchData.pet.tags.filter((tag) => tag.startsWith('#'))
+})
+
+const optionalTags = computed(() => {
+  if (!props.matchData?.pet?.tags) return []
+  return props.matchData.pet.tags.filter((tag) => !tag.startsWith('#'))
+})
 
 // 3D Tilt State
 const petCard = ref(null)
@@ -212,15 +262,64 @@ onUnmounted(() => {
 
 .pet-avatar-large {
   font-size: 6rem;
-  margin-bottom: 1rem;
+  width: 8rem;
+  height: 8rem;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 如果是文字/Emoji 則保持大字體，如果是圖片則被 img style 覆蓋 */
   filter: drop-shadow(0 0 20px rgba(46, 98, 86, 0.3));
 }
 
 @media (max-width: 480px) {
   .pet-avatar-large {
     font-size: 3.5rem;
+    width: 6rem; /* 確保圖片模式下也有固定大小 */
+    height: 6rem;
     margin-bottom: 0.5rem;
   }
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid var(--color-bg-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tags-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tags-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tag-pill {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tag-pill.mandatory {
+  background: rgba(46, 98, 86, 0.1);
+  color: var(--color-brand-primary);
+  border: 1px solid rgba(46, 98, 86, 0.2);
+}
+
+.tag-pill.optional {
+  background: var(--color-bg-base);
+  color: var(--color-fg-secondary);
+  border: 1px solid var(--color-border-default);
 }
 
 .species-badge {

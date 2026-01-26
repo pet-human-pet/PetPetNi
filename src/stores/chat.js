@@ -135,6 +135,52 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   const subscribedRoomIds = new Set()
+  async function openChat(id) {
+    activeChatId.value = id
+    selectedFriendId.value = null
+    replyingMsg.value = null
+    let chat = activeChat.value // 嘗試從 computed 取得
+
+    // 若本地找不到，嘗試從後端抓取並加入列表
+    if (!chat) {
+      console.log('🔍 Chat not found locally, fetching from server...', id)
+      try {
+        const roomData = await realtime.fetchSingleChatRoom(id, currentUserIdInt.value)
+        if (roomData) {
+          // 建構新的聊天室物件，符合前端 db 結構
+          const newChat = {
+            id: roomData.id,
+            // 如果是 private，顯示對方名字；否則顯示房間名
+            name: roomData.type === 'private' ? roomData.partner?.name || 'Unknown' : roomData.name,
+            avatar:
+              roomData.type === 'private'
+                ? roomData.partner?.avatar || '/src/assets/images/avatar_placeholder.png'
+                : roomData.avatar,
+            type: roomData.type === 'private' ? 'match' : roomData.type, // 對應前端分類
+            status: 'friend', // 暫定為 friend，或根據邏輯判斷
+            msgs: [],
+            timestamp: Date.now(), // 排序用
+            partnerId: roomData.partner?.id
+          }
+
+          // 加入到對應的分類列表 (預設 match)
+          // TODO: 根據 type 決定加入哪裡
+          if (!db.value.match) db.value.match = []
+          db.value.match.unshift(newChat)
+
+          // 重新取得引用
+          // 這裡小技巧：因為 db.value 改變了，computed activeChat 應該會自動更新，但為了保險起見我們直接用 newChat
+          chat = newChat
+        } else {
+          console.error('❌ Failed to fetch room info for:', id)
+          // 可以考慮 toast 提示錯誤
+          return
+        }
+      } catch (err) {
+        console.error('❌ Error in openChat fetch:', err)
+        return
+      }
+    }
 
   function setupRoomSubscription(id) {
     if (subscribedRoomIds.has(id)) return
@@ -261,6 +307,9 @@ export const useChatStore = defineStore('chat', () => {
       try {
         const history = await realtime.getMessages(id)
         if (history.length > 0) {
+          // 清空舊的以免重複 (或做 merge)
+          // 這邊簡單處理：如果剛建立的空陣列就直接賦值
+          // 如果是既有陣列，可能要考慮 merging，這裡先直接覆蓋展示歷史
           chat.msgs = history.map((msg) => ({
             id: msg.id,
             sender: msg.sender_id_int === currentUserIdInt.value ? 'me' : 'other',
@@ -342,8 +391,8 @@ export const useChatStore = defineStore('chat', () => {
         isImage ? text : null,
         replyTo?.id || null
       )
-      .then(() => {})
-      .catch(() => {
+      .catch((error) => {
+        console.error('❌ Failed to send message:', error)
         // 發送失敗時可以加入錯誤處理邏輯
         const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
         if (index !== -1) {

@@ -1,17 +1,15 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useChatStore } from '@/stores/chat.js'
 import { useToast } from '@/composables/useToast'
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
 import { useScrollLock } from '@vueuse/core'
 import ChatNavigation from '@/components/Chat/ChatNavigation.vue'
 import ChatListSection from '@/components/Chat/ChatListSection.vue'
 import ChatMessageArea from '@/components/Chat/ChatMessageArea.vue'
 
 const router = useRouter()
+const route = useRoute()
 const store = useChatStore()
 const toast = useToast()
 const isMoreMenuOpen = ref(false)
