@@ -70,7 +70,8 @@ export const userController = {
       console.log('👤 驗證成功，用戶 ID:', user.id)
 
       // ========== 2. 解構並清理輸入 ==========
-      const { realName, nickName, phone, city, district, gender, pet, optionalTags } = req.body
+      const { realName, nickName, phone, city, district, gender, pet, optionalTags, avatarUrl } =
+        req.body
 
       // ========== 3. 輸入驗證 ==========
       const errors = []
@@ -133,7 +134,8 @@ export const userController = {
             phone: phone.trim(),
             city: city ? sanitizeString(city) : null,
             district: district ? sanitizeString(district) : null,
-            gender: gender === 'secret' ? null : gender
+            gender: gender === 'secret' ? null : gender,
+            avatar_url: avatarUrl || null
           },
           { onConflict: 'user_id' }
         )
@@ -153,6 +155,31 @@ export const userController = {
       console.log('📊 User ID (UUID):', user.id)
       console.log('📊 User ID (Int):', profile.user_id_int)
 
+      // ========== 5.5 處理頭像關聯 (New!) ==========
+      if (avatarUrl) {
+        console.log('🖼️ 處理頭像關聯:', avatarUrl)
+        try {
+          // 1. 在 images 表尋找或新增 (使用 upsert 簡化)
+          const { data: imgData, error: imgError } = await supabase
+            .from('images')
+            .upsert({ url: avatarUrl, folder: 'avatars' }, { onConflict: 'url' })
+            .select('id')
+            .single()
+
+          if (!imgError && imgData) {
+            // 2. 建立 profile_images 關聯
+            await supabase.from('profile_images').insert({
+              profile_id: profile.id,
+              image_id: imgData.id,
+              is_current: true
+            })
+            console.log('✅ 頭像關聯建立成功')
+          }
+        } catch (err) {
+          console.error('⚠️ 頭像處理發生錯誤 (不中斷流程):', err.message)
+        }
+      }
+
       // ========== 6. 建立 Pet ==========
       const { data: petData, error: petError } = await supabase
         .from('pets')
@@ -170,16 +197,22 @@ export const userController = {
       if (petError) {
         console.error('❌ Pet 建立失敗:', petError)
 
-        // 回滾：刪除已建立的 profile
-        const { error: rollbackError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('user_id', user.id)
+        // 回滾：刪除已建立的相關資料
+        const rollbackPromises = [supabase.from('profiles').delete().eq('user_id', user.id)]
 
-        if (rollbackError) {
-          console.error('⚠️ 回滾失敗:', rollbackError)
-          // 可以記錄到錯誤追蹤系統（如 Sentry）
+        // 如果建立了頭像關聯，也一併回滾
+        if (avatarUrl) {
+          rollbackPromises.push(
+            supabase.from('profile_images').delete().eq('profile_id', profile.id)
+          )
         }
+
+        const results = await Promise.allSettled(rollbackPromises)
+        results.forEach((res, idx) => {
+          if (res.status === 'rejected') {
+            console.error(`⚠️ 回滾項 ${idx} 失敗:`, res.reason)
+          }
+        })
 
         return res.status(400).json({
           error: '寵物資料建立失敗',
@@ -245,7 +278,8 @@ export const userController = {
       }
 
       // 2. 解構輸入
-      const { realName, nickName, phone, city, district, gender, pet, optionalTags } = req.body
+      const { realName, nickName, phone, city, district, gender, pet, optionalTags, avatarUrl } =
+        req.body
 
       // 3. 輸入驗證 (簡單版，與 createProfile 類似)
       // 注意：這裡假設更新時會傳完整資料，或是部分更新
@@ -259,6 +293,7 @@ export const userController = {
       if (city !== undefined) updateData.city = sanitizeString(city)
       if (district !== undefined) updateData.district = sanitizeString(district)
       if (gender !== undefined) updateData.gender = gender === 'secret' ? null : gender
+      if (avatarUrl !== undefined) updateData.avatar_url = avatarUrl
 
       let profile = null
 
@@ -282,6 +317,37 @@ export const userController = {
 
         if (error) throw error
         profile = data
+      }
+
+      // 5.1 處理頭像更新 (New!)
+      if (avatarUrl !== undefined) {
+        try {
+          // 1. 在 images 表尋找或新增
+          const { data: imgData, error: imgError } = await supabase
+            .from('images')
+            .upsert({ url: avatarUrl, folder: 'avatars' }, { onConflict: 'url' })
+            .select('id')
+            .single()
+
+          if (!imgError && imgData) {
+            // 2. 將舊的頭像關聯設為非當前 (如果有需要歷史紀錄)
+            await supabase
+              .from('profile_images')
+              .update({ is_current: false })
+              .eq('profile_id', profile.id)
+              .eq('is_current', true)
+
+            // 3. 建立新的 profile_images 關聯
+            await supabase.from('profile_images').insert({
+              profile_id: profile.id,
+              image_id: imgData.id,
+              is_current: true
+            })
+            console.log('✅ 頭像更新關聯成功')
+          }
+        } catch (err) {
+          console.error('⚠️ 頭像更新發生錯誤 (不中斷流程):', err.message)
+        }
       }
 
       // 5. 更新 Pet
@@ -438,31 +504,19 @@ export const userController = {
         return res.status(404).json({ error: '找不到使用者資料' })
       }
 
-      // 2. 查詢寵物資料
-      const { data: pet } = await supabase
+      // 2. 查詢寵物資料與標籤
+      const { data: pet, error: petQueryError } = await supabase
         .from('pets')
-        .select('name, type, breed, birthday, gender')
+        .select('id, name, type, breed, birthday, gender')
         .eq('user_id_int', userIdInt)
         .single()
 
-      // 3. 查詢標籤（如果有寵物）
       let tags = []
-      if (pet) {
-        const { data: petData } = await supabase
-          .from('pets')
-          .select('id')
-          .eq('user_id_int', userIdInt)
-          .single()
+      if (!petQueryError && pet) {
+        const { data: petTags } = await supabase.from('pet_tags').select('tag').eq('pet_id', pet.id)
 
-        if (petData) {
-          const { data: petTags } = await supabase
-            .from('pet_tags')
-            .select('tag')
-            .eq('pet_id', petData.id)
-
-          if (petTags) {
-            tags = petTags.map((t) => t.tag)
-          }
+        if (petTags) {
+          tags = petTags.map((t) => t.tag)
         }
       }
 
