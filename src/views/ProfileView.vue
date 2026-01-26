@@ -6,14 +6,14 @@ import { useAuthStore } from '@/stores/auth'
 import { useTagSelection } from '@/composables/useTagSelection.js'
 import PostCard from '@/components/Social/PostCard.vue'
 import TagSelector from '@/components/Share/TagSelector.vue'
-import ImageCropper from '@/components/Share/ImageCropper.vue'
+import AvatarCropper from '@/components/Profile/AvatarCropper.vue'
 import ImagePreviewModal from '@/components/Share/ImagePreviewModal.vue'
 import ConfirmDialog from '@/components/Share/ConfirmDialog.vue'
 import ProfileHeader from '@/components/Profile/ProfileHeader.vue'
 import FansListModal from '@/components/Profile/FansListModal.vue'
 import EventListItem from '@/components/Profile/EventListItem.vue'
 import { useImagePreview } from '@/composables/useImagePreview'
-import { useImageUpload } from '@/composables/useImageUpload'
+import { useAvatarUpload } from '@/composables/useAvatarUpload'
 import { useToast } from '@/composables/useToast'
 import { useEventMapStore } from '@/stores/EventMap'
 import { useFavoritesStore } from '@/stores/favorites'
@@ -176,7 +176,7 @@ const eventTabs = [
 const eventStore = useEventMapStore()
 const favoritesStore = useFavoritesStore()
 const postStore = usePostStore()
-const { uploadToCloudinary, compressImage, getDynamicUrl } = useImageUpload()
+const { uploadOriginal, compressImage, getDynamicUrl } = useAvatarUpload()
 const { error: showError, success: showSuccess, info: showInfo } = useToast()
 
 const tempImageSrc = ref('')
@@ -413,7 +413,7 @@ const handleFileChange = async (e) => {
 
     // 2. 先上傳到 Cloudinary (原圖)
     showInfo('正在預傳送圖片...')
-    const result = await uploadToCloudinary(compressedBlob, { folder: 'petpetni/avatars' })
+    const result = await uploadOriginal(compressedBlob)
 
     currentPublicId.value = result.publicId
     tempImageSrc.value = result.url // 使用原始網址供裁切器顯示
@@ -820,7 +820,7 @@ onUnmounted(() => {
 
       <!-- Modals -->
       <div>
-        <ImageCropper
+        <AvatarCropper
           v-if="showCropper"
           :key="tempImageSrc"
           class="image-cropper-wrapper"
