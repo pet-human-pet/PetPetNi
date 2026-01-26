@@ -278,7 +278,18 @@ const handleSubmit = () => {
         <button
           type="submit"
           class="bg-brand-primary flex-1 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
-          :disabled="false"
+          :disabled="
+            (showEmail && !email) ||
+            !realName ||
+            !nickname ||
+            !phone ||
+            !city ||
+            !district ||
+            !gender ||
+            !birthday ||
+            !!nameError ||
+            !!phoneError
+          "
         >
           下一步
         </button>
