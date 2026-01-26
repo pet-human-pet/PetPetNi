@@ -28,6 +28,15 @@ export const profileApi = {
    */
   getProfile() {
     return api.get('/api/user/profile')
+  },
+
+  /**
+   * 更新個人檔案
+   * @param {Object} data - 更新的資料
+   * @returns {Promise}
+   */
+  updateProfile(data) {
+    return api.put('/api/user/profile', data)
   }
 }
 

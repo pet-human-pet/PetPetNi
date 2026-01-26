@@ -81,10 +81,10 @@ const router = createRouter({
       }
     },
     {
-      path: '/profile',
+      path: '/profile/:userIdInt?',
       name: 'Profile',
       component: () => import('@/views/ProfileView.vue'),
-      meta: { headerType: 'app' }
+      meta: { headerType: 'app', requiresAuth: true }
     },
     {
       path: '/match',

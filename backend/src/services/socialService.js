@@ -20,7 +20,7 @@ export const socialService = {
   // ==========================================
   // 取得貼文列表 API
   // ==========================================
-  getPosts: async ({ page = 1, limit = 10, userId = null }) => {
+  getPosts: async ({ page = 1, limit = 10, userId = null, authorId = null }) => {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
@@ -35,6 +35,7 @@ export const socialService = {
           user_id_int,
           profiles:user_id_int (
             user_id,
+            user_id_int,
             nick_name,
             avatar_url
           ),
@@ -53,6 +54,10 @@ export const socialService = {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .range(from, to)
+
+      if (authorId) {
+        query = query.eq('user_id_int', authorId)
+      }
 
       const { data: postsData, error: postsError, count } = await query
 
@@ -89,7 +94,7 @@ export const socialService = {
           if (likesError) console.error('[SocialService] Error fetching likes:', likesError)
 
           if (likesData) {
-            likesData.forEach((l) => userLikedPostIds.add(l.post_id))
+            likesData.forEach((l) => userLikedPostIds.add(String(l.post_id)))
           }
 
           // 查詢收藏
@@ -106,7 +111,7 @@ export const socialService = {
             console.error('[SocialService] Error fetching bookmarks:', bookmarksError)
 
           if (bookmarksData) {
-            bookmarksData.forEach((b) => userBookmarkedPostIds.add(b.post_id))
+            bookmarksData.forEach((b) => userBookmarkedPostIds.add(String(b.post_id)))
           }
         } catch (e) {
           console.warn('⚠️ 無法確認互動狀態:', e.message)
@@ -128,14 +133,15 @@ export const socialService = {
           id: p.id,
           author: p.profiles?.nick_name || 'Unknown',
           authorId: p.profiles?.user_id || '',
+          authorIdInt: p.profiles?.user_id_int || p.user_id_int || null,
           authorAvatar: p.profiles?.avatar_url || '',
           content: p.content,
           images: images,
           audience: 'public',
-          isLiked: userLikedPostIds.has(p.id),
+          isLiked: userLikedPostIds.has(String(p.id)),
           likeCount: likeCount,
           commentCount: commentCount,
-          isBookmarked: userBookmarkedPostIds.has(p.id),
+          isBookmarked: userBookmarkedPostIds.has(String(p.id)),
           createdAt: p.created_at,
           isNew: false
         }
@@ -401,6 +407,7 @@ export const socialService = {
           user_id_int,
           profiles:user_id_int (
             user_id,
+            user_id_int,
             nick_name,
             avatar_url
           ),
@@ -458,6 +465,7 @@ export const socialService = {
           id: p.id,
           author: p.profiles?.nick_name || 'Unknown',
           authorId: p.profiles?.user_id || '',
+          authorIdInt: p.profiles?.user_id_int || p.user_id_int || null,
           authorAvatar: p.profiles?.avatar_url || '',
           content: p.content,
           images: images,

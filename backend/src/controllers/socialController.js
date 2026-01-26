@@ -13,7 +13,7 @@ const normalizeImages = (images) => {
 }
 
 /**
- * Helper：從 Authorization header 取得並驗證使用者
+從 Authorization header 取得並驗證使用者
  * @param {Object} req - Express request 物件
  * @returns {Promise<{uuid: string, userIdInt: number}|null>} 使用者資訊或 null
  */
@@ -58,11 +58,12 @@ export const socialController = {
     try {
       const page = parseInt(req.query.page) || 1
       const limit = parseInt(req.query.limit) || 10
+      const authorId = req.query.authorId ? parseInt(req.query.authorId) : null
 
       const user = await getUserFromToken(req)
       const userId = user?.uuid || null
 
-      const result = await socialService.getPosts({ page, limit, userId })
+      const result = await socialService.getPosts({ page, limit, userId, authorId })
       res.json(result)
     } catch (error) {
       console.error('API Error:', error)

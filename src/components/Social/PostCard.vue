@@ -29,7 +29,15 @@ const emit = defineEmits([
 ])
 
 const router = useRouter()
-const toProfile = () => router.push({ path: '/profile' })
+const toProfile = () => {
+  // 如果有 authorIdInt，導向該用戶的個人頁面
+  if (props.post.authorIdInt) {
+    router.push({ name: 'Profile', params: { userIdInt: props.post.authorIdInt } })
+  } else {
+    // 備用：導向自己的個人頁面
+    router.push({ name: 'Profile' })
+  }
+}
 
 const isEditing = ref(false)
 const editContent = ref('')
@@ -66,12 +74,10 @@ const cancelEdit = () => {
 }
 
 const saveEdit = () => {
-  const normalizedContent = editContent.value
-    .trim()
-    .replace(/\n\s*\n+/g, '\n\n')
+  const normalizedContent = editContent.value.trim().replace(/\n\s*\n+/g, '\n\n')
   const hasContent = normalizedContent.length > 0
   const hasImages = editImages.value.length > 0
-  
+
   if (!hasContent && !hasImages) return
   emit('update', {
     id: props.post.id,
@@ -254,7 +260,10 @@ const removeEditImage = (index) => {
         </button>
       </div>
     </div>
-    <p v-else class="md:text-m text-fg-secondary mt-3 whitespace-pre-wrap break-words leading-6 sm:text-base">
+    <p
+      v-else
+      class="md:text-m text-fg-secondary mt-3 leading-6 break-words whitespace-pre-wrap sm:text-base"
+    >
       {{ post.content }}
     </p>
 
