@@ -153,6 +153,8 @@ export const useChatStore = defineStore('chat', () => {
   })
 
   // --- Actions ---
+  const processingFriendships = new Set()
+
   function switchCategory(cat) {
     currentCategory.value = cat
     activeChatId.value = null
@@ -183,6 +185,17 @@ export const useChatStore = defineStore('chat', () => {
       }
 
       if (foundChat) {
+        // 1. 偵測特定系統訊息，立即更新房間狀態 (避免等待 loadUserRooms 回傳延遲)
+        if (newMessage.message_type === 'system') {
+          if (newMessage.content === 'FRIEND_CONFIRMED_BY_OTHER') {
+            foundChat.status = 'friend_pending'
+            foundChat.knockStatus = 'friend_pending'
+          } else if (newMessage.content === 'FRIENDSHIP_ESTABLISHED') {
+            foundChat.status = 'friend'
+            foundChat.knockStatus = null
+          }
+        }
+
         // 樂觀更新比對 (Pending Message Match)
         if (isMe) {
           const pendingMsg = foundChat.msgs.find(
@@ -384,15 +397,19 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function becomeFriend(chatId) {
+    if (processingFriendships.has(chatId)) return { success: false, error: '正在處理中...' }
+    processingFriendships.add(chatId)
+
     try {
       const result = await confirmFriendApi(chatId)
       if (result.success) {
-        // API 內部已經處理了 db 狀態更新
         return { success: true, isFriend: result.isFriend }
       }
       return { success: false, error: result.error }
     } catch {
       return { success: false, error: '確認好友失敗' }
+    } finally {
+      processingFriendships.delete(chatId)
     }
   }
 
@@ -459,6 +476,7 @@ export const useChatStore = defineStore('chat', () => {
         currentCategory.value = 'match'
       } else if (chat) {
         // 等待對方確認
+        chat.status = 'friend_pending'
         chat.knockStatus = 'friend_confirmed'
         chat.notice = '已送出好友邀請，等待對方確認'
       }
