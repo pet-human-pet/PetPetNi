@@ -90,7 +90,7 @@ const props = defineProps({
 
 defineEmits(['go-to-chat'])
 
-// Helper Methods
+// 輔助方法 (Helper Methods)
 function isImageUrl(url) {
   return url && (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:'))
 }
@@ -104,25 +104,27 @@ function formatTag(tag) {
   return tag
 }
 
-// Computed for Tags
+// 標籤計算屬性 (Computed for Tags) - 已去重且限制數量以維持版面
 const mandatoryTags = computed(() => {
   if (!props.matchData?.pet?.tags) return []
-  return props.matchData.pet.tags.filter((tag) => tag.startsWith('#'))
+  const tags = props.matchData.pet.tags.filter((tag) => tag.startsWith('#'))
+  return [...new Set(tags)].slice(0, 3) // 最多顯示 3 個重要標籤
 })
 
 const optionalTags = computed(() => {
   if (!props.matchData?.pet?.tags) return []
-  return props.matchData.pet.tags.filter((tag) => !tag.startsWith('#'))
+  const tags = props.matchData.pet.tags.filter((tag) => !tag.startsWith('#'))
+  return [...new Set(tags)].slice(0, 6) // 最多顯示 6 個個性標籤
 })
 
-// 3D Tilt State
+// 3D 傾斜狀態 (3D Tilt State)
 const petCard = ref(null)
 const radarCard = ref(null)
 const isTilting = ref(false)
 const isRadarTilting = ref(false)
 const MAX_TILT = 12
 
-// 3D Tilt Methods (Pet Card)
+// 3D 傾斜方法 (寵物卡) (3D Tilt Methods - Pet Card)
 function handleTilt(e) {
   if (!petCard.value) return
 
@@ -165,7 +167,7 @@ function resetTilt() {
   petCard.value.style.boxShadow = ''
 }
 
-// 3D Tilt Methods (Radar Card)
+// 3D 傾斜方法 (雷達圖) (3D Tilt Methods - Radar Card)
 function handleRadarTilt(e) {
   if (!radarCard.value) return
 
@@ -204,7 +206,7 @@ function resetRadarTilt() {
   radarCard.value.style.boxShadow = ''
 }
 
-// Lifecycle
+// 生命週期 (Lifecycle)
 onMounted(() => {
   if (petCard.value) {
     petCard.value.addEventListener('mousemove', handleTilt)
@@ -230,7 +232,7 @@ onUnmounted(() => {
 
 <style scoped>
 .result-card {
-  max-width: 1200px;
+  max-width: 900px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
@@ -250,6 +252,11 @@ onUnmounted(() => {
   border: 1px solid var(--color-border-default);
   padding: 2rem;
   box-shadow: var(--shadow-card);
+  /* Ensure consistent height */
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 @media (max-width: 480px) {
@@ -294,6 +301,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
+  /* Removed scrollbar to maintain fixed layout */
 }
 
 .tags-group {
