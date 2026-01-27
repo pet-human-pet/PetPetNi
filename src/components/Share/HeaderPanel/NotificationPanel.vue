@@ -75,7 +75,7 @@ function handleRefresh() {
       <i class="fa-regular fa-bell"></i>
       <span
         v-if="unreadCount > 0"
-        class="bg-brand-accent absolute top-2 right-2 h-2 w-2 rounded-full border border-white"
+        class="bg-brand-accent absolute md:top-2 md:right-2 top-1 right-1 h-2 w-2 rounded-full border border-white"
       />
     </button>
 

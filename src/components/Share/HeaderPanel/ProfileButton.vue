@@ -24,7 +24,7 @@ function goProfile() {
   <button
     v-if="shouldShowAvatar"
     type="button"
-    class="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-white p-0 transition-opacity duration-300"
+    class="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-white p-0 transition-transform duration-300 shadow-card  hover:scale-110"
     title="個人頁面"
     @click="goProfile"
   >

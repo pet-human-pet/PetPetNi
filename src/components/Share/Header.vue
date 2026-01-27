@@ -47,7 +47,9 @@ const headerClasses = computed(() => [
 const containerClasses = computed(() => [
   'h-(--header-h) w-full mx-auto flex items-center justify-between relative',
   // TODO: Magic Number: px-[30px] 剛好等於首頁跑馬燈寬度，導致重疊，故增加為 px-12 (48px)
-  isHomePage.value ? 'w-full px-12 md:px-[50px]' : 'max-w-300 px-6 max-[800px]:px-4'
+  isHomePage.value
+    ? '-left-2 md:left-0 w-full  px-12 md:px-[50px]'
+    : 'max-w-300 px-6 max-[800px]:px-4'
 ])
 
 // 方法
@@ -63,7 +65,7 @@ function handleLogoClick() {
       <!-- Logo -->
       <!-- TODO: 之後應該會換成logo圖片檔 -->
       <button
-        class="pointer-events-auto flex cursor-pointer items-center border-none bg-transparent p-0 no-underline transition-opacity duration-300"
+        class="pointer-events-auto flex cursor-pointer items-center bg-transparent p-0 no-underline transition-opacity duration-300"
         :class="{ 'pointer-events-none opacity-0': uiStore.isMenuOpen }"
         @click="handleLogoClick"
       >
@@ -81,7 +83,7 @@ function handleLogoClick() {
           <router-link
             v-show="!uiStore.isMenuOpen"
             :to="{ name: 'login', query: { mode: 'register' } }"
-            class="hover:text-brand-primary text-brand-primary flex items-center justify-center rounded-full shadow-card bg-white px-3 py-2 text-sm font-bold tracking-wider transition-colors duration-300 hover:bg-gray-50 md:px-5 md:py-3"
+            class="hover:text-brand-primary text-brand-primary shadow-card flex items-center justify-center rounded-full bg-white px-3 py-2 text-sm font-bold tracking-wider transition-colors duration-300 hover:bg-gray-50 md:px-5 md:py-3"
           >
             註冊
           </router-link>
@@ -93,11 +95,11 @@ function handleLogoClick() {
             登入
           </router-link>
         </div>
-        <MenuButton />
+        <MenuButton class="-right-5 md:right-0" />
       </div>
 
       <!-- 登入後：完整功能按鈕 -->
-      <div v-else class="flex items-center gap-1 md:gap-3">
+      <div v-else class="ml-2 flex items-center gap-1 md:gap-3">
         <div
           class="flex items-center gap-1 transition-opacity duration-300 md:gap-3"
           :class="{ 'pointer-events-none opacity-0': uiStore.isMenuOpen }"
@@ -117,7 +119,7 @@ function handleLogoClick() {
 
         <!-- Menu 按鈕 -->
         <!-- 當 Header 為 pointer-events-none 時，需確保按鈕可點擊 -->
-        <MenuButton class="pointer-events-auto ml-1 md:ml-2" />
+        <MenuButton class="pointer-events-auto -right-3 ml-1 md:-right-1 md:ml-2" />
       </div>
     </div>
   </header>
