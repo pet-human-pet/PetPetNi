@@ -21,6 +21,7 @@ import { usePostStore } from '@/stores/usePostStore'
 import { getStatusBadge } from '@/utils/statusHelper'
 import defaultAvatar01 from '@/assets/images/avatar-cat.jpg'
 import defaultAvatar02 from '@/assets/images/avatar-dog.jpg'
+import { requiredTagGroups } from '@/utils/profileData'
 import { followApi } from '@/api/follow'
 import { profileApi } from '@/api/profile'
 import { useChatStore } from '@/stores/chat'
@@ -74,7 +75,7 @@ const fetchOtherUserProfile = async (userIdInt) => {
 
     otherUserData.value = profileRes.data.data
     isFollowing.value = statusRes.data.data.isFollowing
-  } catch (error) {
+  } catch {
     // Silently fail or handle error UI
   } finally {
     isLoadingProfile.value = false
@@ -127,7 +128,7 @@ const handleStartChat = async () => {
     } else {
       showError(result.error || '無法開啟聊天室')
     }
-  } catch (error) {
+  } catch {
     showError('無法開啟聊天室')
   }
 }
@@ -177,16 +178,54 @@ const eventStore = useEventMapStore()
 const favoritesStore = useFavoritesStore()
 const postStore = usePostStore()
 const { uploadOriginal, compressImage, getDynamicUrl } = useAvatarUpload()
-const { error: showError, success: showSuccess, info: showInfo } = useToast()
+const { error: showError, success: showSuccess } = useToast()
 
 const tempImageSrc = ref('')
 const currentPublicId = ref('')
 const showCropper = ref(false)
 const showTagPicker = ref(false)
 
-// 監聽標籤彈窗開啟，自動點選「個性」分類
+const {
+  requiredSelections,
+  optionalTags,
+  maxOptionalTags,
+  requiredCount,
+  selectRequiredTag,
+  toggleOptionalTag,
+  removeOptionalTag,
+  getSubmitData
+} = useTagSelection([]) // 初始化為空，由 syncLocalTags 填充
+
+/**
+ * 將 AuthStore 中的標籤同步到本地編輯器的狀態中
+ */
+const syncLocalTags = () => {
+  const currentTags = tags.value || []
+
+  // 1. 同步選填標籤 (排除包含 ':' 的技術標籤)
+  optionalTags.value = currentTags.filter((t) => !t.includes(':'))
+
+  // 2. 同步必填標籤
+  const newRequired = requiredTagGroups.reduce((acc, group) => {
+    acc[group.id] = null
+    return acc
+  }, {})
+
+  currentTags.forEach((tag) => {
+    if (tag.startsWith('#') && tag.includes(':')) {
+      const [key, val] = tag.substring(1).split(':')
+      if (key in newRequired) {
+        newRequired[key] = val
+      }
+    }
+  })
+  requiredSelections.value = newRequired
+}
+
+// 監聽標籤彈窗開啟，自動點選「個性」分類且同步資料
 watch(showTagPicker, async (val) => {
   if (val) {
+    syncLocalTags() // 每次點開時同步最新資料
     await nextTick()
     // 延遲一下確保 DOM 完全渲染且手風琴動畫準備就緒
     setTimeout(() => {
@@ -198,7 +237,6 @@ watch(showTagPicker, async (val) => {
     }, 100)
   }
 })
-
 // Event data
 const createdEvents = ref([])
 const participatedEvents = ref([])
@@ -314,34 +352,28 @@ const currentUserList = computed(() =>
       : []
 )
 
-const {
-  requiredSelections,
-  optionalTags,
-  maxOptionalTags,
-  requiredCount,
-  selectRequiredTag,
-  toggleOptionalTag,
-  removeOptionalTag,
-  getSubmitData
-} = useTagSelection(tags.value || []) // Initialize with current tags
-
 const syncTagsToProfile = async () => {
   const { requiredTags, optionalTags: optional } = getSubmitData()
   const newTags = [...requiredTags, ...optional]
 
   try {
-    // 更新 Store (雖然 fetchProfile 會更新，但立即更新可提升體驗嗎？最好等 API 回應)
-    // tags.value = newTags
+    // 立即更新 Store 的本地狀態（樂觀更新）
+    tags.value = [...newTags]
 
     // 呼叫 API 更新
-    await profileApi.updateProfile({ optionalTags: newTags })
+    const response = await profileApi.updateProfile({ optionalTags: newTags })
 
-    // 重新載入 Profile 以更新 UI
-    await authStore.fetchProfile()
-
-    showSuccess('標籤設定已儲存')
-  } catch (err) {
+    // 從回應中取得最新資料並更新 Store
+    const updatedData = response.data.data
+    if (updatedData) {
+      if (updatedData.tags) tags.value = updatedData.tags
+      if (updatedData.profile) userProfile.value = updatedData.profile
+      if (updatedData.pet) pet.value = updatedData.pet
+    }
+  } catch {
     showError('儲存失敗，請稍後再試')
+    // 失敗時才重新載入完整資料以還原狀態
+    await authStore.fetchProfile()
   }
 }
 
@@ -535,15 +567,15 @@ const openDetail = (item) => {
 }
 
 const handleTagConfirm = async () => {
-  await syncTagsToProfile()
   showTagPicker.value = false
+  await syncTagsToProfile()
 }
 
 const fetchMyEvents = async () => {
   try {
     const events = await eventStore.fetchMyEvents()
     createdEvents.value = events
-  } catch (error) {
+  } catch {
     // Error logged in store
   }
 }
@@ -552,7 +584,7 @@ const fetchMyParticipatedEvents = async () => {
   try {
     const events = await eventStore.fetchMyParticipatedEvents()
     participatedEvents.value = events
-  } catch (error) {
+  } catch {
     // Error logged in store
   }
 }
