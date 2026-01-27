@@ -5,6 +5,8 @@ import ImageCropper from '@/components/Share/ImageCropper.vue'
 import { usePostComposerImages } from '@/composables/usePostComposerImages'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
+import defaultAvatar01 from '@/assets/images/avatar-cat.jpg'
+import defaultAvatar02 from '@/assets/images/avatar-dog.jpg'
 
 const authStore = useAuthStore()
 // 發布貼文流程
@@ -39,8 +41,14 @@ const isSubmitting = ref(false)
 
 const countText = computed(() => `${content.value.length}/${props.maxLength}`)
 const displayName = computed(
-  () => authStore.user?.nickname || authStore.user?.username || props.username
+  () => authStore.profile?.nick_name || authStore.user?.username || props.username
 )
+
+const userAvatar = computed(() => {
+  return authStore.profile?.avatar_url || fallbackAvatar.value
+})
+
+const fallbackAvatar = ref([defaultAvatar01, defaultAvatar02][Math.floor(Math.random() * 2)])
 
 const canSubmit = computed(() => {
   const hasContent = content.value.trim().length > 0
@@ -79,9 +87,7 @@ const triggerImageUpload = () => {
 const submit = async () => {
   if (!canSubmit.value) return
 
-  const normalizedContent = content.value
-    .trim()
-    .replace(/\n\s*\n+/g, '\n\n')
+  const normalizedContent = content.value.trim().replace(/\n\s*\n+/g, '\n\n')
   const text = normalizedContent
   const hasImages = images.value.length > 0
 
@@ -151,14 +157,26 @@ const audience = ref('public')
       class="c-card flex w-full items-center gap-3 py-3 text-left md:hidden"
       @click="open = true"
     >
-      <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
+      <img
+        v-if="userAvatar"
+        :src="userAvatar"
+        class="h-10 w-10 shrink-0 rounded-full object-cover"
+        alt="avatar"
+      />
+      <div v-else class="h-10 w-10 shrink-0 rounded-full bg-zinc-200"></div>
       <div class="text-sm text-zinc-400">分享你的寵物日常...</div>
     </button>
 
     <!-- 桌機發文區 -->
     <section class="c-card hidden bg-white p-4 md:block">
       <div class="flex items-start gap-3">
-        <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
+        <img
+          v-if="userAvatar"
+          :src="userAvatar"
+          class="h-10 w-10 shrink-0 rounded-full object-cover"
+          alt="avatar"
+        />
+        <div v-else class="h-10 w-10 shrink-0 rounded-full bg-zinc-200"></div>
 
         <div class="min-w-0 flex-1">
           <textarea
@@ -238,7 +256,7 @@ const audience = ref('public')
               <div class="text-sm text-zinc-400">{{ countText }}</div>
               <button
                 type="button"
-                class="bg-btn-primary cursor-pointer rounded-lg px-5 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-btn-primary/90"
+                class="bg-btn-primary hover:bg-btn-primary/90 cursor-pointer rounded-lg px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 :disabled="!canSubmit"
                 @click="submit"
               >
@@ -257,7 +275,13 @@ const audience = ref('public')
         <section class="w-full rounded-2xl bg-white p-4 shadow-lg" @click.stop>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
+              <img
+                v-if="userAvatar"
+                :src="userAvatar"
+                class="h-10 w-10 shrink-0 rounded-full object-cover"
+                alt="avatar"
+              />
+              <div v-else class="h-10 w-10 shrink-0 rounded-full bg-zinc-200"></div>
               <div class="min-w-0">
                 <div class="text-sm font-semibold">
                   {{ displayName }}
