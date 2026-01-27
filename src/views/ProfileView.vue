@@ -407,12 +407,10 @@ const handleFileChange = async (e) => {
   if (!file) return
 
   try {
-    showInfo('正在準備圖片...')
     // 1. 壓縮原圖
     const { blob: compressedBlob } = await compressImage(file)
 
     // 2. 先上傳到 Cloudinary (原圖)
-    showInfo('正在預傳送圖片...')
     const result = await uploadOriginal(compressedBlob)
 
     currentPublicId.value = result.publicId
@@ -447,7 +445,6 @@ const fetchMyFollowCounts = async () => {
 
 const handleCropConfirm = async ({ coordinates }) => {
   showCropper.value = false
-  showInfo('正在更新個人頭像...')
 
   try {
     // 1. 根據座標生成 Cloudinary 動態裁切網址
@@ -457,8 +454,6 @@ const handleCropConfirm = async ({ coordinates }) => {
 
     // 3. 重新載入自己的 Profile 以更新網頁顯示
     await authStore.fetchProfile()
-
-    showSuccess('頭像已更新')
   } catch (err) {
     console.error('❌ 更新頭像失敗:', err)
     showError('更新頭像失敗，請稍後再試')
