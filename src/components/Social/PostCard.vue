@@ -30,13 +30,18 @@ const emit = defineEmits([
 
 const router = useRouter()
 const toProfile = () => {
-  // 如果有 authorIdInt，導向該用戶的個人頁面
-  if (props.post.authorIdInt) {
-    router.push({ name: 'Profile', params: { userIdInt: props.post.authorIdInt } })
-  } else {
-    // 備用：導向自己的個人頁面
-    router.push({ name: 'Profile' })
+  const rawId = props.post.authorIdInt ?? props.post.userIdInt ?? props.post.user_id_int
+  const userIdInt = Number(rawId)
+  const hasUserIdInt = Number.isFinite(userIdInt) && userIdInt > 0
+
+  // 如果有可用的 userIdInt，導向該用戶的個人頁面
+  if (hasUserIdInt) {
+    router.push({ name: 'Profile', params: { userIdInt } })
+    return
   }
+
+  // 備用：導向自己的個人頁面
+  router.push({ name: 'Profile' })
 }
 
 const isEditing = ref(false)
@@ -137,7 +142,7 @@ const removeEditImage = (index) => {
 
 <template>
   <div
-    class="c-card relative w-full min-w-0 p-5 transition-colors duration-500 md:p-6"
+    class="c-card relative w-full min-w-0 p-4 transition-colors duration-500 md:p-6"
     :class="post.isNew ? 'bg-yellow-50/40 ring-2 ring-yellow-200' : 'bg-white ring-0'"
   >
     <div class="flex items-start justify-between">
@@ -189,7 +194,7 @@ const removeEditImage = (index) => {
         <!--更多按鈕 (Kebab Menu)-->
         <div ref="menuRef" class="relative">
           <button
-            class="text-fg-secondary/70 grid h-9 w-9 cursor-pointer place-items-center rounded-lg hover:bg-zinc-100"
+            class="text-fg-secondary/70 grid h-9 w-9 cursor-pointer place-items-center rounded-lg text-xl hover:bg-zinc-100"
             aria-label="More"
             @click="toggleMenu"
           >
@@ -213,7 +218,7 @@ const removeEditImage = (index) => {
               </template>
               <template v-else>
                 <button
-                  class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+                  class="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-50"
                   @click="handleReport"
                 >
                   <i class="fa-solid fa-triangle-exclamation"></i>
