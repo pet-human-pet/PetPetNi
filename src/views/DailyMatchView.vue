@@ -239,26 +239,34 @@ function viewLastMatch() {
 }
 
 async function handleGoToChat() {
-  const roomId = matchResult.value?.roomId
-  if (roomId) {
-    goToChat(roomId)
-    return
-  }
-
+  // 優先嘗試取得對方 ID
   const targetUserIdInt = matchResult.value?.owner?.id
+
+  // 如果沒有對方 ID，但有 roomId (例外情況)，則直接跳轉
   if (!targetUserIdInt) {
+    const roomId = matchResult.value?.roomId
+    if (roomId) {
+      goToChat(roomId)
+      return
+    }
     toast.error('找不到配對對象資訊，無法建立聊天室')
     return
   }
 
+  // 透過 Store Action 啟動聊天 (確保聊天室被加入前端 Store 列表)
+  // 即使後端已存在該房間，此動作也會確保前端 Store 同步狀態
   const result = await chatStore.startPrivateChat(targetUserIdInt)
+
   if (!result.success) {
     toast.error(result.error || '開始私訊失敗')
     return
   }
 
+  // 更新 roomId 並跳轉
   if (result.room?.id) {
-    matchResult.value.roomId = result.room.id
+    if (matchResult.value) {
+      matchResult.value.roomId = result.room.id
+    }
     goToChat(result.room.id)
   }
 }
