@@ -17,7 +17,7 @@ defineEmits(['click'])
     :target="!isButton ? '_blank' : undefined"
     :rel="!isButton ? 'noopener noreferrer' : undefined"
     :type="isButton ? 'button' : undefined"
-    class="group text-brand-primary flex items-center justify-between rounded-full bg-white font-bold transition-colors hover:bg-gray-100"
+    class="group text-brand-primary flex cursor-pointer items-center justify-between rounded-full bg-white font-bold transition-colors hover:bg-gray-100"
     :class="customClass"
     @click="$emit('click')"
   >
