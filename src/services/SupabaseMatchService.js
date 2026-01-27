@@ -290,7 +290,7 @@ export const supabaseMatchService = {
           partnerProfile.user_id_int
         )
       } catch (chatError) {
-        // console.error('❌ Failed to create/find chat room:', chatError)
+        console.error('❌ Failed to create/find chat room:', chatError)
         // 配對成功但聊天室建立失敗... 算成功
       }
 
@@ -301,7 +301,7 @@ export const supabaseMatchService = {
       })
 
       if (recordError) {
-        // console.error('❌ 無法寫入配對歷史:', recordError)
+        console.error('❌ 無法寫入配對歷史:', recordError)
         throw new Error('配對記錄失敗')
       }
 
@@ -331,7 +331,7 @@ export const supabaseMatchService = {
         }
       }
     } catch (error) {
-      // console.error('❌ Service Error (performDailyMatch):', error)
+      console.error('❌ Service Error (performDailyMatch):', error)
       throw error
     }
   },

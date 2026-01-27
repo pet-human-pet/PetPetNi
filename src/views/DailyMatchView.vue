@@ -108,6 +108,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMatchingStore } from '@/stores/matching'
 import { useAuthStore } from '@/stores/auth'
+import { useChatStore } from '@/stores/chat'
 import { useMatching } from '@/composables/useMatching'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import CardCarousel from '@/components/Matching/CardCarousel.vue'
@@ -119,9 +120,10 @@ const router = useRouter()
 const matchingStore = useMatchingStore()
 const { matchResult, canMatch, performMatch, goToChat } = useMatching()
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 const toast = useToast()
 
-const tarotModules = import.meta.glob('@/assets/images/tarot/*.png', {
+const tarotModules = import.meta.glob('@/assets/images/tarot/*.png*/', {
   eager: true,
   import: 'default'
 })
@@ -236,11 +238,29 @@ function viewLastMatch() {
   }
 }
 
-function handleGoToChat() {
-  if (!matchResult.value?.roomId) {
+async function handleGoToChat() {
+  const roomId = matchResult.value?.roomId
+  if (roomId) {
+    goToChat(roomId)
     return
   }
-  goToChat(matchResult.value.roomId)
+
+  const targetUserIdInt = matchResult.value?.owner?.id
+  if (!targetUserIdInt) {
+    toast.error('找不到配對對象資訊，無法建立聊天室')
+    return
+  }
+
+  const result = await chatStore.startPrivateChat(targetUserIdInt)
+  if (!result.success) {
+    toast.error(result.error || '開始私訊失敗')
+    return
+  }
+
+  if (result.room?.id) {
+    matchResult.value.roomId = result.room.id
+    goToChat(result.room.id)
+  }
 }
 
 onMounted(async () => {
