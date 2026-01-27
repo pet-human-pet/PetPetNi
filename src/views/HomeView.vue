@@ -23,7 +23,7 @@ const handleOpenAi = () => {
 // 每個角落區域佔 3 行，文字用 absolute 定位在圖片上
 const items = [
   {
-    labelEn: 'ACTIVITY',
+    labelEn: 'EVENTS',
     labelZh: '活動',
     iconName: '活動區.webp',
     routeName: 'Event',
@@ -35,8 +35,8 @@ const items = [
     animationDuration: '3.2s'
   },
   {
-    labelEn: 'DATING',
-    labelZh: '交友',
+    labelEn: 'MATCH',
+    labelZh: '配對',
     iconName: '交友區.webp',
     routeName: 'match',
     gridClass: 'col-start-3 row-start-1 row-span-3',
@@ -91,17 +91,31 @@ const getIconUrl = (name) => {
         <div class="col-start-2 row-span-6 row-start-1 flex items-center justify-center">
           <button
             type="button"
-            class="pointer-events-auto h-64 min-h-64 w-64 min-w-64 cursor-pointer bg-contain bg-center bg-no-repeat transition-transform hover:scale-[1.03] active:scale-[0.98] md:h-[120%] md:min-h-0 md:w-[120%] md:min-w-0"
+            class="group pointer-events-auto relative h-64 min-h-64 w-64 min-w-64 cursor-pointer overflow-visible bg-contain bg-center bg-no-repeat transition-transform hover:scale-[1.03] active:scale-[0.98] md:h-[120%] md:min-h-0 md:w-[120%] md:min-w-0"
             :style="`background-image: url(${getIconUrl('中央區.webp')})`"
-            @click="handleOpenAi"
             aria-label="開啟 AI 功能"
-          ></button>
+            @click="handleOpenAi"
+          >
+            <div
+              class="pointer-events-none absolute top-40 left-1/2 z-20 -translate-x-1/2 -translate-y-full opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            >
+              <div
+                class="border-brand-tertiary text-fg-muted relative max-w-60 rounded-2xl border-2 bg-white px-4 py-2 text-center text-xs leading-snug font-semibold shadow-lg md:text-sm"
+              >
+                有寵物相關問題嗎？<br />
+                讓 <span class="text-brand-primary text-sm">波波</span> 來為你解答吧！🔮
+                <span
+                  class="border-brand-tertiary absolute top-full left-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 border-r-2 border-b-2 bg-white"
+                ></span>
+              </div>
+            </div>
+          </button>
         </div>
 
         <!-- 四個角落區域 -->
         <template v-for="item in items" :key="item.labelEn">
           <div
-            :class="[item.gridClass, 'pointer-events-auto relative cursor-pointer']"
+            :class="[item.gridClass, 'group pointer-events-auto relative cursor-pointer']"
             @click="handleNavigate(item.routeName)"
           >
             <!-- 圖片佔滿整個區域 -->
@@ -113,6 +127,19 @@ const getIconUrl = (name) => {
                 animationDuration: item.animationDuration
               }"
             ></div>
+
+            <div
+              class="pointer-events-none absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-full opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            >
+              <div
+                class="border-brand-tertiary text-fg-muted relative rounded-2xl border-2 bg-white px-3 py-1.5 text-center text-xs font-semibold shadow-lg md:text-sm"
+              >
+                前往 <span class="text-sm text-brand-primary">{{ item.labelZh }}</span> 🐾
+                <span
+                  class="border-brand-tertiary absolute top-full left-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 border-r-2 border-b-2 bg-white"
+                ></span>
+              </div>
+            </div>
 
             <!-- 文字（傾斜，桌機版距離更遠） -->
             <div :class="['absolute z-10 flex flex-col', item.textPosition, item.textRotate]">
