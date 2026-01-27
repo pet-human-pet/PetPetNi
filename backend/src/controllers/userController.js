@@ -70,8 +70,18 @@ export const userController = {
       console.log('👤 驗證成功，用戶 ID:', user.id)
 
       // ========== 2. 解構並清理輸入 ==========
-      const { realName, nickName, phone, city, district, gender, pet, optionalTags, avatarUrl } =
-        req.body
+      const {
+        realName,
+        nickName,
+        phone,
+        city,
+        district,
+        gender,
+        pet,
+        optionalTags,
+        avatarUrl,
+        role
+      } = req.body
       console.log('📦 createProfile body:', req.body)
 
       // ========== 3. 輸入驗證 ==========
@@ -452,12 +462,12 @@ export const userController = {
 
       // 確保取得 petData (為了更新 tags)
       if (!petData) {
-        const { data } = await supabase
+        const { data: petInfoList } = await supabase
           .from('pets')
           .select('*')
           .eq('user_id_int', profile.user_id_int)
-          .single()
-        petData = data
+          .limit(1)
+        petData = petInfoList?.[0] || null
       }
 
       // 6. 更新 Tags (全刪全建)
@@ -537,11 +547,13 @@ export const userController = {
 
       // 3. 查詢 Pet & Tags
       // 先找寵物
-      const { data: pet, error: petError } = await supabase
+      const { data: pets, error: petError } = await supabase
         .from('pets')
         .select('*')
         .eq('user_id_int', profile.user_id_int)
-        .single()
+        .limit(1)
+
+      const pet = pets?.[0] || null
 
       let tags = []
       if (pet) {
@@ -596,11 +608,13 @@ export const userController = {
       }
 
       // 2. 查詢寵物資料與標籤
-      const { data: pet, error: petQueryError } = await supabase
+      const { data: pets, error: petQueryError } = await supabase
         .from('pets')
         .select('id, name, type, breed, birthday, gender')
         .eq('user_id_int', userIdInt)
-        .single()
+        .limit(1)
+
+      const pet = pets?.[0] || null
 
       let tags = []
       if (!petQueryError && pet) {

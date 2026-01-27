@@ -180,6 +180,11 @@ export const matchController = {
       const matchedPet = candidates[randomIndex]
       const partnerProfile = matchedPet.profiles
 
+      if (!partnerProfile) {
+        console.error('❌ Critical Error: Matched pet has no profile', matchedPet)
+        return res.status(500).json({ error: '配對資料異常，請稍後重試' })
+      }
+
       console.log(`✨ 配對成功: ${myPet.name} <-> ${matchedPet.name}`)
 
       // 6. 計算雷達圖分數 (5 Angles)
@@ -265,18 +270,17 @@ export const matchController = {
         )
 
         // 8. 寫入配對歷史 (改為直接寫入 match_history)
-        try {
-          const { error: recordError } = await supabase.from('match_history').insert({
-            user_id_int: myProfile.user_id_int,
-            partner_id_int: partnerProfile.user_id_int
-          })
+        // 8. 寫入配對歷史 (改為直接寫入 match_history)
+        const { error: recordError } = await supabase.from('match_history').insert({
+          user_id_int: myProfile.user_id_int,
+          partner_id_int: partnerProfile.user_id_int
+        })
 
-          if (recordError) throw recordError
-          console.log('✅ 配對歷史已記錄')
-        } catch (err) {
-          console.warn('⚠️ 無法記錄配對歷史:', err)
-          // 配對已成功，僅紀錄錯誤
+        if (recordError) {
+          console.error('❌ 無法寫入配對歷史 (DB Error):', recordError)
+          throw new Error('資料庫寫入失敗') // 拋出錯誤以中斷流程
         }
+        console.log('✅ 配對歷史已記錄')
       } else {
         console.log('ℹ️ 配對成功，但未記錄到 DB。')
       }
@@ -306,6 +310,66 @@ export const matchController = {
       })
     } catch (error) {
       console.error('❌ 配對 API 錯誤:', error)
+      res.status(500).json({ error: '伺服器錯誤' })
+    }
+  },
+
+  // 檢查今日配對狀態
+  getMatchStatus: async (req, res) => {
+    try {
+      // 1. 驗證 Token
+      const authHeader = req.headers.authorization
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: '未提供授權 token' })
+      }
+      const token = authHeader.split(' ')[1]
+      const {
+        data: { user },
+        error: authError
+      } = await supabase.auth.getUser(token)
+
+      if (authError || !user) {
+        return res.status(401).json({ error: 'Token 無效' })
+      }
+
+      // 2. 取得 user_id_int
+      const { data: myProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id_int')
+        .eq('user_id', user.id)
+        .single()
+
+      if (profileError || !myProfile) {
+        return res.status(404).json({ error: '找不到用戶資料' })
+      }
+
+      // 3. 檢查 Match History
+      const now = new Date()
+      const taiwanTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Taipei' }))
+      const todayStart = new Date(
+        taiwanTime.getFullYear(),
+        taiwanTime.getMonth(),
+        taiwanTime.getDate()
+      ).toISOString()
+
+      const { count: todayCount, error: historyError } = await supabase
+        .from('match_history')
+        .select('*', { count: 'exact', head: true })
+        .or(`user_id_int.eq.${myProfile.user_id_int},partner_id_int.eq.${myProfile.user_id_int}`)
+        .gte('created_at', todayStart)
+
+      if (historyError) {
+        console.error('❌ Failed to check match status:', historyError)
+        return res.status(500).json({ error: '無法檢查配對狀態' })
+      }
+
+      // 若有記錄則回傳 hasMatched: true
+      return res.json({
+        success: true,
+        hasMatched: todayCount > 0
+      })
+    } catch (error) {
+      console.error('❌ Status API Error:', error)
       res.status(500).json({ error: '伺服器錯誤' })
     }
   }
