@@ -134,11 +134,11 @@ const handleEmailBlur = () => {
     <h2 class="text-brand-primary mb-8 text-center text-3xl font-bold">歡迎回來</h2>
 
     <!-- 第三方登入按鈕 -->
-    <div class="mb-8 grid grid-cols-2 gap-4">
+    <div class="mb-6 grid grid-cols-2 gap-4">
       <!-- github 登入 -->
       <button
         type="button"
-        class="flex items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+        class="flex cursor-pointer items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
         @click="loginWithGithub"
       >
         <svg class="h-5 w-5" viewBox="0 0 98 96">
@@ -151,7 +151,7 @@ const handleEmailBlur = () => {
       <!-- Google 登入 -->
       <button
         type="button"
-        class="flex items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+        class="flex cursor-pointer items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
         @click="signInWithGoogle"
       >
         <svg class="h-5 w-5" viewBox="0 0 24 24">
@@ -175,7 +175,7 @@ const handleEmailBlur = () => {
       </button>
     </div>
 
-    <div class="relative my-8">
+    <div class="relative my-6">
       <div class="absolute inset-0 flex items-center">
         <div class="w-full border-t border-gray-200"></div>
       </div>
@@ -209,7 +209,7 @@ const handleEmailBlur = () => {
           <template #suffix>
             <button
               type="button"
-              class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
+              class="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-400 transition-colors hover:text-gray-600"
               @click="togglePassword"
             >
               <svg
@@ -251,7 +251,7 @@ const handleEmailBlur = () => {
 
       <button
         type="submit"
-        class="bg-brand-primary w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+        class="bg-brand-primary w-full cursor-pointer rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
       >
         登入
       </button>
@@ -260,7 +260,7 @@ const handleEmailBlur = () => {
     <p class="mt-8 text-center text-sm text-gray-500">
       還不是會員？
       <button
-        class="text-brand-primary font-medium hover:underline"
+        class="text-brand-primary cursor-pointer font-medium hover:underline"
         type="button"
         @click="$emit('switch')"
       >
