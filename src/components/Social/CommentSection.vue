@@ -102,7 +102,7 @@ const onSwipeEnd = () => {
 <template>
   <!-- Mobile -->
   <Teleport to="body" :disabled="!isMobile">
-    <div v-if="isMobile" class="fixed inset-0 z-[1000] flex items-end justify-center md:hidden">
+    <div v-if="isMobile" class="fixed inset-0 z-1000 flex items-end justify-center md:hidden">
       <!-- Overlay (點擊關閉) -->
       <div class="absolute inset-0 bg-black/60 transition-opacity" @click="$emit('close')"></div>
 
@@ -151,14 +151,14 @@ const onSwipeEnd = () => {
               <div>
                 <div class="flex items-baseline justify-between pb-1">
                   <div class="flex items-center justify-center gap-3">
-                    <span class="text-sm font-bold text-blue-800">{{ c.user }}</span>
+                    <span class="text-sm font-bold text-blue-800">{{ c.author }}</span>
                     <span class="text-xs text-zinc-300">
-                      {{ formatCommentTime(c.time) }}
+                      {{ formatCommentTime(c.createdAt) }}
                     </span>
                   </div>
                   <div class="flex items-center gap-2">
                     <!-- 判斷是否為當前用戶的留言 -->
-                    <div v-if="c.userId === authStore.user?.id" class="flex gap-6 pr-2">
+                    <div v-if="c.authorId === authStore.user?.id" class="flex gap-6 pr-2">
                       <button
                         class="text-zinc-400 hover:text-red-500"
                         @click.stop="handleDelete(c.id)"

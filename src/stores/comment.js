@@ -3,10 +3,7 @@ import { socialApi } from '@/api/social'
 import { useToast } from '@/composables/useToast'
 
 const getErrorMessage = (err, fallback) =>
-  err?.response?.data?.error ||
-  err?.response?.data?.message ||
-  err?.message ||
-  fallback
+  err?.response?.data?.error || err?.response?.data?.message || err?.message || fallback
 
 export const useCommentStore = defineStore('comment', {
   state: () => ({
@@ -38,7 +35,6 @@ export const useCommentStore = defineStore('comment', {
 
       const { error: showError } = useToast()
       try {
-        console.log('[CommentStore] Adding comment for post:', postId)
         const res = await socialApi.createComment(postId, { content })
         const newComment = res.data || res
 

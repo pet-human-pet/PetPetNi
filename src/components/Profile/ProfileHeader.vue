@@ -135,9 +135,9 @@ const handleFollowClick = () => {
         </div>
 
         <div class="flex justify-center gap-5 md:gap-2">
-          <!-- 自己的頁面：顯示「關於我」按鈕 -->
+          <!-- 自己的頁面且身分為屋主：顯示「關於我」按鈕 -->
           <button
-            v-if="isOwnProfile"
+            v-if="isOwnProfile && profile.role === 'owner'"
             class="c-btn text-md w-full max-w-28 cursor-pointer truncate rounded-full border py-1 font-bold whitespace-nowrap transition-colors outline-none select-none focus:outline-none focus-visible:outline-none md:w-auto md:px-6 md:py-1.5 md:text-sm"
             :class="[
               isAboutVisible
@@ -151,7 +151,7 @@ const handleFollowClick = () => {
 
           <!-- 他人頁面：顯示「追蹤」按鈕 -->
           <button
-            v-else
+            v-else-if="!isOwnProfile"
             class="c-btn text-md w-full max-w-28 cursor-pointer truncate rounded-full border py-1 font-bold whitespace-nowrap transition-all outline-none select-none focus:outline-none focus-visible:outline-none md:w-auto md:px-6 md:py-1.5 md:text-sm"
             :class="[
               isFollowing
@@ -177,9 +177,9 @@ const handleFollowClick = () => {
             聊天
           </button>
 
-          <!-- 設定按鈕（只有自己的頁面顯示） -->
+          <!-- 設定按鈕（只有身分為屋主且是自己的頁面顯示） -->
           <button
-            v-if="isOwnProfile"
+            v-if="isOwnProfile && profile.role === 'owner'"
             class="text-fg-muted hover:text-brand-primary shrink-0 origin-center cursor-pointer items-center justify-center text-xl transition-transform duration-200 ease-out will-change-transform hover:rotate-90"
             type="button"
             @click="emit('open-tag-picker')"
@@ -190,10 +190,10 @@ const handleFollowClick = () => {
       </div>
     </div>
 
-    <!-- 展開內容區 (獨立於左右欄之外) -->
+    <!-- 展開內容區 (僅在身分為屋主時顯示) -->
     <transition name="fade-slide">
       <div
-        v-if="isAboutVisible || !isOwnProfile"
+        v-if="profile.role === 'owner' && (isAboutVisible || !isOwnProfile)"
         class="u-no-tap-highlight mt-4 w-full md:mt-10"
         style="outline: none !important; -webkit-tap-highlight-color: transparent"
       >

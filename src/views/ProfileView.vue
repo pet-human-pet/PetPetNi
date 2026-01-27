@@ -25,6 +25,8 @@ import { requiredTagGroups } from '@/utils/profileData'
 import { followApi } from '@/api/follow'
 import { profileApi } from '@/api/profile'
 import { useChatStore } from '@/stores/chat'
+import { useActiveItem } from '@/composables/useActiveItem'
+import { useScreen } from '@/composables/useScreen'
 
 // Route
 const route = useRoute()
@@ -110,8 +112,8 @@ const handleToggleFollow = async () => {
       // 更新自己的追蹤數
       myFollowingCount.value = res.data.data.myFollowingCount
     }
-  } catch (error) {
-    console.error('❌ 追蹤操作失敗:', error)
+  } catch {
+    // Error
   } finally {
     isFollowLoading.value = false
   }
@@ -378,6 +380,10 @@ const syncTagsToProfile = async () => {
 }
 
 const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
+const { isDesktop } = useScreen()
+const commentManager = useActiveItem({
+  enableClickOutside: isDesktop
+})
 
 // 我的貼文 (從 postStore 取得當前用戶的貼文)
 const myPosts = computed(() => {
@@ -443,9 +449,57 @@ const toggleBookmark = async (postId) => {
 }
 
 // 更新貼文
-const handleUpdatePost = async ({ id, content, audience }) => {
-  await postStore.updatePost(id, { content, audience })
+const handleUpdatePost = async ({ id, content, audience, images }) => {
+  await postStore.updatePost(id, { content, audience, images })
   showSuccess('貼文已更新')
+}
+
+// 分享貼文
+const sharePost = async (payload) => {
+  if (payload?.url) {
+    try {
+      await navigator.clipboard.writeText(payload.url)
+      showSuccess('連結已複製')
+    } catch {
+      showError('複製失敗')
+    }
+  }
+}
+
+// 刪除貼文
+const handleDeletePost = async (postId) => {
+  try {
+    await postStore.deletePost(postId)
+    showSuccess('貼文已刪除')
+  } catch {
+    showError('刪除失敗')
+  }
+}
+
+// 留言計數更新
+const handleCommentAdded = (postId) => postStore.updateCommentCount(postId, 1)
+const handleCommentDeleted = (postId) => postStore.updateCommentCount(postId, -1)
+
+// 留言開啟/關閉
+const openComments = (postId) => {
+  if (commentManager.activeId.value === postId) {
+    commentManager.deactivate()
+  } else {
+    commentManager.activate(postId)
+  }
+}
+
+const postCardEvents = {
+  update: handleUpdatePost,
+  'preview-image': openPreview,
+  like: toggleLike,
+  'open-comments': openComments,
+  'close-comments': commentManager.deactivate,
+  share: sharePost,
+  bookmark: toggleBookmark,
+  delete: handleDeletePost,
+  'comment-added': handleCommentAdded,
+  'comment-deleted': handleCommentDeleted
 }
 
 const handleFileChange = async (e) => {
@@ -465,7 +519,6 @@ const handleFileChange = async (e) => {
 
     e.target.value = ''
   } catch (err) {
-    console.error('❌ 預傳圖片失敗:', err)
     showError(err.message || '圖片讀取失敗')
   }
 }
@@ -483,8 +536,7 @@ const fetchMyFollowCounts = async () => {
     const res = await followApi.getFollowCounts(userProfile.value.user_id_int)
     myFollowersCount.value = res.data.data.followersCount
     myFollowingCount.value = res.data.data.followingCount
-  } catch (error) {
-    console.error('❌ 取得追蹤數失敗:', error)
+  } catch {
     showError('取得追蹤數失敗，請稍後再試')
   }
 }
@@ -498,10 +550,9 @@ const handleCropConfirm = async ({ coordinates }) => {
     // 2. 呼叫 API 更新後端
     await profileApi.updateProfile({ avatarUrl })
 
-    // 3. 重新載入自己的 Profile 以更新網頁顯示
+    // 重新載入自己的 Profile 以更新網頁顯示
     await authStore.fetchProfile()
-  } catch (err) {
-    console.error('❌ 更新頭像失敗:', err)
+  } catch {
     showError('更新頭像失敗，請稍後再試')
   } finally {
     cleanupTempImage()
@@ -540,8 +591,7 @@ const fetchUserList = async (type) => {
     } else {
       followingList.value = list
     }
-  } catch (error) {
-    console.error('❌ 取得名單失敗:', error)
+  } catch {
     showError('取得名單失敗，請稍後再試')
   } finally {
     // keep modal flow simple; no loading state for now
@@ -727,7 +777,7 @@ onUnmounted(() => {
                   v-for="tab in [
                     { id: 'posts', n: '貼文' },
                     { id: 'events', n: '活動' }
-                  ]"
+                  ].filter((t) => (profileDisplay.role === 'owner' ? true : t.id !== 'events'))"
                   :key="tab.id"
                   class="group flex-1 cursor-pointer text-center text-base font-bold md:text-lg"
                   :class="{ 'text-btn-primary': activeTab === tab.id }"
@@ -795,11 +845,10 @@ onUnmounted(() => {
                 <PostCard
                   v-for="post in displayedPosts"
                   :key="post.id"
+                  :ref="(el) => commentManager.registerRef(post.id, el)"
                   :post="post"
-                  @like="toggleLike"
-                  @bookmark="toggleBookmark"
-                  @preview-image="openPreview"
-                  @update="handleUpdatePost"
+                  :show-comments="commentManager.activeId.value === post.id"
+                  v-on="postCardEvents"
                 />
 
                 <!-- 空狀態提示 -->
