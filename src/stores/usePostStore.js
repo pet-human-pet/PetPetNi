@@ -20,10 +20,16 @@ export const usePostStore = defineStore('post', () => {
     err?.response?.data?.error || err?.response?.data?.message || err?.message || fallback
 
   const postsWithAuth = computed(() => {
-    return posts.value.map((p) => ({
-      ...p,
-      isMine: p.authorId === authStore.user?.id
-    }))
+    return posts.value.map((p) => {
+      const isMine = p.authorId === authStore.user?.id
+      return {
+        ...p,
+        isMine,
+        // 如果是自己的貼文，則即時連動 authStore 的最新個人資料
+        authorAvatar: isMine ? authStore.profile?.avatar_url || p.authorAvatar : p.authorAvatar,
+        author: isMine ? authStore.profile?.nick_name || p.author : p.author
+      }
+    })
   })
   const fetchPosts = async ({ page = 1, limit = 10, loadMore = false, ...otherParams } = {}) => {
     if (isLoading.value) return

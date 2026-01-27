@@ -143,7 +143,16 @@ const removeEditImage = (index) => {
     <div class="flex items-start justify-between">
       <div class="flex items-center gap-1">
         <div class="flex cursor-pointer items-center gap-3" @click="toProfile">
-          <div class="h-10 w-10 rounded-full bg-zinc-200"></div>
+          <div class="h-10 w-10 overflow-hidden rounded-full bg-zinc-100 shadow-sm">
+            <img
+              :src="post.authorAvatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'"
+              class="h-full w-full object-cover"
+              @error="
+                (e) => (e.target.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix')
+              "
+              alt="avatar"
+            />
+          </div>
           <a class="cursor-pointer text-sm font-semibold text-blue-800">{{ post.author }}</a>
         </div>
         <div class="flex items-center gap-2">
