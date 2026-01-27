@@ -23,7 +23,7 @@ defineProps({
     <!-- 1. Top Marquee (Row 1, Full Width) -->
     <div class="bg-brand-secondary z-20 col-span-full row-start-1">
       <MarqueeBorder
-        text="AI時代要把網站切那麼醜，也是不容易。"
+        text="PetPetNi · PetPetNi · PetPetNi ·"
         bg-color="bg-brand-secondary"
         text-color="text-white"
         :duration="50"
@@ -39,7 +39,7 @@ defineProps({
         class="absolute top-1/2 left-1/2 flex w-[200vh] origin-center -translate-x-1/2 -translate-y-1/2 -rotate-90 justify-center whitespace-nowrap"
       >
         <MarqueeBorder
-          text="PAWS·PAWS"
+          text="PetPetNi · PetPetNi · PetPetNi"
           bg-color="bg-brand-secondary"
           text-color="text-white"
           :duration="50"
