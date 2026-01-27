@@ -240,9 +240,9 @@ const profileDisplay = computed(() => {
       name: otherProfile?.nick_name || '未知用戶',
       username: `@${otherProfile?.user_id_int || 'user'}`,
       role: otherProfile?.role || 'user',
-      hashtags: otherUserData.value.tags || [],
       followersCount: otherProfile?.followersCount || 0,
       followingCount: otherProfile?.followingCount || 0,
+      hashtags: (otherUserData.value.tags || []).filter((t) => !t.includes(':')),
       petInfo: {
         breed: otherPet?.breed || '未知',
         birthday: otherPet?.birthday || '未知',
@@ -251,7 +251,6 @@ const profileDisplay = computed(() => {
     }
   }
 
-  // 自己的頁面
   if (!userProfile.value) return {}
 
   return {
@@ -259,9 +258,9 @@ const profileDisplay = computed(() => {
     name: userProfile.value.nick_name || user.value?.email,
     username: `@${userProfile.value.user_id_int || 'user'}`,
     role: userProfile.value.role || 'user',
-    hashtags: tags.value || [],
     followersCount: myFollowersCount.value,
     followingCount: myFollowingCount.value,
+    hashtags: (tags.value || []).filter((t) => !t.includes(':')),
     petInfo: {
       breed: pet.value?.breed || '未知',
       birthday: pet.value?.birthday || '未知',
@@ -848,7 +847,7 @@ onUnmounted(() => {
               :max-optional-tags="maxOptionalTags"
               :required-count="requiredCount"
               title=""
-              :show-required="true"
+              :show-required="false"
               :show-confirm-button="false"
               @select-required="selectRequiredTag"
               @toggle-optional="toggleOptionalTag"
