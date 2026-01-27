@@ -12,9 +12,7 @@ export const INITIAL_DB = {
     pinned: false,
     msgs: []
   },
-  community: [],
   match: [],
-  stranger: [],
   event: []
 }
 

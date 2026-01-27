@@ -128,5 +128,13 @@ export const chatApi = {
    */
   removeFriend(friendId) {
     return api.delete(`/api/chat/friend/${friendId}`)
+  },
+
+  /**
+   * 隱藏聊天室（刪除對話）
+   * @param {string} roomId - 房間 ID
+   */
+  hideRoom(roomId) {
+    return api.post(`/api/chat/rooms/${roomId}/hide`)
   }
 }
