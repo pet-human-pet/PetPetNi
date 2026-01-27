@@ -78,6 +78,7 @@ const handleLogin = async () => {
   loginFailed.value = false
 
   // 驗證 Email
+  email.value = email.value.trim()
   if (!email.value) {
     emailError.value = '請輸入電子郵件'
     return
@@ -117,6 +118,14 @@ const handleLogin = async () => {
       emailError.value = '登入失敗，請檢查帳號密碼'
     }
   }
+}
+
+const handleEmailBlur = () => {
+  if (email.value) {
+    email.value = email.value.trim()
+  }
+  emailError.value =
+    email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) ? '電子郵件格式不正確' : ''
 }
 </script>
 
@@ -183,10 +192,7 @@ const handleLogin = async () => {
           :error="emailError"
           placeholder="Enter your email..."
           type="email"
-          @blur="
-            emailError =
-              email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '電子郵件格式不正確' : ''
-          "
+          @blur="handleEmailBlur"
         />
       </div>
 

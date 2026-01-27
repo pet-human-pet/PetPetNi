@@ -76,6 +76,14 @@ const handleSocialLogin = async (provider) => {
   }
 }
 
+const handleEmailBlur = () => {
+  if (email.value) {
+    email.value = email.value.trim()
+  }
+  emailError.value =
+    email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value) ? '電子郵件格式不正確' : ''
+}
+
 const handleRegister = async () => {
   // 清空之前的錯誤訊息
   emailError.value = ''
@@ -83,6 +91,7 @@ const handleRegister = async () => {
   confirmPasswordError.value = ''
 
   // 驗證 Email
+  email.value = email.value.trim()
   if (!email.value) {
     emailError.value = '請輸入電子郵件'
     return
@@ -196,10 +205,7 @@ const handleRegister = async () => {
           :error="emailError"
           placeholder="Enter your email..."
           type="email"
-          @blur="
-            emailError =
-              email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '電子郵件格式不正確' : ''
-          "
+          @blur="handleEmailBlur"
         />
       </div>
 
