@@ -63,7 +63,7 @@ const handleShare = (payload) => emit('share', payload)
       <span class="action-icon text-xl"
         ><i
           :class="
-            isBookmarked ? 'fa-solid fa-bookmark text-brand-accent' : 'fa-regular fa-bookmark'
+            isBookmarked ? 'fa-solid fa-bookmark text-brand-primary' : 'fa-regular fa-bookmark'
           "
       /></span>
     </button>

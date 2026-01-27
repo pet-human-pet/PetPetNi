@@ -142,7 +142,7 @@
 
   /* Header 高度定義 */
   --header-height-desktop: 62px;
-  --header-height-mobile: 70px;
+  --header-height-mobile: 60px;
 }
 
 /* 全站預設，讓大家不用每個地方都重複寫 */

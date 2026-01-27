@@ -26,9 +26,7 @@ const loadMoreTrigger = ref(null)
 const visiblePosts = computed(() => postStore.postsWithAuth.filter((p) => !p.isDeleted))
 const leftPosts = computed(() => visiblePosts.value.filter((_, i) => i % 2 === 0))
 const rightPosts = computed(() => visiblePosts.value.filter((_, i) => i % 2 !== 0))
-const isEmptyLoading = computed(
-  () => postStore.isLoading && visiblePosts.value.length === 0
-)
+const isEmptyLoading = computed(() => postStore.isLoading && visiblePosts.value.length === 0)
 const desktopColumns = computed(() => [leftPosts.value, rightPosts.value])
 
 const openComments = (postId) => {
@@ -159,10 +157,10 @@ watch(
     </section>
 
     <!-- 桌機：雙欄 -->
-    <section class="mt-6 hidden w-full grid-cols-2 gap-6 md:grid">
-      <div v-for="(colPosts, index) in desktopColumns" :key="index" class="flex flex-col gap-6">
+    <section class="mt-4 hidden w-full grid-cols-2 gap-4 md:grid">
+      <div v-for="(colPosts, index) in desktopColumns" :key="index" class="flex flex-col gap-4">
         <!-- Skeleton Loading -->
-        <div v-if="isEmptyLoading" class="flex flex-col gap-6">
+        <div v-if="isEmptyLoading" class="flex flex-col gap-4">
           <PostSkeleton v-for="i in 2" :key="i" />
         </div>
 

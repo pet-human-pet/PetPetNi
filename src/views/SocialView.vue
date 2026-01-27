@@ -21,7 +21,7 @@ const handleSubmit = async (payload) => {
   <div class="bg-bg-base">
     <div class="min-h-screen">
       <main class="mx-auto w-full max-w-300 px-4 pb-16">
-        <div class="pt-5 md:pt-8">
+        <div class="pt-3">
           <PostComposer username="" @submit="handleSubmit" />
         </div>
         <SocialFeed />

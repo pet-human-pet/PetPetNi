@@ -6,6 +6,7 @@ import { useToast } from '@/composables/useToast'
 import { formatCommentTime } from '@/utils/formatTime'
 import { useCommentStore } from '@/stores/comment'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   post: {
@@ -13,6 +14,22 @@ const props = defineProps({
     required: true
   }
 })
+
+const router = useRouter()
+const toProfile = () => {
+  const rawId = props.post.authorIdInt ?? props.post.userIdInt ?? props.post.user_id_int
+  const userIdInt = Number(rawId)
+  const hasUserIdInt = Number.isFinite(userIdInt) && userIdInt > 0
+
+  // 如果有可用的 userIdInt，導向該用戶的個人頁面
+  if (hasUserIdInt) {
+    router.push({ name: 'Profile', params: { userIdInt } })
+    return
+  }
+
+  // 備用：導向自己的個人頁面
+  router.push({ name: 'Profile' })
+}
 
 const commentStore = useCommentStore()
 const authStore = useAuthStore()
@@ -143,15 +160,17 @@ const onSwipeEnd = () => {
           <div
             v-for="c in comments"
             :key="c.id"
-            class="mb-4 flex gap-3 rounded-lg p-1 transition-colors duration-300"
+            class="mb-4 flex gap-2 rounded-lg p-1 transition-colors duration-300"
             :class="c.isHighlight ? 'bg-yellow-50/40 ring-1 ring-yellow-200' : 'bg-white ring-0'"
           >
             <div class="h-8 w-8 shrink-0 rounded-full bg-zinc-200"></div>
             <div class="min-w-0 flex-1">
               <div>
                 <div class="flex items-baseline justify-between pb-1">
-                  <div class="flex items-center justify-center gap-3">
-                    <span class="text-sm font-bold text-blue-800">{{ c.author }}</span>
+                  <div class="flex items-center justify-center">
+                    <button class="pr-2 text-sm font-bold text-blue-800" @click="toProfile">
+                      {{ c.author }}
+                    </button>
                     <span class="text-xs text-zinc-300">
                       {{ formatCommentTime(c.createdAt) }}
                     </span>
@@ -160,7 +179,7 @@ const onSwipeEnd = () => {
                     <!-- 判斷是否為當前用戶的留言 -->
                     <div v-if="c.authorId === authStore.user?.id" class="flex gap-6 pr-2">
                       <button
-                        class="text-zinc-400 hover:text-red-500"
+                        class="text-zinc-400 hover:text-zinc-500"
                         @click.stop="handleDelete(c.id)"
                       >
                         <i class="fa-solid fa-trash text-sm"></i>
@@ -215,9 +234,12 @@ const onSwipeEnd = () => {
     class="animate-pop-in absolute right-12 bottom-16 z-40 w-[70%] origin-bottom-left rounded-2xl border border-zinc-100 bg-white p-3 shadow-xl"
   >
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-zinc-100 pb-2">
-      <span class="text-xs text-zinc-500">留言 ({{ comments.length }})</span>
-      <button class="cursor-pointer text-zinc-400" @click="$emit('close')">
+    <div class="flex items-center justify-between border-b border-zinc-100 pb-2 pl-3">
+      <span class="text-sm text-zinc-500">留言 ({{ comments.length }})</span>
+      <button
+        class="cursor-pointer text-xl text-zinc-400 hover:text-zinc-500"
+        @click="$emit('close')"
+      >
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
@@ -242,15 +264,17 @@ const onSwipeEnd = () => {
       <div
         v-for="c in comments"
         :key="c.id"
-        class="flex gap-3 rounded-lg py-3 transition-colors duration-300"
+        class="flex gap-3 rounded-lg px-3 py-3 pr-4 transition-colors duration-300"
         :class="c.isHighlight ? 'bg-yellow-50/40 ring-1 ring-yellow-200' : 'bg-white ring-0'"
       >
         <div class="h-8 w-8 shrink-0 rounded-full bg-zinc-200"></div>
         <div class="min-w-0 flex-1">
           <div>
             <div class="flex items-baseline justify-between pb-1">
-              <div class="flex items-center justify-center gap-5">
-                <span class="text-sm font-bold text-blue-800">{{ c.author }}</span>
+              <div class="flex items-center justify-center gap-5 md:gap-2">
+                <span class="text-sm font-bold text-blue-800" @click="toProfile">{{
+                  c.author
+                }}</span>
                 <span class="text-xs text-gray-400">
                   {{ formatCommentTime(c.createdAt) }}
                   <span v-if="c.isEdited" class="ml-1 text-gray-500">(已編輯)</span>
@@ -262,7 +286,7 @@ const onSwipeEnd = () => {
                     class="cursor-pointer text-zinc-300 transition-colors hover:text-red-500"
                     @click.stop="handleDelete(c.id)"
                   >
-                    <i class="fa-solid fa-trash text-xs"></i>
+                    <i class="fa-solid fa-trash text-md"></i>
                   </button>
                 </div>
               </div>
