@@ -4,15 +4,13 @@
       <!-- 左側：寵物資訊 -->
       <div ref="petCard" class="pet-info-section" :class="{ tilting: isTilting }">
         <div class="mb-6 text-center">
-          <!-- 頭像：支援圖片或 Emoji -->
+          <!-- 頭像：使用用戶頭像 -->
           <div class="pet-avatar-large">
             <img
-              v-if="isImageUrl(matchData.pet.avatarUrl)"
-              :src="matchData.pet.avatarUrl"
-              :alt="matchData.pet.name"
+              :src="displayAvatar"
+              :alt="matchData.owner?.nickName || 'User'"
               class="avatar-image"
             />
-            <span v-else>{{ matchData.pet.avatarUrl }}</span>
           </div>
 
           <h2 class="text-fg-primary mb-2 text-3xl font-bold">
@@ -22,7 +20,7 @@
             {{ matchData.pet.species === 'DOG' ? '🐕 狗狗' : '🐱 貓貓' }}
           </div>
 
-          <!-- 必選標籤 (基本資料) -->
+          <!-- 必選標籤 (顯示於主要區域) -->
           <div class="tags-container mt-4">
             <div class="tags-group">
               <span v-for="tag in mandatoryTags" :key="tag" class="tag-pill mandatory">
@@ -31,8 +29,8 @@
             </div>
           </div>
 
-          <!-- 非必選標籤 (個性特質) -->
-          <div class="tags-container mt-2">
+          <!-- 非必選標籤 (取代原本的簡介位置) -->
+          <div v-if="optionalTags.length > 0" class="tags-container mt-6">
             <div class="tags-group">
               <span v-for="tag in optionalTags" :key="tag" class="tag-pill optional">
                 {{ tag }}
@@ -40,8 +38,12 @@
             </div>
           </div>
 
-          <p class="text-fg-secondary mt-4 text-sm">
-            {{ matchData.pet.bio }}
+          <!-- 無標籤提示 -->
+          <p
+            v-if="mandatoryTags.length === 0 && optionalTags.length === 0"
+            class="text-fg-secondary mt-6 text-sm"
+          >
+            這位朋友比較神秘，尚未設定標籤 🤫
           </p>
         </div>
 
@@ -80,12 +82,24 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import RadarChart from './RadarChart.vue'
+import defaultAvatar01 from '@/assets/images/avatar-cat.jpg'
+import defaultAvatar02 from '@/assets/images/avatar-dog.jpg'
 
 const props = defineProps({
   matchData: {
     type: Object,
     required: true
   }
+})
+
+const displayAvatar = computed(() => {
+  if (isImageUrl(props.matchData.owner?.avatarUrl)) {
+    return props.matchData.owner.avatarUrl
+  }
+  // 根據寵物種類選擇預設頭像
+  const species = props.matchData.pet?.species
+  if (species === 'DOG') return defaultAvatar02
+  return defaultAvatar01 // 默認為貓 (或隨機)
 })
 
 defineEmits(['go-to-chat'])
@@ -98,25 +112,46 @@ function isImageUrl(url) {
 // 格式化標籤顯示 (去除 #key: 前綴)
 function formatTag(tag) {
   if (tag.startsWith('#')) {
-    const parts = tag.split(':')
+    // 支援半形與全形冒號
+    const separator = tag.includes('：') ? '：' : ':'
+    const parts = tag.split(separator)
     return parts.length > 1 ? parts[1] : tag.substring(1)
   }
   return tag
 }
 
-// 標籤計算屬性 (Computed for Tags) - 已去重且限制數量以維持版面
+// 標籤計算屬性 (Computed for Tags)
 const mandatoryTags = computed(() => {
   if (!props.matchData?.pet?.tags) return []
-  const tags = props.matchData.pet.tags.filter((tag) => tag.startsWith('#'))
-  return [...new Set(tags)].slice(0, 3) // 最多顯示 3 個重要標籤
+  const rawTags = props.matchData.pet.tags
+  const standardMandatory = rawTags.filter(
+    (tag) => tag.startsWith('#') && (tag.includes(':') || tag.includes('：'))
+  )
+  if (standardMandatory.length > 0) {
+    return [...new Set(standardMandatory)].slice(0, 3)
+  }
+  return [...new Set(rawTags)].slice(0, 3)
 })
-
 const optionalTags = computed(() => {
   if (!props.matchData?.pet?.tags) return []
-  const tags = props.matchData.pet.tags.filter((tag) => !tag.startsWith('#'))
-  return [...new Set(tags)].slice(0, 6) // 最多顯示 6 個個性標籤
-})
 
+  const rawTags = props.matchData.pet.tags
+  const standardMandatory = rawTags.filter(
+    (tag) => tag.startsWith('#') && (tag.includes(':') || tag.includes('：'))
+  )
+  let tagsToDisplay = []
+  if (standardMandatory.length > 0) {
+    tagsToDisplay = rawTags.filter(
+      (tag) => !tag.startsWith('#') || (!tag.includes(':') && !tag.includes('：'))
+    )
+  } else {
+    tagsToDisplay = [...new Set(rawTags)].slice(3)
+  }
+
+  return [...new Set(tagsToDisplay)]
+    .map((t) => (t.startsWith('#') ? t.substring(1) : t))
+    .slice(0, 6)
+})
 // 3D 傾斜狀態 (3D Tilt State)
 const petCard = ref(null)
 const radarCard = ref(null)
