@@ -1,12 +1,15 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
+import defaultAvatar from '@/assets/images/avatar-cat.jpg'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 
-const defaultAvatar =
-  'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=100&q=60'
+const { profile } = storeToRefs(authStore)
 
 // 判斷是否顯示頭像 (首頁與個人頁面隱藏)
 // 原邏輯: !['Profile'].includes(route.name)
@@ -25,6 +28,10 @@ function goProfile() {
     title="個人頁面"
     @click="goProfile"
   >
-    <img :src="defaultAvatar" class="h-full w-full object-cover" alt="User Avatar" />
+    <img
+      :src="profile?.avatar_url || defaultAvatar"
+      class="h-full w-full object-cover"
+      alt="User Avatar"
+    />
   </button>
 </template>
