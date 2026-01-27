@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted, onMounted, onBeforeUnmount, computed, watch } from 'vue'
+import { ref, onUnmounted, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
@@ -182,6 +182,22 @@ const { error: showError, success: showSuccess, info: showInfo } = useToast()
 const tempImageSrc = ref('')
 const currentPublicId = ref('')
 const showCropper = ref(false)
+const showTagPicker = ref(false)
+
+// 監聽標籤彈窗開啟，自動點選「個性」分類
+watch(showTagPicker, async (val) => {
+  if (val) {
+    await nextTick()
+    // 延遲一下確保 DOM 完全渲染且手風琴動畫準備就緒
+    setTimeout(() => {
+      const buttons = document.querySelectorAll('button')
+      const targetBtn = Array.from(buttons).find((btn) => btn.textContent.includes('個性'))
+      if (targetBtn) {
+        targetBtn.click()
+      }
+    }, 100)
+  }
+})
 
 // Event data
 const createdEvents = ref([])
@@ -287,7 +303,6 @@ const handlePostTabClick = (tabId) => {
   activeSubTab.value = tabId
 }
 
-const showTagPicker = ref(false)
 const showUserList = ref(false)
 const userListTitle = ref('')
 const userListType = ref('')
