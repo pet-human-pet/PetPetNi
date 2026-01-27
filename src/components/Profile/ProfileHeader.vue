@@ -118,7 +118,7 @@ const handleFollowClick = () => {
       <!-- 右欄：粉絲 + 關於我按鈕 -->
       <div class="flex flex-1 flex-col items-center justify-end md:w-full">
         <div
-          class="mb-3 flex w-full flex-wrap items-center justify-center gap-10 text-center md:mb-2 md:gap-10"
+          class="mb-6 flex w-full flex-wrap items-center justify-center gap-10 text-center md:mb-5 md:gap-10"
         >
           <div class="group cursor-pointer" @click="emit('open-user-list', 'followers')">
             <p class="text-brand-primary text-2xl font-bold md:text-3xl">
@@ -194,25 +194,17 @@ const handleFollowClick = () => {
     <transition name="fade-slide">
       <div
         v-if="isAboutVisible || !isOwnProfile"
-        class="u-no-tap-highlight mt-4 w-full"
+        class="u-no-tap-highlight mt-4 w-full md:mt-10"
         style="outline: none !important; -webkit-tap-highlight-color: transparent"
       >
-        <div class="grid w-full grid-cols-2 gap-2 md:grid-cols-3 md:gap-2">
-          <span
-            v-for="tag in profile.hashtags"
-            :key="tag"
-            class="text-fg-muted md:text-md truncate rounded-full bg-white px-2 py-1 text-center text-xs font-medium tracking-tighter"
-            >{{ tag }}</span
-          >
-        </div>
-
-        <div class="mt-3 w-full md:mt-0 md:pt-3">
-          <div class="grid w-full grid-cols-1 gap-2 md:gap-1">
-            <div v-for="field in petInfoFields" :key="field.label" class="text-left">
+        <!-- 寵物基本資訊：行動版置中，桌機版還原偏移位置 (優化 960px 空間) -->
+        <div class="flex w-full flex-col items-center md:items-start md:pl-6 lg:pl-12">
+          <div class="flex w-full max-w-[280px] flex-col gap-2 md:max-w-none md:gap-1">
+            <div v-for="field in petInfoFields" :key="field.label">
               <div
-                class="text-fg-muted mb-1 grid w-full grid-cols-[auto_1fr] items-center gap-3 text-sm font-semibold tracking-wide uppercase"
+                class="text-fg-muted mb-1 flex items-center gap-3 text-sm font-semibold tracking-wide uppercase md:gap-4"
               >
-                <div class="rounded-full bg-white px-3 py-1.5 text-center">
+                <div class="w-16 shrink-0 rounded-full bg-white py-1.5 text-center md:w-18 lg:w-20">
                   {{ field.label }}
                 </div>
                 <div class="text-fg-secondary flex min-h-8 items-center truncate text-left">
@@ -220,6 +212,18 @@ const handleFollowClick = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- 標籤雲：同樣保持置中重心 -->
+        <div class="mt-8 flex w-full justify-center md:mt-12">
+          <div class="grid w-full max-w-sm grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
+            <span
+              v-for="tag in profile.hashtags"
+              :key="tag"
+              class="text-fg-muted md:text-md truncate rounded-full bg-white px-2 py-1 text-center text-xs font-medium tracking-tighter"
+              >{{ tag }}</span
+            >
           </div>
         </div>
       </div>
