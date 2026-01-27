@@ -31,7 +31,6 @@ export const followService = {
       throw error
     }
 
-    console.log(`✅ 用戶 ${followerIdInt} 追蹤了 ${followingIdInt}`)
     return data
   },
 
@@ -41,19 +40,23 @@ export const followService = {
    * @param {number} followingIdInt - 被追蹤者的 user_id_int
    */
   async unfollowUser(followerIdInt, followingIdInt) {
-    const { error } = await supabase
-      .from('follows')
-      .delete()
-      .eq('follower_id_int', followerIdInt)
-      .eq('following_id_int', followingIdInt)
+    try {
+      const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id_int', followerIdInt)
+        .eq('following_id_int', followingIdInt)
 
-    if (error) {
-      console.error('❌ 取消追蹤失敗:', error)
-      throw error
+      if (error) {
+        console.error('❌ Unfollow failed:', error)
+        throw error
+      }
+
+      return true
+    } catch (err) {
+      console.error('❌ unfollowUser Exception:', err)
+      throw err
     }
-
-    console.log(`✅ 用戶 ${followerIdInt} 取消追蹤了 ${followingIdInt}`)
-    return true
   },
 
   /**
@@ -66,6 +69,7 @@ export const followService = {
     const { data, error } = await supabase
       .from('follows')
       .select('follower_id_int')
+      .select('id')
       .eq('follower_id_int', followerIdInt)
       .eq('following_id_int', followingIdInt)
       .maybeSingle()

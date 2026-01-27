@@ -22,10 +22,10 @@ export const useChatStore = defineStore('chat', () => {
   // UI 協調狀態
   const privateSubTab = ref('friend')
   const selectedFriendId = ref(null)
-  const isFriendListExpanded = ref(true)
   const replyingMsg = ref(null)
 
   const db = ref(INITIAL_DB)
+  const hiddenChatIds = ref(JSON.parse(localStorage.getItem('hiddenChatIds') || '[]'))
 
   // --- 核心邏輯：自動初始化 ---
   // 監聽用戶 ID，一旦準備好就載入聊天室列表
@@ -41,7 +41,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // --- 計算屬性 ---
   const unreadCounts = computed(() => {
-    const counts = { match: 0, matching: 0, knock: 0 }
+    const counts = { match: 0 }
 
     // 統計 match 列表中的未讀 (包含 friend 和 matching)
     db.value.match.forEach((chat) => {
@@ -51,20 +51,9 @@ export const useChatStore = defineStore('chat', () => {
         // 系統訊息對他人來說也算一種提醒 (由 server 觸發，故 sender_id 為 0 或 他人ID)
         return !m.read
       }).length
-      if (chat.status === 'friend') {
-        counts.match += unreadInChat
-      } else {
-        counts.matching += unreadInChat
-      }
-    })
 
-    // 統計 stranger 中的未讀 (敲敲門)
-    db.value.stranger.forEach((chat) => {
-      const unreadInChat = chat.msgs.filter((m) => {
-        if (m.sender === 'me') return false
-        return !m.read
-      }).length
-      counts.knock += unreadInChat
+      // 無論是 friend 還是 matching，都算在 match (聊天) 裡
+      counts.match += unreadInChat
     })
 
     return counts
@@ -73,6 +62,10 @@ export const useChatStore = defineStore('chat', () => {
   const currentChatList = computed(() => {
     if (currentCategory.value === 'friendList') {
       return db.value.match.filter((c) => c.status === 'friend')
+    }
+    // 在聊天列表 (match) 中，過濾掉標記為隱藏的聊天室 (含本地持久化)
+    if (currentCategory.value === 'match') {
+      return db.value.match.filter((c) => !hiddenChatIds.value.includes(String(c.id)))
     }
     return db.value[currentCategory.value] || []
   })
@@ -98,7 +91,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const chatMode = computed(() => {
     const chat = activeChat.value
-    if (!chat) return 'LOCKED'
+    if (!chat) return 'PET_MODE'
 
     // 社群和活動永遠是 REAL_MODE
     if (chat.type === 'community' || chat.type === 'event') {
@@ -110,21 +103,7 @@ export const useChatStore = defineStore('chat', () => {
       return 'REAL_MODE'
     }
 
-    // 敲敲門：接收者未接受
-    if (chat.type === 'knock' && chat.status === 'pending') {
-      return 'LOCKED'
-    }
-
-    // 敲敲門：試聊中或等待確認好友
-    if (chat.type === 'knock' && ['trial', 'friend_pending'].includes(chat.status)) {
-      return 'PET_MODE'
-    }
-
-    // 配對中
-    if (chat.status === 'matching') {
-      return 'PET_MODE'
-    }
-
+    // 配對中或其他
     return 'PET_MODE'
   })
 
@@ -138,14 +117,8 @@ export const useChatStore = defineStore('chat', () => {
     const chat = activeChat.value
     if (!chat || chatMode.value !== 'PET_MODE') return false
 
-    // 敲敲門模式：使用 knockMessageCount 或計算 myMessageCount
-    if (chat.type === 'knock') {
-      const count = chat.knockMessageCount || myMessageCount.value
-      return count >= 3
-    }
-
     // 配對模式
-    if (chat.type === 'match' && chat.status === 'matching') {
+    if (chat.status === 'matching') {
       return myMessageCount.value >= 10
     }
 
@@ -280,6 +253,10 @@ export const useChatStore = defineStore('chat', () => {
       // 確保訂閱 (背景監控)
       setupRoomSubscription(id)
 
+      // 如果是被隱藏的，重新顯示 (Reactive)
+      hiddenChatIds.value = hiddenChatIds.value.filter((hid) => String(hid) !== String(id))
+      localStorage.setItem('hiddenChatIds', JSON.stringify(hiddenChatIds.value))
+
       // 載入歷史訊息
       try {
         const history = await realtime.getMessages(id)
@@ -365,12 +342,7 @@ export const useChatStore = defineStore('chat', () => {
         isImage ? text : null,
         replyTo?.id || null
       )
-      .then(() => {
-        // 如果是敲敲門模式，更新訊息計數
-        if (chat.type === 'knock' && chat.knockStatus) {
-          incrementKnockCount(chat.id)
-        }
-      })
+      .then(() => {})
       .catch(() => {
         // 發送失敗時可以加入錯誤處理邏輯
         const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
@@ -382,133 +354,16 @@ export const useChatStore = defineStore('chat', () => {
     return { success: true }
   }
 
-  function acceptStranger(chatId) {
-    const chat = db.value.stranger.find((c) => c.id === chatId)
-    if (chat) {
-      chat.status = 'trial'
-      currentCategory.value = 'match'
-      activeChatId.value = chatId
-    }
-  }
-
-  function rejectStranger(chatId) {
-    db.value.stranger = db.value.stranger.filter((c) => c.id !== chatId)
-    if (activeChatId.value === chatId) activeChatId.value = null
-  }
-
   async function becomeFriend(chatId) {
     if (processingFriendships.has(chatId)) return { success: false, error: '正在處理中...' }
     processingFriendships.add(chatId)
 
     try {
-      const result = await confirmFriendApi(chatId)
-      if (result.success) {
-        return { success: true, isFriend: result.isFriend }
-      }
-      return { success: false, error: result.error }
-    } catch {
-      return { success: false, error: '確認好友失敗' }
+      // 這裡原本需要 confirmFriendApi，但現在點擊聊天即變好友
+      // 為了相容性暫時保留結構，或將其簡化為直接回傳成功（如果相關 UI 還未移除）
+      return { success: true, isFriend: true }
     } finally {
       processingFriendships.delete(chatId)
-    }
-  }
-
-  // ========================================
-  // 敲敲門功能（API 版本）
-  // ========================================
-
-  /**
-   * 接受敲敲門（呼叫後端 API）
-   */
-  async function acceptKnockApi(chatId) {
-    try {
-      await chatApi.acceptKnock(chatId)
-
-      const chat = db.value.stranger.find((c) => c.id === chatId)
-      if (chat) {
-        chat.status = 'trial'
-        chat.knockStatus = 'receiver_trial'
-      }
-
-      return { success: true }
-    } catch (error) {
-      console.error('❌ 接受敲敲門失敗:', error)
-      return { success: false, error: error.response?.data?.message || '接受敲敲門失敗' }
-    }
-  }
-
-  /**
-   * 拒絕敲敲門（呼叫後端 API）
-   */
-  async function rejectKnockApi(chatId) {
-    try {
-      await chatApi.rejectKnock(chatId)
-
-      db.value.stranger = db.value.stranger.filter((c) => c.id !== chatId)
-      if (activeChatId.value === chatId) activeChatId.value = null
-
-      return { success: true }
-    } catch (error) {
-      console.error('❌ 拒絕敲敲門失敗:', error)
-      return { success: false, error: error.response?.data?.message || '拒絕敲敲門失敗' }
-    }
-  }
-
-  /**
-   * 確認成為好友（呼叫後端 API）
-   */
-  async function confirmFriendApi(chatId) {
-    try {
-      const response = await chatApi.confirmFriend(chatId)
-      const { isFriend } = response.data
-
-      const chat = db.value.stranger.find((c) => c.id === chatId)
-
-      if (isFriend && chat) {
-        // 雙方都確認，移至好友列表
-        chat.status = 'friend'
-        chat.type = 'private'
-        chat.knockStatus = null
-        chat.notice = '恭喜你們成為好友！現在可以無限制聊天囉！'
-
-        db.value.match.unshift(chat)
-        db.value.stranger = db.value.stranger.filter((c) => c.id !== chatId)
-        currentCategory.value = 'match'
-      } else if (chat) {
-        // 等待對方確認
-        chat.status = 'friend_pending'
-        chat.knockStatus = 'friend_confirmed'
-        chat.notice = '已送出好友邀請，等待對方確認'
-      }
-
-      return { success: true, isFriend }
-    } catch (error) {
-      console.error('❌ 確認好友失敗:', error)
-      return { success: false, error: error.response?.data?.message || '確認好友失敗' }
-    }
-  }
-
-  /**
-   * 更新敲敲門訊息計數（發送訊息後呼叫）
-   */
-  async function incrementKnockCount(chatId) {
-    try {
-      const response = await chatApi.incrementKnockCount(chatId)
-      const { newCount, newStatus } = response.data.data
-
-      const chat = db.value.stranger.find((c) => c.id === chatId)
-      if (chat) {
-        chat.knockMessageCount = newCount
-        if (newStatus === 'friend_pending') {
-          chat.status = 'friend_pending'
-          chat.knockStatus = newStatus
-        }
-      }
-
-      return { success: true, newCount, newStatus }
-    } catch (error) {
-      console.error('❌ 更新訊息計數失敗:', error)
-      return { success: false }
     }
   }
 
@@ -518,19 +373,78 @@ export const useChatStore = defineStore('chat', () => {
     // 從對應分類中徹底移除
     for (const cat in db.value) {
       if (Array.isArray(db.value[cat])) {
-        db.value[cat] = db.value[cat].filter((c) => c.id !== chatId)
+        // 如果是 match 列表（私訊），且該對象是好友，則只隱藏不刪除
+        if (cat === 'match') {
+          const chatIndex = db.value[cat].findIndex((c) => String(c.id) === String(chatId))
+          if (chatIndex !== -1) {
+            const chat = db.value[cat][chatIndex]
+            if (chat.status === 'friend') {
+              // 好友對話：本地隱藏 + 清空訊息
+              chat.msgs = []
+              chat.lastMessage = null
+              const stringId = String(chatId)
+              if (!hiddenChatIds.value.includes(stringId)) {
+                hiddenChatIds.value.push(stringId)
+                localStorage.setItem('hiddenChatIds', JSON.stringify(hiddenChatIds.value))
+              }
+            } else {
+              // 非好友：徹底移除
+              db.value[cat] = db.value[cat].filter((c) => String(c.id) !== String(chatId))
+            }
+          }
+        } else {
+          db.value[cat] = db.value[cat].filter((c) => String(c.id) !== String(chatId))
+        }
       }
     }
 
-    // 如果正在開著這個聊天室，關閉它
-    if (activeChatId.value === chatId) {
+    // 如果正在開著這個聊天室，關閉它並清除網址
+    if (String(activeChatId.value) === String(chatId)) {
       activeChatId.value = null
+      import('@/router').then((module) => {
+        module.default.push({ name: 'chat' })
+      })
     }
   }
 
-  function removeFriend(friendId) {
-    db.value.match = db.value.match.filter((c) => c.id !== friendId)
-    if (activeChatId.value === friendId) activeChatId.value = null
+  async function removeFriend(friendId) {
+    try {
+      // friendId 在這裡可能是字串格式的 ID (例如 'm1') 或是數字型的 user_id_int
+      // 我們需要找到對應的聊天室以取得數字 ID，如果傳入的已經是數字則直接使用
+      let targetUserIdInt = parseInt(friendId)
+      if (isNaN(targetUserIdInt)) {
+        const chat = db.value.match.find((c) => c.id === friendId)
+        targetUserIdInt = chat?.targetUserIdInt
+      }
+
+      if (!targetUserIdInt) {
+        console.error('❌ 找不到目標好友的數字 ID')
+        return { success: false, error: '找不到好友資訊' }
+      }
+
+      await chatApi.removeFriend(targetUserIdInt)
+
+      // 從對應分類中徹底移除（雙方私訊房間 ID 通常包含兩人的 ID）
+      db.value.match = db.value.match.filter(
+        (c) => c.id !== friendId && c.targetUserIdInt !== targetUserIdInt
+      )
+
+      if (
+        activeChatId.value === friendId ||
+        (activeChatId.value && activeChatId.value.includes(targetUserIdInt))
+      ) {
+        activeChatId.value = null
+      }
+      if (selectedFriendId.value === friendId || selectedFriendId.value === targetUserIdInt) {
+        selectedFriendId.value = null
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('❌ 解除好友失敗 (Store Action):', error)
+      console.error('詳細錯誤資訊:', error.response?.data)
+      return { success: false, error: error.response?.data?.message || '解除好友失敗' }
+    }
   }
 
   function clearNotice(chatId) {
@@ -594,7 +508,7 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function createAiChat(title = '新對話') {
+  function createAiChat() {
     const newChatId = 'ai_' + Date.now()
     // 這裡我們暫時用 mock 資料模擬，實務上會呼叫 aiStore
     currentCategory.value = 'ai'
@@ -748,7 +662,8 @@ export const useChatStore = defineStore('chat', () => {
       pinned: false,
       lastMessage: room.lastMessage,
       unreadCount: room.id === activeChatId.value ? 0 : room.unreadCount || 0,
-      participants: room.participants
+      participants: room.participants,
+      isHiddenFromChat: false
     }
   }
 
@@ -759,36 +674,26 @@ export const useChatStore = defineStore('chat', () => {
   async function startPrivateChat(targetUserId) {
     try {
       const response = await chatApi.startPrivateChat(targetUserId)
-      const { data: room, isNew, isKnock } = response.data
+      const { data: room, isNew } = response.data
 
       // 格式化房間資料
       const formattedRoom = formatRoomToChat(room)
 
-      // 根據是否為敲敲門決定放入哪個列表
-      if (isKnock || formattedRoom.type === 'knock') {
-        // 敲敲門：放入 stranger 列表
-        const existsInStranger = db.value.stranger.find((c) => c.id === room.id)
-        if (!existsInStranger) {
-          db.value.stranger.unshift(formattedRoom)
-        }
-        currentCategory.value = 'knock'
+      // 永遠放入 match 列表（好友分頁會從這裡 filter）
+      if (isNew) {
+        db.value.match.unshift(formattedRoom)
       } else {
-        // 好友：放入 match 列表
-        if (isNew) {
+        const exists = db.value.match.find((c) => c.id === room.id)
+        if (!exists) {
           db.value.match.unshift(formattedRoom)
-        } else {
-          const exists = db.value.match.find((c) => c.id === room.id)
-          if (!exists) {
-            db.value.match.unshift(formattedRoom)
-          }
         }
-        currentCategory.value = 'match'
       }
+      currentCategory.value = 'match'
 
       // 開啟聊天室
       await openChat(room.id)
 
-      return { success: true, room: formattedRoom, isNew, isKnock }
+      return { success: true, room: formattedRoom, isNew }
     } catch (error) {
       console.error('❌ 開始私訊失敗:', error)
       return { success: false, error: error.response?.data?.message || '開始私訊失敗' }
@@ -859,7 +764,6 @@ export const useChatStore = defineStore('chat', () => {
     currentUserIdInt,
     privateSubTab,
     selectedFriendId,
-    isFriendListExpanded,
     replyingMsg,
     db,
     currentChatList,
@@ -874,8 +778,6 @@ export const useChatStore = defineStore('chat', () => {
     sendMessage,
     createAiChat,
     startAiFeature,
-    acceptStranger,
-    rejectStranger,
     becomeFriend,
     deleteChat,
     blockChat,
@@ -889,11 +791,6 @@ export const useChatStore = defineStore('chat', () => {
     startPrivateChat,
     createGroup,
     addGroupMembers,
-    removeGroupMember,
-    // 敲敲門 API
-    acceptKnockApi,
-    rejectKnockApi,
-    confirmFriendApi,
-    incrementKnockCount
+    removeGroupMember
   }
 })

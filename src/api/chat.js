@@ -120,5 +120,13 @@ export const chatApi = {
    */
   markAsRead(roomId) {
     return api.post(`/api/chat/rooms/${roomId}/read`)
+  },
+
+  /**
+   * 解除好友關係
+   * @param {number} friendId - 好友的 user_id_int
+   */
+  removeFriend(friendId) {
+    return api.delete(`/api/chat/friend/${friendId}`)
   }
 }

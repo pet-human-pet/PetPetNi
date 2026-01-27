@@ -1,11 +1,7 @@
 import IconMatch from '@/components/icons/IconMatch.vue'
 
 //聊天室導航欄相關常數定義
-export const NAV_ITEMS = [
-  { key: 'match', icon: 'fa-comments', label: '聊天' },
-  { key: 'matching', icon: 'fa-heart', label: '配對' },
-  { key: 'knock', icon: 'fa-door-open', label: '敲敲門' }
-]
+export const NAV_ITEMS = [{ key: 'match', icon: 'fa-comments', label: '聊天' }]
 
 export const PAGE_NAV_ITEMS = [
   { name: '首頁', icon: 'fa-house', route: 'home' },

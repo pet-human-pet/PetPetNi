@@ -356,5 +356,38 @@ export const chatController = {
       console.error('❌ Error marking as read:', error)
       res.status(500).json({ success: false, message: '標記已讀失敗' })
     }
+  },
+
+  /**
+   * 解除好友關係
+   * DELETE /api/chat/friend/:friendId
+   */
+  async removeFriend(req, res) {
+    try {
+      const user = await getUserFromToken(req)
+      if (!user) {
+        return res.status(401).json({ success: false, message: '未授權：請先登入' })
+      }
+
+      const { friendId } = req.params
+      if (!friendId) {
+        return res.status(400).json({ success: false, message: '請提供好友 ID' })
+      }
+
+      const targetId = parseInt(friendId)
+      console.log(`👤 User ${user.userIdInt} attempting to remove friend ${targetId}`)
+
+      await chatService.removeFriendship(user.userIdInt, targetId)
+
+      res.status(200).json({ success: true, message: '已解除好友關係' })
+    } catch (error) {
+      console.error('❌ Error removing friend! Full error object:', error)
+      res.status(500).json({
+        success: false,
+        message: '解除好友失敗',
+        error: error.message,
+        code: error.code || error.status || 500
+      })
+    }
   }
 }

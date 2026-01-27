@@ -1,4 +1,5 @@
 import { supabase } from './supabase.js'
+import { followService } from './followService.js'
 
 // Knock 狀態常數
 const KNOCK_STATUS = {
@@ -339,13 +340,10 @@ export const chatService = {
     const existingRoomId = await chatService.findExistingPrivateRoom(userIdInt, targetUserIdInt)
     if (existingRoomId) {
       const room = await chatService.getRoomByIdWithKnockStatus(existingRoomId, userIdInt)
-      return { room, isNew: false, isKnock: !!room.myKnockStatus }
+      return { room, isNew: false, isKnock: false } // 永遠不是敲敲門
     }
 
-    // 2. 檢查是否互相追蹤（好友）
-    const isFriend = await chatService.checkMutualFollow(userIdInt, targetUserIdInt)
-
-    // 3. 建立新房間
+    // 2. 建立新房間
     const { data: newRoom, error: roomError } = await supabase
       .from('chat_rooms')
       .insert({ type: 'private' })
@@ -357,29 +355,11 @@ export const chatService = {
       throw roomError
     }
 
-    // 4. 根據好友狀態設定 knock_status
-    const now = new Date().toISOString()
-    const participantsData = isFriend
-      ? [
-          { room_id: newRoom.id, user_id_int: userIdInt, role: 'member', knock_status: null },
-          { room_id: newRoom.id, user_id_int: targetUserIdInt, role: 'member', knock_status: null }
-        ]
-      : [
-          {
-            room_id: newRoom.id,
-            user_id_int: userIdInt,
-            role: 'member',
-            knock_status: KNOCK_STATUS.INITIATOR_TRIAL,
-            knock_initiated_at: now
-          },
-          {
-            room_id: newRoom.id,
-            user_id_int: targetUserIdInt,
-            role: 'member',
-            knock_status: KNOCK_STATUS.RECEIVER_PENDING,
-            knock_initiated_at: now
-          }
-        ]
+    // 3. 建立參與者（直接設為好友狀態，knock_status 為 null）
+    const participantsData = [
+      { room_id: newRoom.id, user_id_int: userIdInt, role: 'member', knock_status: null },
+      { room_id: newRoom.id, user_id_int: targetUserIdInt, role: 'member', knock_status: null }
+    ]
 
     const { error: participantError } = await supabase
       .from('chat_room_participants')
@@ -391,8 +371,11 @@ export const chatService = {
       throw participantError
     }
 
+    // 4. 自動建立互相追蹤關係（變好友）
+    await chatService.createMutualFollow(userIdInt, targetUserIdInt)
+
     const room = await chatService.getRoomByIdWithKnockStatus(newRoom.id, userIdInt)
-    return { room, isNew: true, isKnock: !isFriend }
+    return { room, isNew: true, isKnock: false }
   },
 
   // ========================================
@@ -734,6 +717,21 @@ export const chatService = {
     if (error) {
       console.error('❌ Error marking as read:', error)
     }
+    return { success: true }
+  },
+
+  /**
+   * 解除好友關係（互相取消追蹤）
+   */
+  removeFriendship: async (userIdInt, targetUserIdInt) => {
+    console.log(`🔍 Removing mutual friendship: user ${userIdInt} <-> user ${targetUserIdInt}`)
+
+    // A -> B
+    await followService.unfollowUser(userIdInt, targetUserIdInt)
+
+    // B -> A
+    await followService.unfollowUser(targetUserIdInt, userIdInt)
+
     return { success: true }
   }
 }

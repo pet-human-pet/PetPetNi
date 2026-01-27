@@ -82,11 +82,6 @@ const saveStatus = () => {
           :class="{ 'cursor-pointer hover:bg-black/5': isSelf }"
           @click="startEdit"
         >
-          <p
-            class="text-fg-secondary line-clamp-2 text-center text-sm leading-relaxed italic opacity-80"
-          >
-            "{{ friend.statusMsg || '這隻小夥伴還在發呆中...' }}"
-          </p>
           <div v-if="isSelf" class="c-icon-edit ml-1 h-3 w-3 shrink-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -113,7 +108,7 @@ const saveStatus = () => {
         />
       </div>
 
-      <div v-if="!isSelf" class="mt-8 flex w-full max-w-sm flex-col items-center">
+      <div v-if="!isSelf" class="mt-[-30px] flex w-full max-w-sm flex-col items-center">
         <div v-if="friend.isBlocked" class="mb-8 flex flex-col items-center gap-4">
           <div class="text-sm font-bold text-red-500 opacity-80">此用戶已被封鎖</div>
           <button
@@ -163,7 +158,7 @@ const saveStatus = () => {
         </div>
 
         <button
-          class="text-fg-secondary/30 hover:text-func-danger mt-16 flex items-center gap-2 rounded-full bg-transparent px-6 py-2 text-sm font-bold transition-all hover:bg-red-50"
+          class="text-fg-secondary/30 hover:text-func-danger mt-4 flex items-center gap-2 rounded-full bg-transparent px-6 py-2 text-sm font-bold transition-all hover:bg-red-50"
           @click="emit('delete', friend.id)"
         >
           <i class="fa-solid fa-heart-crack opacity-50"></i> 刪除好友

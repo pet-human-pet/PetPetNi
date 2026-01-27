@@ -77,11 +77,6 @@ const displayText = computed(() => {
             >配對</span
           >
           <span
-            v-if="chat.type === 'knock' && chat.status !== 'friend'"
-            class="c-chat-label bg-status-knock/10 text-status-knock"
-            >敲敲門</span
-          >
-          <span
             v-if="chat.status === 'friend'"
             class="c-chat-label bg-status-success/10 text-status-success"
             >好友</span

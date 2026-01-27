@@ -58,4 +58,7 @@ router.post('/knock/:roomId/increment-count', chatController.incrementKnockCount
 // 標記已讀
 router.post('/rooms/:roomId/read', chatController.markAsRead)
 
+// 解除好友關係
+router.delete('/friend/:friendId', chatController.removeFriend)
+
 export default router
