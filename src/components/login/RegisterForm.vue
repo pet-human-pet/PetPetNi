@@ -140,18 +140,18 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:p-12">
-    <h2 class="mb-8 text-center text-3xl font-bold" style="color: #ffa75f">
+  <div class="w-full max-w-md rounded-3xl border-none bg-white p-8 shadow-xl md:px-12">
+    <h2 class="mb-6 text-center text-3xl font-bold" style="color: #ffa75f">
       <!-- TODO: Replace with CSS variable var(--app-primary) -->
       建立帳號
     </h2>
 
     <!-- 第三方登入按鈕 -->
-    <div class="mb-8 grid grid-cols-2 gap-4">
+    <div class="mb-2 grid grid-cols-2 gap-4">
       <!-- GitHub 登入 -->
       <button
         type="button"
-        class="flex items-center justify-center rounded-xl border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+        class="flex cursor-pointer items-center justify-center rounded-xl border-2 border-gray-300 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
         @click="loginWithGithub"
       >
         <svg class="h-5 w-5" viewBox="0 0 98 96">
@@ -164,7 +164,7 @@ const handleRegister = async () => {
       <!-- Google 登入 -->
       <button
         type="button"
-        class="flex items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
+        class="flex cursor-pointer items-center justify-center rounded-xl border-2 border-gray-300 px-4 py-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:outline-none"
         @click="signInWithGoogle"
       >
         <svg class="h-5 w-5" viewBox="0 0 24 24">
@@ -188,7 +188,7 @@ const handleRegister = async () => {
       </button>
     </div>
 
-    <div class="relative my-8">
+    <div class="relative my-6">
       <div class="absolute inset-0 flex items-center">
         <div class="w-full border-t border-gray-200"></div>
       </div>
@@ -221,7 +221,7 @@ const handleRegister = async () => {
           <template #suffix>
             <button
               type="button"
-              class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              class="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
               @click="togglePassword"
             >
               <svg
@@ -314,7 +314,7 @@ const handleRegister = async () => {
 
       <button
         type="submit"
-        class="w-full rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
+        class="w-full cursor-pointer rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-95"
         style="background-color: #ffa75f"
       >
         <!-- TODO: Replace with CSS variable var(--app-primary) -->
@@ -325,7 +325,7 @@ const handleRegister = async () => {
     <p class="mt-8 text-center text-sm text-gray-500">
       已經有帳號？
       <button
-        class="font-medium hover:underline"
+        class="cursor-pointer font-medium hover:underline"
         style="color: #ffa75f"
         type="button"
         @click="$emit('switch')"
