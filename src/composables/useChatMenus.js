@@ -51,7 +51,7 @@ export function useChatMenus(options = {}) {
       })
 
       if (isConfirmed) {
-        store.deleteChat(chatId)
+        await store.deleteChat(chatId)
         success('已退出社群')
       }
     }
@@ -78,7 +78,8 @@ export function useChatMenus(options = {}) {
             success('已解除好友關係')
           }
         } else {
-          store.deleteChat(chatId)
+          await store.deleteChat(chatId)
+          success('已刪除對話')
         }
       }
     }
@@ -94,7 +95,8 @@ export function useChatMenus(options = {}) {
     })
 
     if (isConfirmed) {
-      store.deleteChat(chat.id)
+      await store.deleteChat(chat.id)
+      success('已刪除對話')
     }
   }
 

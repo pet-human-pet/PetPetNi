@@ -94,7 +94,7 @@ export const useChatStore = defineStore('chat', () => {
     if (!chat) return 'PET_MODE'
 
     // 社群和活動永遠是 REAL_MODE
-    if (chat.type === 'community' || chat.type === 'event') {
+    if (chat.type === 'event') {
       return 'REAL_MODE'
     }
 
@@ -367,43 +367,29 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function deleteChat(chatId) {
+  async function deleteChat(chatId) {
     if (!chatId) return
 
-    // 從對應分類中徹底移除
-    for (const cat in db.value) {
-      if (Array.isArray(db.value[cat])) {
-        // 如果是 match 列表（私訊），且該對象是好友，則只隱藏不刪除
-        if (cat === 'match') {
-          const chatIndex = db.value[cat].findIndex((c) => String(c.id) === String(chatId))
-          if (chatIndex !== -1) {
-            const chat = db.value[cat][chatIndex]
-            if (chat.status === 'friend') {
-              // 好友對話：本地隱藏 + 清空訊息
-              chat.msgs = []
-              chat.lastMessage = null
-              const stringId = String(chatId)
-              if (!hiddenChatIds.value.includes(stringId)) {
-                hiddenChatIds.value.push(stringId)
-                localStorage.setItem('hiddenChatIds', JSON.stringify(hiddenChatIds.value))
-              }
-            } else {
-              // 非好友：徹底移除
-              db.value[cat] = db.value[cat].filter((c) => String(c.id) !== String(chatId))
-            }
-          }
-        } else {
-          db.value[cat] = db.value[cat].filter((c) => String(c.id) !== String(chatId))
-        }
-      }
-    }
+    try {
+      // 呼叫後端 API 隱藏聊天室
+      await chatApi.hideRoom(chatId)
 
-    // 如果正在開著這個聊天室，關閉它並清除網址
-    if (String(activeChatId.value) === String(chatId)) {
-      activeChatId.value = null
-      import('@/router').then((module) => {
-        module.default.push({ name: 'chat' })
-      })
+      // 使用 hiddenChatIds 過濾（不從 match 陣列移除，以保留好友列表）
+      const stringId = String(chatId)
+      if (!hiddenChatIds.value.includes(stringId)) {
+        hiddenChatIds.value.push(stringId)
+        localStorage.setItem('hiddenChatIds', JSON.stringify(hiddenChatIds.value))
+      }
+
+      // 如果正在開著這個聊天室，關閉它並清除網址
+      if (String(activeChatId.value) === String(chatId)) {
+        activeChatId.value = null
+        import('@/router').then((module) => {
+          module.default.push({ name: 'chat' })
+        })
+      }
+    } catch {
+      // Error handled silently
     }
   }
 
@@ -522,7 +508,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // ========================================
-  // 私訊與群聊功能
+  // 私訊功能
   // ========================================
 
   /**
@@ -538,11 +524,8 @@ export const useChatStore = defineStore('chat', () => {
       const response = await chatApi.getRooms()
       const rooms = response.data.data || []
 
-      // 依照房間類型和 knock 狀態分類
+      // 依照房間類型分類
       const friendRooms = [] // 好友私訊
-      const knockRooms = [] // 敲敲門（陌生人）
-      const groupRooms = []
-      const eventRooms = []
 
       rooms.forEach((room) => {
         const formattedRoom = formatRoomToChat(room)
@@ -563,38 +546,15 @@ export const useChatStore = defineStore('chat', () => {
           formattedRoom.msgs = existing.msgs
         }
 
-        if (room.type === 'private') {
-          // 根據 knock 狀態分類
-          if (formattedRoom.type === 'knock') {
-            knockRooms.push(formattedRoom)
-          } else {
-            friendRooms.push(formattedRoom)
-          }
-        } else if (room.type === 'group') {
-          groupRooms.push(formattedRoom)
-        } else if (room.type === 'event') {
-          eventRooms.push(formattedRoom)
+        // 只處理 private 且非 knock 的房間 (即好友私訊)
+        if (room.type === 'private' && formattedRoom.type !== 'knock') {
+          friendRooms.push(formattedRoom)
         }
       })
 
       // 更新 db（保留 mock 資料作為 fallback）
       if (friendRooms.length > 0) {
         db.value.match = [...friendRooms, ...db.value.match.filter((c) => c.id.startsWith('m'))]
-      }
-      if (knockRooms.length > 0) {
-        db.value.stranger = [
-          ...knockRooms,
-          ...db.value.stranger.filter((c) => c.id.startsWith('s'))
-        ]
-      }
-      if (groupRooms.length > 0) {
-        db.value.community = [
-          ...groupRooms,
-          ...db.value.community.filter((c) => c.id.startsWith('c'))
-        ]
-      }
-      if (eventRooms.length > 0) {
-        db.value.event = [...eventRooms, ...db.value.event.filter((c) => c.id.startsWith('e'))]
       }
 
       console.log('✅ 聊天室列表已載入:', rooms.length, '個房間')
@@ -700,64 +660,6 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  /**
-   * 建立群組聊天室
-   * @param {string} name - 群組名稱
-   * @param {number[]} memberIds - 成員 ID 陣列
-   * @param {string} avatar - 群組頭像 URL（可選）
-   */
-  async function createGroup(name, memberIds, avatar = null) {
-    try {
-      const response = await chatApi.createGroup({ name, memberIds, avatar })
-      const room = response.data.data
-
-      // 格式化並加入列表
-      const formattedRoom = formatRoomToChat(room)
-      db.value.community.unshift(formattedRoom)
-
-      // 開啟聊天室
-      currentCategory.value = 'community'
-      await openChat(room.id)
-
-      return { success: true, room: formattedRoom }
-    } catch (error) {
-      console.error('❌ 建立群組失敗:', error)
-      return { success: false, error: error.response?.data?.message || '建立群組失敗' }
-    }
-  }
-
-  /**
-   * 加入群組成員
-   * @param {string} roomId - 房間 ID
-   * @param {number[]} memberIds - 要加入的成員 ID 陣列
-   */
-  async function addGroupMembers(roomId, memberIds) {
-    try {
-      const response = await chatApi.addMembers(roomId, memberIds)
-      console.log('✅ 成員已加入:', response.data.data)
-      return { success: true, ...response.data.data }
-    } catch (error) {
-      console.error('❌ 加入成員失敗:', error)
-      return { success: false, error: error.response?.data?.message || '加入成員失敗' }
-    }
-  }
-
-  /**
-   * 移除群組成員
-   * @param {string} roomId - 房間 ID
-   * @param {number} userId - 要移除的成員 ID
-   */
-  async function removeGroupMember(roomId, userId) {
-    try {
-      await chatApi.removeMember(roomId, userId)
-      console.log('✅ 成員已移除')
-      return { success: true }
-    } catch (error) {
-      console.error('❌ 移除成員失敗:', error)
-      return { success: false, error: error.response?.data?.message || '移除成員失敗' }
-    }
-  }
-
   return {
     currentCategory,
     activeChatId,
@@ -788,9 +690,6 @@ export const useChatStore = defineStore('chat', () => {
     isConnected,
     // 私訊與群聊
     loadUserRooms,
-    startPrivateChat,
-    createGroup,
-    addGroupMembers,
-    removeGroupMember
+    startPrivateChat
   }
 })

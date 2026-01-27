@@ -1,15 +1,6 @@
 import { supabase } from './supabase.js'
 import { followService } from './followService.js'
 
-// Knock 狀態常數
-const KNOCK_STATUS = {
-  INITIATOR_TRIAL: 'initiator_trial', // 發起者 - 試聊中
-  RECEIVER_PENDING: 'receiver_pending', // 接收者 - 待接受
-  RECEIVER_TRIAL: 'receiver_trial', // 接收者 - 已接受，試聊中
-  FRIEND_PENDING: 'friend_pending', // 達到3句，等待確認好友
-  FRIEND_CONFIRMED: 'friend_confirmed' // 已確認，等待對方
-}
-
 // Helper: 將 Supabase 格式轉換為前端所需格式
 const formatMessageForFrontend = (msg) => ({
   id: msg.id,
@@ -40,7 +31,7 @@ const formatRoomForFrontend = (room, participants = []) => ({
 
 export const chatService = {
   // ========================================
-  // 敲敲門相關功能
+  // 好友相關功能
   // ========================================
 
   /**
@@ -103,141 +94,11 @@ export const chatService = {
     }
   },
 
-  /**
-   * 接受敲敲門
-   */
-  acceptKnock: async (roomId, userIdInt) => {
-    const { data: participant, error } = await supabase
-      .from('chat_room_participants')
-      .select('knock_status')
-      .eq('room_id', roomId)
-      .eq('user_id_int', userIdInt)
-      .single()
-
-    if (error || participant?.knock_status !== KNOCK_STATUS.RECEIVER_PENDING) {
-      throw new Error('無效的操作')
-    }
-
-    await supabase
-      .from('chat_room_participants')
-      .update({ knock_status: KNOCK_STATUS.RECEIVER_TRIAL })
-      .eq('room_id', roomId)
-      .eq('user_id_int', userIdInt)
-
-    return { success: true }
-  },
-
-  /**
-   * 拒絕敲敲門
-   */
-  rejectKnock: async (roomId, userIdInt) => {
-    await supabase
-      .from('chat_room_participants')
-      .update({ is_blocked: true, knock_status: 'rejected' })
-      .eq('room_id', roomId)
-      .eq('user_id_int', userIdInt)
-
-    return { success: true }
-  },
-
-  /**
-   * 確認成為好友
-   */
-  confirmFriend: async (roomId, userIdInt) => {
-    // 1. 更新自己的狀態為已確認
-    await supabase
-      .from('chat_room_participants')
-      .update({ knock_status: KNOCK_STATUS.FRIEND_CONFIRMED })
-      .eq('room_id', roomId)
-      .eq('user_id_int', userIdInt)
-
-    // 2. 插入一則系統訊息，觸發對方的 Realtime 更新與未讀通知
-    await supabase.from('chat_messages').insert({
-      room_id: roomId,
-      content: 'FRIEND_CONFIRMED_BY_OTHER',
-      message_type: 'system',
-      sender_id_int: userIdInt,
-      read: false
-    })
-
-    // 3. 檢查所有參與者的狀態
-    const { data: participants } = await supabase
-      .from('chat_room_participants')
-      .select('user_id_int, knock_status')
-      .eq('room_id', roomId)
-
-    const allConfirmed = participants.every(
-      (p) => p.knock_status === KNOCK_STATUS.FRIEND_CONFIRMED || p.knock_status === null
-    )
-
-    if (allConfirmed) {
-      // 4. 雙方都確認，清除 knock 狀態，正式成為好友
-      await supabase
-        .from('chat_room_participants')
-        .update({ knock_status: null, knock_message_count: 0 })
-        .eq('room_id', roomId)
-
-      // 5. 插入「正式成為好友」的系統訊息
-      await supabase.from('chat_messages').insert({
-        room_id: roomId,
-        content: 'FRIENDSHIP_ESTABLISHED',
-        message_type: 'system',
-        sender_id_int: 0, // 0 表示系統發送
-        read: false
-      })
-
-      // 6. 建立互相追蹤關係
-      const otherUser = participants.find((p) => p.user_id_int !== userIdInt)
-      if (otherUser) {
-        await chatService.createMutualFollow(userIdInt, otherUser.user_id_int)
-      }
-    }
-
-    return { success: true, isFriend: allConfirmed }
-  },
-
-  /**
-   * 更新敲敲門訊息計數（發送訊息後呼叫）
-   */
-  incrementKnockMessageCount: async (roomId, userIdInt) => {
-    const { data: participant } = await supabase
-      .from('chat_room_participants')
-      .select('knock_status, knock_message_count')
-      .eq('room_id', roomId)
-      .eq('user_id_int', userIdInt)
-      .single()
-
-    const knockStatus = participant?.knock_status
-    if (
-      knockStatus === KNOCK_STATUS.INITIATOR_TRIAL ||
-      knockStatus === KNOCK_STATUS.RECEIVER_TRIAL
-    ) {
-      const newCount = (participant.knock_message_count || 0) + 1
-
-      // 如果達到 3 句，更新狀態為等待確認好友
-      const newStatus = newCount >= 3 ? KNOCK_STATUS.FRIEND_PENDING : knockStatus
-
-      await supabase
-        .from('chat_room_participants')
-        .update({
-          knock_message_count: newCount,
-          knock_status: newStatus
-        })
-        .eq('room_id', roomId)
-        .eq('user_id_int', userIdInt)
-
-      return { newCount, newStatus }
-    }
-
-    return { newCount: participant?.knock_message_count || 0, newStatus: knockStatus }
-  },
-
   // ========================================
   // 原有功能
   // ========================================
 
   // 取得用戶參與的所有聊天室 ID
-  // userId 為數字型的自增 ID
   getUserRooms: async (userId) => {
     const { data, error } = await supabase
       .from('chat_room_participants')
@@ -278,7 +139,7 @@ export const chatService = {
       room_id: roomId,
       content: message.content,
       message_type: message.messageType || 'text',
-      sender_id_int: message.senderId, // 直接使用數字 ID
+      sender_id_int: message.senderId,
       read: false,
       image_url: message.imageUrl || null,
       parent_id: message.replyTo || null
@@ -339,8 +200,14 @@ export const chatService = {
     // 1. 先檢查是否已有房間
     const existingRoomId = await chatService.findExistingPrivateRoom(userIdInt, targetUserIdInt)
     if (existingRoomId) {
-      const room = await chatService.getRoomByIdWithKnockStatus(existingRoomId, userIdInt)
-      return { room, isNew: false, isKnock: false } // 永遠不是敲敲門
+      // 如果房間之前被隱藏，取消隱藏
+      try {
+        await chatService.unhideRoom(existingRoomId, userIdInt)
+      } catch {
+        // 忽略錯誤
+      }
+      const room = await chatService.getRoomById(existingRoomId)
+      return { room, isNew: false }
     }
 
     // 2. 建立新房間
@@ -355,10 +222,10 @@ export const chatService = {
       throw roomError
     }
 
-    // 3. 建立參與者（直接設為好友狀態，knock_status 為 null）
+    // 3. 建立參與者
     const participantsData = [
-      { room_id: newRoom.id, user_id_int: userIdInt, role: 'member', knock_status: null },
-      { room_id: newRoom.id, user_id_int: targetUserIdInt, role: 'member', knock_status: null }
+      { room_id: newRoom.id, user_id_int: userIdInt, role: 'member' },
+      { room_id: newRoom.id, user_id_int: targetUserIdInt, role: 'member' }
     ]
 
     const { error: participantError } = await supabase
@@ -374,8 +241,8 @@ export const chatService = {
     // 4. 自動建立互相追蹤關係（變好友）
     await chatService.createMutualFollow(userIdInt, targetUserIdInt)
 
-    const room = await chatService.getRoomByIdWithKnockStatus(newRoom.id, userIdInt)
-    return { room, isNew: true, isKnock: false }
+    const room = await chatService.getRoomById(newRoom.id)
+    return { room, isNew: true }
   },
 
   // ========================================
@@ -539,7 +406,6 @@ export const chatService = {
         `
         user_id_int,
         role,
-        knock_status,
         profiles ( nick_name, avatar_url )
       `
       )
@@ -553,32 +419,10 @@ export const chatService = {
   },
 
   /**
-   * 取得房間詳細資料（含當前用戶的 knock 狀態）
-   */
-  getRoomByIdWithKnockStatus: async (roomId, userIdInt) => {
-    const room = await chatService.getRoomById(roomId)
-    if (!room) return null
-
-    // 取得當前用戶的 knock 狀態
-    const { data: myParticipant } = await supabase
-      .from('chat_room_participants')
-      .select('knock_status, knock_message_count')
-      .eq('room_id', roomId)
-      .eq('user_id_int', userIdInt)
-      .single()
-
-    return {
-      ...room,
-      myKnockStatus: myParticipant?.knock_status || null,
-      myKnockMessageCount: myParticipant?.knock_message_count || 0
-    }
-  },
-
-  /**
    * 取得使用者的所有房間（含詳細資料）
    */
   getUserRoomsWithDetails: async (userIdInt) => {
-    // 1. 取得使用者參與的所有房間 ID（含 knock 狀態）
+    // 1. 取得使用者參與的所有房間 ID
     let participations = []
     try {
       const { data, error: partError } = await supabase
@@ -586,8 +430,6 @@ export const chatService = {
         .select(
           `
           room_id,
-          knock_status,
-          knock_message_count,
           chat_rooms (
             id,
             type,
@@ -599,6 +441,7 @@ export const chatService = {
         )
         .eq('user_id_int', userIdInt)
         .eq('is_blocked', false)
+        .or('is_hidden.is.null,is_hidden.eq.false')
 
       if (partError) {
         console.error('❌ Error getting user rooms:', partError)
@@ -643,7 +486,6 @@ export const chatService = {
             `
             user_id_int,
             role,
-            knock_status,
             profiles ( nick_name, avatar_url )
           `
           )
@@ -651,8 +493,6 @@ export const chatService = {
 
         return {
           ...formatRoomForFrontend(room, participants || []),
-          myKnockStatus: p.knock_status || null,
-          myKnockMessageCount: p.knock_message_count || 0,
           lastMessage: lastMsg
             ? {
                 content: lastMsg.content,
@@ -683,7 +523,6 @@ export const chatService = {
         `
         user_id_int,
         role,
-        knock_status,
         profiles ( nick_name, avatar_url )
       `
       )
@@ -697,7 +536,6 @@ export const chatService = {
     return data.map((p) => ({
       id: p.user_id_int,
       role: p.role || 'member',
-      knockStatus: p.knock_status,
       nickName: p.profiles?.nick_name,
       avatar: p.profiles?.avatar_url
     }))
@@ -731,6 +569,42 @@ export const chatService = {
 
     // B -> A
     await followService.unfollowUser(targetUserIdInt, userIdInt)
+
+    return { success: true }
+  },
+
+  /**
+   * 隱藏聊天室（從列表中移除，但保留資料）
+   */
+  hideRoom: async (roomId, userIdInt) => {
+    const { error } = await supabase
+      .from('chat_room_participants')
+      .update({ is_hidden: true })
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+
+    if (error) {
+      console.error('❌ Error hiding room:', error)
+      throw error
+    }
+
+    return { success: true }
+  },
+
+  /**
+   * 取消隱藏聊天室
+   */
+  unhideRoom: async (roomId, userIdInt) => {
+    const { error } = await supabase
+      .from('chat_room_participants')
+      .update({ is_hidden: false })
+      .eq('room_id', roomId)
+      .eq('user_id_int', userIdInt)
+
+    if (error) {
+      console.error('❌ Error unhiding room:', error)
+      throw error
+    }
 
     return { success: true }
   }

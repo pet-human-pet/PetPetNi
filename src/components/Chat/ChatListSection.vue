@@ -39,8 +39,8 @@ const filteredChatList = computed(() => {
     list = [...store.currentChatList]
     return list.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
   } else if (store.currentCategory === 'match') {
-    // 聊天:顯示已成為好友或配對中的對話
-    list = store.db.match.filter(
+    // 聊天:顯示已成為好友或配對中的對話，使用 currentChatList 已過濾隱藏的聊天室
+    list = store.currentChatList.filter(
       (chat) => (chat.status === 'friend' || chat.status === 'matching') && !chat.isDeleted
     )
   } else {
