@@ -62,10 +62,6 @@ const saveStatus = () => {
           class="h-36 w-36 rounded-full border-4 border-white bg-gray-200 bg-cover bg-center shadow-2xl"
           :style="{ backgroundImage: `url(${friend.avatar})` }"
         ></div>
-        <div
-          v-if="friend.status === 'friend' && !isSelf"
-          class="absolute right-2 bottom-2 h-6 w-6 rounded-full border-4 border-white bg-green-500 shadow-sm"
-        ></div>
       </div>
 
       <div class="relative mb-3 flex h-10 w-full items-center justify-center">
