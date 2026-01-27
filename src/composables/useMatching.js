@@ -1,9 +1,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMatchingStore } from '@/stores/matching'
-// import { useAuthStore } from '@/stores/auth'
-import matchApi from '@/api/match'
-// import { calculateRadarData, randomMatch } from '@/utils/radarAlgorithm' // 移除或註解掉
+
 
 /**
  * 配對功能 Composable
@@ -34,26 +32,12 @@ export function useMatching() {
     isMatching.value = true
 
     try {
-      // 呼叫後端配對 API
-      const response = await matchApi.performDailyMatch()
-      const result = response.data
+      // 改由 Store 統一處理 (Store 會呼叫 SupabaseMatchService)
+      const result = await matchingStore.performMatch()
 
-      if (!result.success) {
-        throw new Error(result.message || '配對失敗')
-      }
-
-      // 整理資料以符合前端顯示格式
-      matchResult.value = {
-        pet: result.match.pet, // 後端已整理好格式
-        radarScores: result.match.radarScores,
-        avgScore: result.match.avgScore,
-        roomId: result.match.roomId,
-        timestamp: new Date().toISOString()
-      }
-
-      matchingStore.saveMatch(matchResult.value)
-
-      return matchResult.value
+      // 更新本地 state
+      matchResult.value = result
+      return result
     } finally {
       isMatching.value = false
     }

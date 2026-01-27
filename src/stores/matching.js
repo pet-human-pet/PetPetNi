@@ -34,8 +34,14 @@ export const useMatchingStore = defineStore('matching', () => {
       const { hasMatched } = await supabaseMatchService.getMatchStatus(authStore.user.id)
       hasMatchedToday.value = hasMatched
       if (hasMatched) {
-        // 更新本地參考時間 (非強制，僅供參考)
+        // 更新本地參考時間
         lastMatchDate.value = new Date().toISOString()
+
+        // 嘗試撈取回紀錄
+        const matchData = await supabaseMatchService.getLastMatch(authStore.user.id)
+        if (matchData) {
+          currentMatch.value = matchData
+        }
       }
     } catch (e) {
       console.error('Failed to check match status:', e)
