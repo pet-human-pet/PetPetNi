@@ -46,14 +46,18 @@ const handleViewProfile = (id) => {
 const handleRemoveFriend = async (id) => {
   const isConfirmed = await showConfirm({
     title: '解除好友',
-    message: '確定要將此人從好友名單中移除嗎？這將會徹底刪除其資料。',
+    message: '確定要解除好友關係嗎？這將會從名單中移除。',
     type: 'danger',
     confirmText: '解除'
   })
   if (isConfirmed) {
-    store.removeFriend(id)
-    success('已解除好友關係')
-    store.selectedFriendId = null
+    const result = await store.removeFriend(id)
+    if (result.success) {
+      success('已解除好友關係')
+      store.selectedFriendId = null
+    } else {
+      error(result.error || '解除好友失敗')
+    }
   }
 }
 
@@ -69,7 +73,7 @@ watch(
 
 const remainingMsgs = computed(() => {
   if (!store.activeChat) return 0
-  const limit = store.activeChat.type === 'knock' ? 3 : 10
+  const limit = 10
   return Math.max(0, limit - store.myMessageCount)
 })
 
@@ -84,30 +88,6 @@ const friendshipPrompt = computed(() => {
   return '已經聊過幾句囉，想與對方成為好友嗎？'
 })
 
-const handleAcceptStranger = async () => {
-  const result = await store.acceptKnockApi(store.activeChat.id)
-  if (result.success) {
-    success('已接受敲敲門，開始試聊！')
-  } else {
-    error(result.error || '接受敲敲門失敗')
-  }
-}
-const handleRejectStranger = async () => {
-  const isConfirmed = await showConfirm({
-    title: '拒絕敲敲門',
-    message: '確定要拒絕嗎？',
-    type: 'danger',
-    confirmText: '拒絕'
-  })
-  if (isConfirmed) {
-    const result = await store.rejectKnockApi(store.activeChat.id)
-    if (result.success) {
-      success('已拒絕敲敲門')
-    } else {
-      error(result.error || '拒絕敲敲門失敗')
-    }
-  }
-}
 const handleBecomeFriendFromLimit = async () => {
   const isConfirmed = await showConfirm({
     title: '成為好友',
@@ -229,7 +209,7 @@ const handleMenuOpen = (msgId) => {
       <div
         ref="msgContainer"
         class="bg-bg-base no-scrollbar flex-1 space-y-4 overflow-y-auto p-6"
-        :class="{ 'pb-40': store.chatMode === 'LOCKED', 'pb-20': store.activeChat.isBlocked }"
+        :class="{ 'pb-20': store.activeChat.isBlocked }"
       >
         <MessageBubble
           v-for="(msg, index) in store.activeChat.msgs"
@@ -247,33 +227,9 @@ const handleMenuOpen = (msgId) => {
 
       <!-- Bottom Interaction Area -->
       <div class="bg-bg-surface w-full shrink-0">
-        <!-- Locked Mode (Knock Knock) -->
-        <div
-          v-if="store.chatMode === 'LOCKED'"
-          class="flex w-full flex-col items-center gap-4 border-t border-red-100 bg-red-50 p-6 md:py-8"
-        >
-          <div class="text-base font-bold text-red-500 md:text-lg">
-            這是一則敲敲門訊息，是否接受？
-          </div>
-          <div class="flex gap-6">
-            <button
-              class="text-fg-secondary border-border-default rounded-full border bg-white px-8 py-2 font-bold transition-all hover:bg-gray-50 active:scale-95"
-              @click="handleRejectStranger"
-            >
-              拒絕
-            </button>
-            <button
-              class="rounded-full bg-red-500 px-8 py-2 font-bold text-white shadow-md transition-all hover:bg-red-600 active:scale-95"
-              @click="handleAcceptStranger"
-            >
-              接受
-            </button>
-          </div>
-        </div>
-
         <!-- Blocked User -->
         <div
-          v-else-if="store.activeChat.isBlocked"
+          v-if="store.activeChat.isBlocked"
           class="flex w-full flex-col items-center gap-2 border-t border-red-100 bg-red-50 p-4"
         >
           <div class="text-sm font-bold text-red-500">您已封鎖此用戶</div>
@@ -322,9 +278,7 @@ const handleMenuOpen = (msgId) => {
               v-else
               class="border-brand-primary/20 bg-brand-primary/10 text-fg-secondary flex items-center justify-center border-b px-4 py-2.5 text-sm font-bold"
             >
-              <template v-if="store.activeChat.type === 'knock'">
-                敲敲門試聊：剩餘 {{ remainingMsgs }} 句 (限制 30 字)
-              </template>
+              <template v-if="store.activeChat.type === 'knock'"> 試聊中 </template>
               <template v-else> 配對互動中：剩餘 {{ remainingMsgs }} 句 (限制 30 字) </template>
             </div>
           </div>

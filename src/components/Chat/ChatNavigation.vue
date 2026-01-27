@@ -37,9 +37,6 @@ const handleMoreItemClick = (item) => {
 }
 
 const isNavActive = (item) => {
-  if (item.key === 'match') {
-    return ['match', 'matching', 'knock'].includes(store.currentCategory)
-  }
   return store.currentCategory === item.key
 }
 </script>

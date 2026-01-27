@@ -39,23 +39,15 @@ const filteredChatList = computed(() => {
     list = [...store.currentChatList]
     return list.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant'))
   } else if (store.currentCategory === 'match') {
-    // 聊天:顯示已成為好友的對話
-    list = store.db.match.filter((chat) => chat.status === 'friend' && !chat.isDeleted)
-  } else if (store.currentCategory === 'matching') {
-    // 配對:顯示配對中的對話
-    list = store.db.match.filter((chat) => chat.status === 'matching' && !chat.isDeleted)
-  } else if (store.currentCategory === 'knock') {
-    // 敲敲門:顯示陌生人對話
-    list = store.db.stranger.filter((chat) => !chat.isDeleted)
+    // 聊天:顯示已成為好友或配對中的對話
+    list = store.db.match.filter(
+      (chat) => (chat.status === 'friend' || chat.status === 'matching') && !chat.isDeleted
+    )
   } else {
     list = store.currentChatList
   }
   return sortChats(list)
 })
-
-const isMessagingCategory = computed(() =>
-  ['match', 'matching', 'knock'].includes(store.currentCategory)
-)
 
 const isAiHistoryExpanded = ref(false)
 </script>
@@ -64,30 +56,6 @@ const isAiHistoryExpanded = ref(false)
   <div
     class="bg-bg-surface md:border-border-default relative flex flex-1 shrink-0 flex-col pb-16 md:h-full md:w-95 md:flex-none md:border-r md:pb-0"
   >
-    <!-- Mobile Navigation Tabs (Category Sub-switch) -->
-    <div
-      v-if="isMessagingCategory"
-      class="border-border-default no-scrollbar mb-2 flex shrink-0 gap-6 overflow-x-auto border-b px-6 pt-4 pb-2 md:hidden"
-    >
-      <button
-        v-for="tab in [
-          { id: 'match', label: '聊天' },
-          { id: 'matching', label: '配對' },
-          { id: 'knock', label: '敲敲門' }
-        ]"
-        :key="tab.id"
-        class="cursor-pointer text-sm font-black whitespace-nowrap transition-all"
-        :class="[
-          store.currentCategory === tab.id
-            ? 'text-brand-primary border-brand-primary border-b-2 pb-1'
-            : 'text-fg-muted'
-        ]"
-        @click="store.switchCategory(tab.id)"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
-
     <!-- AI New Chat Button -->
     <div v-if="store.currentCategory === 'ai'" class="shrink-0 px-2 pb-2">
       <div
@@ -183,39 +151,15 @@ const isAiHistoryExpanded = ref(false)
       <!-- Friend List Mode -->
       <template v-else-if="store.currentCategory === 'friendList'">
         <ChatListItem
-          :chat="store.db.myProfile"
-          :is-active="store.selectedFriendId === store.currentUserId"
-          :is-me="true"
+          v-for="chat in filteredChatList"
+          :key="chat.id"
+          :chat="chat"
+          :is-active="store.selectedFriendId === chat.id"
+          :show-pin="false"
           :is-friend-list-mode="true"
-          class="mb-2"
-          @click="store.selectedFriendId = store.currentUserId"
+          @click="store.selectedFriendId = chat.id"
+          @contextmenu="openContextMenu($event, chat)"
         />
-
-        <div class="border-border-default mx-2 mb-2 border-b"></div>
-        <div>
-          <div
-            class="text-fg-secondary hover:text-fg-primary mb-1 flex cursor-pointer items-center justify-between px-2 py-2 transition-colors select-none"
-            @click="store.isFriendListExpanded = !store.isFriendListExpanded"
-          >
-            <div class="text-sm font-bold">好友 ({{ filteredChatList.length }})</div>
-            <i
-              class="fa-solid fa-chevron-down text-sm transition-transform duration-200"
-              :class="{ '-rotate-90': !store.isFriendListExpanded }"
-            ></i>
-          </div>
-          <div v-show="store.isFriendListExpanded">
-            <ChatListItem
-              v-for="chat in filteredChatList"
-              :key="chat.id"
-              :chat="chat"
-              :is-active="store.selectedFriendId === chat.id"
-              :show-pin="false"
-              :is-friend-list-mode="true"
-              @click="store.selectedFriendId = chat.id"
-              @contextmenu="openContextMenu"
-            />
-          </div>
-        </div>
       </template>
 
       <!-- Standard List Mode -->
@@ -226,7 +170,7 @@ const isAiHistoryExpanded = ref(false)
           :chat="chat"
           :is-active="store.activeChatId === chat.id"
           @click="store.openChat(chat.id)"
-          @contextmenu="openContextMenu"
+          @contextmenu="openContextMenu($event, chat)"
         />
       </template>
     </div>
@@ -236,14 +180,21 @@ const isAiHistoryExpanded = ref(false)
       class="border-border-default bg-bg-surface text-fg-primary fixed z-100 w-32 overflow-hidden rounded-xl border py-1 text-sm shadow-xl"
       :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }"
     >
-      <div class="c-chat-menu" @click="handleMenuAction('pin')">
+      <div
+        v-if="store.currentCategory !== 'friendList'"
+        class="c-chat-menu"
+        @click="handleMenuAction('pin')"
+      >
         <i
           class="fa-solid fa-thumbtack text-brand-primary"
           :class="{ 'rotate-45': contextMenu.pinned }"
         ></i>
         {{ contextMenu.pinned ? '取消置頂' : '置頂對話' }}
       </div>
-      <div class="border-border-default my-1 border-t opacity-50"></div>
+      <div
+        v-if="store.currentCategory !== 'friendList'"
+        class="border-border-default my-1 border-t opacity-50"
+      ></div>
 
       <div
         v-if="contextMenu.chatType === 'community'"
@@ -254,7 +205,18 @@ const isAiHistoryExpanded = ref(false)
       </div>
 
       <div class="c-chat-menu c-chat-menu-danger" @click="handleMenuAction('delete')">
-        <i class="fa-solid fa-trash-can"></i> 刪除對話
+        <i
+          :class="
+            store.currentCategory === 'friendList' || contextMenu.chatType === 'friend'
+              ? 'fa-solid fa-heart-crack'
+              : 'fa-solid fa-trash-can'
+          "
+        ></i>
+        {{
+          store.currentCategory === 'friendList' || contextMenu.chatType === 'friend'
+            ? '解除好友'
+            : '刪除對話'
+        }}
       </div>
     </div>
   </div>

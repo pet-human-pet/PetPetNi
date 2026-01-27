@@ -16,7 +16,7 @@ export function useChatMenus(options = {}) {
 
   const openContextMenu = (e, chat) => {
     e.preventDefault()
-    if (store.currentCategory === 'friendList') return
+    const isFriendList = store.currentCategory === 'friendList'
     const chatType = store.currentCategory === 'community' ? 'community' : chat.type
 
     const rect = e.currentTarget.getBoundingClientRect()
@@ -26,6 +26,7 @@ export function useChatMenus(options = {}) {
       y: rect.top + 10,
       chatId: chat.id,
       chatType,
+      isFriendAction: isFriendList,
       pinned: chat.pinned
     }
   }
@@ -56,16 +57,29 @@ export function useChatMenus(options = {}) {
     }
 
     if (action === 'delete') {
+      const { isFriendAction } = contextMenu.value
       const isEvent = chatType === 'event'
+
       const isConfirmed = await showConfirm({
-        title: isEvent ? '刪除活動對話' : '刪除對話',
-        message: isEvent ? '確定要刪除此活動對話嗎？' : '確定要刪除此對話紀錄嗎？',
+        title: isFriendAction ? '解除好友' : isEvent ? '刪除活動對話' : '刪除對話',
+        message: isFriendAction
+          ? '確定要解除好友關係嗎？這將會從名單中移除。'
+          : isEvent
+            ? '確定要刪除此活動對話嗎？'
+            : '確定要刪除此對話紀錄嗎？',
         type: 'danger',
-        confirmText: '刪除'
+        confirmText: isFriendAction ? '解除' : '刪除'
       })
 
       if (isConfirmed) {
-        store.deleteChat(chatId)
+        if (isFriendAction) {
+          const result = await store.removeFriend(chatId)
+          if (result.success) {
+            success('已解除好友關係')
+          }
+        } else {
+          store.deleteChat(chatId)
+        }
       }
     }
     closeContextMenu()
