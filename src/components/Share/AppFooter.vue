@@ -12,8 +12,8 @@ const route = useRoute()
 const isHomePage = computed(() => route.name === 'home' || route.path === '/')
 
 // 跑馬燈文字內容
-const marqueeTextLight = '這個網站真的很隨興，弄得溝追溝追的， 一點都不專業'
-const marqueeTextDark = 'ＢＹ高見龍'
+const marqueeTextLight = '₍^˶⦁༝⦁˶^₎◞♡ '
+const marqueeTextDark = '最多元的寵物社交平台'
 </script>
 
 <template>
