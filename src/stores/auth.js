@@ -156,8 +156,24 @@ export const useAuthStore = defineStore('auth', () => {
       tags.value = []
       token.value = null
       hasPet.value = false
-      localStorage.removeItem('token')
       isLoading.value = false
+
+      // 清除 LocalStorage (保留一些非用戶相關的設定如有需要，但目前全清最安全)
+      localStorage.clear()
+
+      // 重置其他 Store 狀態
+      // 使用動態 import 避免 Circular Dependency (因為其他 Store 都依賴 Auth)
+      import('@/stores/matching').then(({ useMatchingStore }) => {
+        useMatchingStore().reset()
+      })
+      import('@/stores/chat').then(({ useChatStore }) => {
+        useChatStore().clear()
+      })
+      import('@/stores/favorites').then(({ useFavoritesStore }) => {
+        useFavoritesStore().clear()
+      })
+
+      console.log('🧹 已清除所有本地狀態與快取')
     }
   }
 
