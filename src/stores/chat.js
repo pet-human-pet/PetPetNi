@@ -513,22 +513,19 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   function deleteChat(chatId) {
+    if (!chatId) return
+
+    // 從對應分類中徹底移除
     for (const cat in db.value) {
       if (Array.isArray(db.value[cat])) {
-        const list = db.value[cat]
-        const chat = list.find((c) => c.id === chatId)
-        if (chat) {
-          if (cat === 'match') {
-            chat.isDeleted = true
-            chat.msgs = []
-          } else {
-            db.value[cat] = list.filter((c) => c.id !== chatId)
-          }
-          break
-        }
+        db.value[cat] = db.value[cat].filter((c) => c.id !== chatId)
       }
     }
-    if (activeChatId.value === chatId) activeChatId.value = null
+
+    // 如果正在開著這個聊天室，關閉它
+    if (activeChatId.value === chatId) {
+      activeChatId.value = null
+    }
   }
 
   function removeFriend(friendId) {

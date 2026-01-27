@@ -70,10 +70,28 @@ watch(
 const remainingMsgs = computed(() => {
   if (!store.activeChat) return 0
   const limit = store.activeChat.type === 'knock' ? 3 : 10
-  return limit - store.myMessageCount
+  return Math.max(0, limit - store.myMessageCount)
 })
 
-const handleAcceptStranger = () => store.acceptStranger(store.activeChat.id)
+const friendshipPrompt = computed(() => {
+  if (!store.activeChat) return ''
+  if (store.activeChat.status === 'friend_pending') {
+    if (store.activeChat.knockStatus === 'friend_confirmed') {
+      return '已送出好友邀請，正在等待對方回應...'
+    }
+    return '對方請求與你成為好友，是否接受？'
+  }
+  return '已經聊過幾句囉，想與對方成為好友嗎？'
+})
+
+const handleAcceptStranger = async () => {
+  const result = await store.acceptKnockApi(store.activeChat.id)
+  if (result.success) {
+    success('已接受敲敲門，開始試聊！')
+  } else {
+    error(result.error || '接受敲敲門失敗')
+  }
+}
 const handleRejectStranger = async () => {
   const isConfirmed = await showConfirm({
     title: '拒絕敲敲門',
@@ -81,7 +99,14 @@ const handleRejectStranger = async () => {
     type: 'danger',
     confirmText: '拒絕'
   })
-  if (isConfirmed) store.rejectStranger(store.activeChat.id)
+  if (isConfirmed) {
+    const result = await store.rejectKnockApi(store.activeChat.id)
+    if (result.success) {
+      success('已拒絕敲敲門')
+    } else {
+      error(result.error || '拒絕敲敲門失敗')
+    }
+  }
 }
 const handleBecomeFriendFromLimit = async () => {
   const isConfirmed = await showConfirm({
@@ -177,7 +202,7 @@ const handleMenuOpen = (msgId) => {
               </template>
               <template v-else-if="store.activeChat.type === 'community'">社群</template>
               <template v-else>{{
-                store.activeChat.status === 'matching' ? '配對互動中' : '線上'
+                store.activeChat.status === 'matching' ? '配對互動中' : ''
               }}</template>
             </div>
           </div>

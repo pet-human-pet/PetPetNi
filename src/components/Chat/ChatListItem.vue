@@ -57,12 +57,6 @@ const displayText = computed(() => {
           filter: chat.isBlocked ? 'grayscale(100%)' : 'none'
         }"
       ></div>
-
-      <!-- Status Dot -->
-      <div
-        v-if="showStatus && chat.status === 'friend' && !chat.isBlocked"
-        class="c-badge c-badge--dot -right-0.5 -bottom-0.5 bg-green-500 shadow-sm"
-      ></div>
     </div>
 
     <div class="c-chat-info">
