@@ -98,7 +98,7 @@ const handleDeleteSession = (id) => {
       }"
     >
       <button
-        class="bg-brand-primary shadow-brand-primary/20 group flex h-14 w-8 flex-col items-center justify-center rounded-l-2xl border-y border-l border-white/20 text-white shadow-xl transition-all hover:w-10"
+        class="bg-brand-primary shadow-brand-primary/20 group flex h-14 w-8 cursor-pointer flex-col items-center justify-center rounded-l-2xl border-y border-l border-white/20 text-white shadow-xl transition-all hover:w-10"
         @click="aiStore.toggleDrawer()"
       >
         <i class="fa-solid fa-wand-magic-sparkles text-sm group-hover:scale-110"></i>
