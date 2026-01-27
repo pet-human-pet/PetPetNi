@@ -1,56 +1,84 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { supabaseMatchService } from '@/services/SupabaseMatchService'
+import { useAuthStore } from '@/stores/auth'
 
 export const useMatchingStore = defineStore('matching', () => {
   // State
   const hasMatchedToday = ref(false)
-  const lastMatchDate = ref(null)
+  const lastMatchDate = ref(null) // 仍可用於快速判斷，但主要依賴 DB 狀態
   const currentMatch = ref(null)
-  const matchHistory = ref([])
+
+  // Auth store for User ID access
+  const authStore = useAuthStore()
 
   // Getters
   const canMatchToday = computed(() => {
-    if (!lastMatchDate.value) return true
-    const today = new Date().toDateString()
-    const lastMatch = new Date(lastMatchDate.value).toDateString()
-    return today !== lastMatch
+    // 依賴後端/DB狀態，若已檢查為 true 則不能配對
+    return !hasMatchedToday.value
   })
 
   // Actions
-  function saveMatch(matchResult) {
-    currentMatch.value = matchResult
-    hasMatchedToday.value = true
-    lastMatchDate.value = new Date().toISOString()
-    matchHistory.value.push(matchResult)
 
-    // 存入 LocalStorage
-    localStorage.setItem('pet_match_date', lastMatchDate.value)
-    localStorage.setItem('pet_match_current', JSON.stringify(matchResult))
-  }
-
-  function loadFromStorage() {
-    const stored = localStorage.getItem('pet_match_date')
-    if (stored) {
-      lastMatchDate.value = stored
-      const today = new Date().toDateString()
-      const lastMatch = new Date(stored).toDateString()
-      hasMatchedToday.value = today === lastMatch
+  /**
+   * 檢查當日配對狀態
+   */
+  async function checkMatchStatus() {
+    // 必須有 User ID (這意味著 Auth 必須先 Ready)
+    if (!authStore.user?.id) {
+      console.warn('用戶未登入，無法檢查配對狀態')
+      return
     }
 
-    // 載入當前配對結果
-    const currentStored = localStorage.getItem('pet_match_current')
-    if (currentStored) {
-      try {
-        currentMatch.value = JSON.parse(currentStored)
-      } catch (e) {
-        console.error('Failed to parse stored match data:', e)
+    try {
+      const { hasMatched } = await supabaseMatchService.getMatchStatus(authStore.user.id)
+      hasMatchedToday.value = hasMatched
+      if (hasMatched) {
+        // 更新本地參考時間 (非強制，僅供參考)
+        lastMatchDate.value = new Date().toISOString()
       }
+    } catch (e) {
+      console.error('Failed to check match status:', e)
     }
   }
+
+  /**
+   * 執行配對並儲存結果
+   */
+  async function performMatch() {
+    if (!authStore.user?.id) {
+      throw new Error('用戶未登入')
+    }
+
+    try {
+      const result = await supabaseMatchService.performDailyMatch(authStore.user.id)
+
+      if (result.success && result.match) {
+        currentMatch.value = result.match
+        hasMatchedToday.value = true
+        lastMatchDate.value = new Date().toISOString()
+        return result.match
+      } else {
+        throw new Error(result.message || '配對失敗')
+      }
+    } catch (e) {
+      console.error('Match failed:', e)
+      throw e
+    }
+  }
+
+  // 移除 loadFromStorage / saveMatch (localStorage)
+  // 讓資料流維持單向：DB -> Service -> Store -> View
 
   function resetDaily() {
     hasMatchedToday.value = false
     currentMatch.value = null
+  }
+
+  function reset() {
+    hasMatchedToday.value = false
+    currentMatch.value = null
+    lastMatchDate.value = null
   }
 
   return {
@@ -58,14 +86,14 @@ export const useMatchingStore = defineStore('matching', () => {
     hasMatchedToday,
     lastMatchDate,
     currentMatch,
-    matchHistory,
 
     // Getters
     canMatchToday,
 
     // Actions
-    saveMatch,
-    loadFromStorage,
-    resetDaily
+    checkMatchStatus,
+    performMatch,
+    resetDaily,
+    reset
   }
 })
