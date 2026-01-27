@@ -60,6 +60,7 @@ const otherUserData = ref(null)
 const isFollowing = ref(false)
 const isLoadingProfile = ref(false)
 const isFollowLoading = ref(false)
+const postStore = usePostStore()
 
 // 取得其他用戶資料
 const fetchOtherUserProfile = async (userIdInt) => {
@@ -178,7 +179,6 @@ const eventTabs = [
 
 const eventStore = useEventMapStore()
 const favoritesStore = useFavoritesStore()
-const postStore = usePostStore()
 const { uploadOriginal, compressImage, getDynamicUrl } = useAvatarUpload()
 const { error: showError, success: showSuccess } = useToast()
 
@@ -746,7 +746,7 @@ onUnmounted(() => {
   <div>
     <div class="bg-bg-base text-fg-secondary">
       <main
-        class="mx-auto min-h-[calc(100vh-var(--header-h))] w-full max-w-300 px-4 pt-4 pb-10 lg:h-[calc(100vh-var(--header-h))] lg:pb-10"
+        class="mx-auto min-h-[calc(100vh-var(--header-h))] w-full max-w-300 px-4 pt-4 pb-5 lg:h-[calc(100vh-var(--header-h))] lg:pb-10"
       >
         <div
           class="flex flex-col gap-4 md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] md:gap-6 lg:h-full"
@@ -772,7 +772,7 @@ onUnmounted(() => {
           </div>
 
           <!--右欄-->
-          <div class="c-card flex w-full min-w-0 flex-col md:h-[75vh] lg:h-full lg:min-h-0">
+          <div class="c-card flex h-full w-full min-w-0 flex-col md:h-[75vh] lg:h-full lg:min-h-0">
             <!-- 右欄內容 -->
             <div
               class="sticky top-(--header-h) z-30 flex-none md:static md:top-0 md:z-auto md:mx-0 md:rounded-t-3xl md:border-b-0 md:px-0"
@@ -800,10 +800,10 @@ onUnmounted(() => {
                 </button>
               </div>
 
-              <div class="bg-white/90 px-4 py-2 pt-2 md:p-4">
+              <div class="bg-white/90">
                 <div
                   v-if="activeTab === 'posts' && isOwnProfile"
-                  class="flex justify-center gap-4 md:gap-6"
+                  class="flex justify-center gap-4 px-4 py-2 pt-2 md:gap-6 md:p-4"
                 >
                   <button
                     v-for="tab in postTabs"
@@ -821,7 +821,7 @@ onUnmounted(() => {
                 </div>
                 <div
                   v-if="activeTab === 'events'"
-                  class="flex flex-wrap justify-center gap-2 md:gap-4"
+                  class="flex flex-wrap justify-center gap-2 px-4 py-2 pt-2 md:gap-4 md:p-4"
                 >
                   <button
                     v-for="tab in eventTabs"
@@ -840,11 +840,11 @@ onUnmounted(() => {
             </div>
 
             <div
-              class="custom-scrollbar h-full flex-1 overflow-y-auto bg-transparent p-4 pb-20 md:p-8 md:pb-8"
+              class="custom-scrollbar h-full flex-1 overflow-y-auto rounded-xl bg-gray-50 p-4 pb-10 md:p-8"
             >
               <div
                 v-if="activeTab === 'posts'"
-                class="mx-auto max-w-xl space-y-4 pb-10 text-left md:space-y-6"
+                class="mx-auto max-w-xl space-y-4 text-left md:w-[70%] md:space-y-6"
               >
                 <!-- 貼文列表 -->
                 <PostCard
@@ -856,13 +856,12 @@ onUnmounted(() => {
                   v-on="postCardEvents"
                 />
 
-                <!-- 空狀態提示 -->
                 <div
                   v-if="
                     (activeSubTab === 'my' && myPosts.length === 0) ||
                     (activeSubTab === 'saved' && savedPosts.length === 0)
                   "
-                  class="text-fg-muted py-10 text-center"
+                  class="text-fg-muted pt-10 text-center md:pt-40"
                 >
                   <i class="fa-solid fa-image mb-2 text-4xl opacity-30"></i>
                   <p>{{ activeSubTab === 'my' ? '尚未發布任何貼文' : '尚未儲存任何貼文' }}</p>
@@ -881,7 +880,6 @@ onUnmounted(() => {
                   @leave="handleLeaveEvent"
                 />
 
-                <!-- 空狀態提示 -->
                 <div
                   v-if="
                     (activeSubTab === 'create' && createdEvents.length === 0) ||
@@ -891,7 +889,7 @@ onUnmounted(() => {
                   "
                   class="text-fg-muted py-10 text-center"
                 >
-                  <i class="fa-solid fa-calendar-xmark mb-2 text-4xl opacity-30"></i>
+                  <i class="fa-solid fa-calendar-xmark mb-2 pt-10 text-4xl opacity-30 md:pt-30"></i>
                   <p>
                     {{
                       activeSubTab === 'create'
