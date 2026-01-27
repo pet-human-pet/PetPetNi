@@ -14,8 +14,17 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 // 應用啟動時驗證 token
-onMounted(() => {
-  authStore.initAuth()
+// 應用啟動時驗證 token
+onMounted(async () => {
+  await authStore.initAuth()
+
+  // 預先載入配對狀態 (如果已登入且是飼主)
+  if (authStore.user && authStore.isPetOwner) {
+    const { useMatchingStore } = await import('@/stores/matching')
+    const matchingStore = useMatchingStore()
+    // 背景更新狀態
+    matchingStore.checkMatchStatus()
+  }
 })
 
 // 判斷是否為首頁
