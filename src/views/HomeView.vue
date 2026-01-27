@@ -1,12 +1,22 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAIStore } from '@/stores/ai'
 import BackgroundGrid from '@/components/Share/BackgroundGrid.vue'
 import MainFrame from '@/components/Share/MainFrame.vue'
 
 const router = useRouter()
+const aiStore = useAIStore()
 
 const handleNavigate = (name) => {
   router.push({ name })
+}
+
+const handleOpenAi = () => {
+  if (!aiStore.isDrawerOpen) {
+    aiStore.toggleDrawer()
+  } else {
+    aiStore.closeDrawer()
+  }
 }
 
 // Grid Configuration: 3 columns x 6 rows (all sizes)
@@ -79,10 +89,13 @@ const getIconUrl = (name) => {
       <div class="pointer-events-none absolute inset-0 z-30 grid grid-cols-3 grid-rows-6 p-[4%]">
         <!-- 中央區圖片 (佔第 2 列，全部 6 行) - 放大且不裁切 -->
         <div class="col-start-2 row-span-6 row-start-1 flex items-center justify-center">
-          <div
-            class="h-64 min-h-64 w-64 min-w-64 bg-contain bg-center bg-no-repeat md:h-[120%] md:min-h-0 md:w-[120%] md:min-w-0"
+          <button
+            type="button"
+            class="pointer-events-auto h-64 min-h-64 w-64 min-w-64 cursor-pointer bg-contain bg-center bg-no-repeat transition-transform hover:scale-[1.03] active:scale-[0.98] md:h-[120%] md:min-h-0 md:w-[120%] md:min-w-0"
             :style="`background-image: url(${getIconUrl('中央區.webp')})`"
-          ></div>
+            @click="handleOpenAi"
+            aria-label="開啟 AI 功能"
+          ></button>
         </div>
 
         <!-- 四個角落區域 -->
