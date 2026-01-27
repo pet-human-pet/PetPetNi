@@ -69,19 +69,22 @@ async function resetMatchData() {
   // ============================================
 
   // 使用本地時間 (台灣時間) 計算 YYYY-MM-DD
-  // 這樣能確保在凌晨 00:00 - 08:00 (UTC+8) 期間執行時，能夠正確刪除「今天」的資料
+  // 並加上 +08:00 時區偏移，確保 Postgres 能正確對應到台灣時間的 00:00 (即 UTC 前一天的 16:00)
   const dateOptions = { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }
   const formatter = new Intl.DateTimeFormat('en-CA', dateOptions) // en-CA gives YYYY-MM-DD format
-  const today = formatter.format(new Date())
+  const todayDateString = formatter.format(new Date())
 
-  console.log(`📅 僅刪除 ${today} (Asia/Taipei) 之後建立的資料，保留舊歷史`)
+  // 構造 ISO String 帶時區: "2026-01-27T00:00:00+08:00"
+  const todayISO = `${todayDateString}T00:00:00+08:00`
+
+  console.log(`📅 僅刪除 ${todayISO} (Asia/Taipei Today) 之後建立的資料`)
 
   // 1. 刪除 match_history (今日)
   const { error: matchError, count: matchCount } = await supabase
     .from('match_history')
     .delete({ count: 'exact' })
     .or(`user_id_int.eq.${targetIdInt},partner_id_int.eq.${targetIdInt}`)
-    .gte('created_at', today)
+    .gte('created_at', todayISO)
 
   if (matchError) {
     console.error('❌ 刪除 match_history 失敗:', matchError)
@@ -92,17 +95,31 @@ async function resetMatchData() {
   // 2. 找出並刪除私聊房間 (今日建立的)
   const { data: chats, error: chatError } = await supabase
     .from('private_chat_pairs')
-    .select('room_id')
+    .select('id, room_id')
     .or(`user_1_int.eq.${targetIdInt},user_2_int.eq.${targetIdInt}`)
-    .gte('created_at', today)
+    .gte('created_at', todayISO)
 
   if (chatError) {
     console.error('❌ 查詢 private_chat_pairs 失敗:', chatError)
   } else if (chats && chats.length > 0) {
+    const pairIds = chats.map((c) => c.id)
     const roomIds = chats.map((c) => c.room_id)
-    console.log(`found ${roomIds.length} new private rooms to delete:`, roomIds)
+    console.log(`found ${pairIds.length} pairs to delete...`)
 
-    // chat_rooms 刪除會自動 cascade 刪除 participants 和 messages
+    // 2.1 先刪除 private_chat_pairs (解除排除名單)
+    const { error: pairDeleteError, count: pairCount } = await supabase
+      .from('private_chat_pairs')
+      .delete({ count: 'exact' })
+      .in('id', pairIds)
+
+    if (pairDeleteError) {
+      console.error('❌ 刪除 private_chat_pairs 失敗:', pairDeleteError)
+    } else {
+      console.log(`✅ 已刪除 ${pairCount} 筆配對關聯 (排除名單已重置)`)
+    }
+
+    // 2.2 再刪除 chat_rooms (清除對話紀錄)
+    // chat_rooms 刪除會自動 cascade 刪除 participants 和 messages (如果 DB 有設)
     const { error: roomError, count: roomCount } = await supabase
       .from('chat_rooms')
       .delete({ count: 'exact' })
