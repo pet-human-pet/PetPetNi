@@ -132,7 +132,10 @@ const handleComplete = async () => {
         birthday: petData.value.birthday,
         gender: petData.value.gender
       },
-      optionalTags: petTagsData.value?.optionalTags || []
+      optionalTags: [
+        ...(petTagsData.value?.requiredTags || []),
+        ...(petTagsData.value?.optionalTags || [])
+      ]
     })
 
     console.log('✅ Profile 建立成功')
