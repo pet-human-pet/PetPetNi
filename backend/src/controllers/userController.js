@@ -426,14 +426,33 @@ export const userController = {
       }
 
       // 6. 更新 Tags (全刪全建)
-      let tagsCount = 0
+      let finalTags = []
       if (optionalTags !== undefined && Array.isArray(optionalTags) && petData) {
+        console.log(`🏷️ 正在更新標籤, PetID: ${petData.id}, 數量: ${optionalTags.length}`)
         // 刪除舊 tags
         await supabase.from('pet_tags').delete().eq('pet_id', petData.id)
 
         // 建立新 tags
         const tagsResult = await createPetTags(petData.id, optionalTags)
-        tagsCount = tagsResult.count
+        if (tagsResult.success) {
+          finalTags = optionalTags
+          console.log('✅ 標籤更新完成')
+        } else {
+          console.error('❌ 標籤更新失敗:', tagsResult.error)
+          // 嘗試讀取現有的
+          const { data: currentTags } = await supabase
+            .from('pet_tags')
+            .select('tag')
+            .eq('pet_id', petData.id)
+          finalTags = (currentTags || []).map((t) => t.tag)
+        }
+      } else {
+        // 如果沒更新 tags，也把現有的抓出來
+        const { data: currentTags } = await supabase
+          .from('pet_tags')
+          .select('tag')
+          .eq('pet_id', petData.id)
+        finalTags = (currentTags || []).map((t) => t.tag)
       }
 
       res.json({
@@ -442,7 +461,7 @@ export const userController = {
         data: {
           profile,
           pet: petData,
-          tagsCount
+          tags: finalTags
         }
       })
     } catch (error) {
