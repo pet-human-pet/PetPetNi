@@ -10,7 +10,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') // TODO:之後改useAuthStore取得。並或可在src/utils/constants.js定義 export const TOKEN_KEY ='auth_token'引用
+    const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
