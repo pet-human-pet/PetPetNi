@@ -1,7 +1,7 @@
 ```
 <template>
   <div class="stage" @mousemove="handleTilt" @mouseleave="resetTilt">
-    <!-- Pack to be opened -->
+    <!-- 待開啟的卡包 -->
     <div
       ref="boosterPackRef"
       class="booster-pack"
@@ -12,10 +12,10 @@
         <div class="pack-back" :class="`style-${getPackStyleIndex}`" :style="packBackStyle">
           <div class="pack-pattern"></div>
         </div>
-        <!-- Removed pack-top to match Carousel's card-like appearance -->
+        <!-- 移除 pack-top 以符合 Carousel 的卡片外觀 -->
       </div>
     </div>
-    <!-- Revealed Card Container -->
+    <!-- 揭示的卡片容器 -->
     <div class="cards-container" :class="{ show: showCards, 'has-focus': isFocused }">
       <div
         class="card stacked profile-card-style"
@@ -24,15 +24,15 @@
         @click.stop="handleCardClick"
       >
         <div class="card-inner">
-          <!-- Card Back (Tarot Image) -->
+          <!-- 卡片背面 (塔羅牌圖案) -->
           <div class="card-back" :style="packBackStyle">
             <div class="card-back-pattern"></div>
           </div>
 
-          <!-- Card Front: Profile Style matches MatchResultCard -->
+          <!-- 卡片正面：個人資料樣式符合 MatchResultCard -->
           <div class="card-front profile-content">
             <div class="pet-info-wrapper">
-              <!-- Avatar -->
+              <!-- 頭貼 -->
               <div class="pet-avatar-large">
                 <img
                   v-if="isImageUrl(petData.avatar || petData.avatarUrl)"
@@ -43,12 +43,12 @@
                 <span v-else>{{ petData.avatar || petData.avatarUrl || '🐕' }}</span>
               </div>
 
-              <!-- Name -->
+              <!-- 名字 -->
               <h2 class="pet-name">
                 {{ petData.name || '未命名' }}
               </h2>
 
-              <!-- Species Badge -->
+              <!-- 物種標籤 -->
               <div class="species-badge">
                 {{
                   petData.species === 'DOG' || petData.type === 'dog'
@@ -59,7 +59,7 @@
                 }}
               </div>
 
-              <!-- Tags -->
+              <!-- 標籤 -->
               <div class="tags-container mt-4">
                 <div class="tags-group">
                   <span
@@ -84,7 +84,7 @@
                 </div>
               </div>
 
-              <!-- Bio -->
+              <!-- 自我介紹 -->
               <p class="pet-bio">
                 {{ petData.bio || '這是一隻可愛的毛孩' }}
               </p>
@@ -94,14 +94,14 @@
       </div>
     </div>
 
-    <!-- Hints and Controls -->
-    <!-- Initial hint -->
+    <!-- 提示與控制 -->
+    <!-- 初始提示 -->
     <div v-if="!isFlipping && !isPackHidden" class="hint">👆 點擊卡包開啟</div>
 
-    <!-- Focus Hint (After reveal) - Handled by parent DailyMatchView -->
+    <!-- 聚焦提示 (揭示後) - 由 DailyMatchView 處理 -->
     <!-- <div v-if="isFocused" class="hint focus-hint" @click="emitClose">點擊任意處繼續</div> -->
 
-    <!-- Removed old controls/hints to clean up UI as per request -->
+    <!-- 移除舊的控制/提示以清理 UI -->
   </div>
 </template>
 
@@ -121,15 +121,15 @@ const props = defineProps({
 
 const emit = defineEmits(['opened', 'close'])
 
-// Refs
+// 參考引用
 const boosterPackRef = ref(null)
 
-// State: Pack Opening
+// 狀態：開啟卡包
 const isFlipping = ref(false)
 const isPackHidden = ref(false)
-// const packEmoji = computed(() => props.packType.icon || props.packType.emoji || '⚡') // Removed unused
+// const packEmoji = computed(() => props.packType.icon || props.packType.emoji || '⚡') // 移除未使用
 const getPackStyleIndex = computed(() => {
-  // Map pack ID to style index (0-4)
+  // 將卡包 ID 映射到樣式索引 (0-4)
   if (!props.packType.id) return 0
   return (props.packType.id - 1) % 5
 })
@@ -147,22 +147,22 @@ const packBackStyle = computed(() => {
   return {}
 })
 
-// State: Card Reveal
+// 狀態：卡片揭示
 const showCards = ref(false)
 const isSpread = ref(false)
 const isRevealed = ref(false)
-const isFocused = ref(false) // New state for post-reveal focus
+const isFocused = ref(false) // 揭示後的聚焦狀態
 
-// Tilt State
+// 傾斜狀態
 const tiltX = ref(0)
 const tiltY = ref(0)
 const cardTiltStyle = computed(() => {
   if (!isRevealed.value) return {}
   return {
     transform: `translate(-50%, -50%) rotateY(${180 + tiltX.value}deg) rotateX(${tiltY.value}deg) scale(1.5)`,
-    // Removed transition here to make mouse movement responsive.
-    // We add transition only for reset? Or use a spring lib.
-    // For raw CSS, no transition is snappier, but transition: transform 0.1s is smoother.
+    // 移除過渡以使滑鼠移動反應靈敏。
+    // 這邊只在重置時增加過渡？或使用彈簧庫。
+    // 對於原始 CSS，無過渡較快，但 transition: transform 0.1s 較平滑。
     transition: 'transform 0.1s ease-out'
   }
 })
@@ -170,8 +170,8 @@ const cardTiltStyle = computed(() => {
 function handleTilt(e) {
   if (!isRevealed.value) return
 
-  // Calculate relative to window center or stage center
-  // Assuming stage is centered
+  // 計算相對於視窗中心或舞台中心
+  // 假設舞台置中
   const width = window.innerWidth
   const height = window.innerHeight
 
@@ -184,7 +184,7 @@ function handleTilt(e) {
   const rotateXMax = 20
   const rotateYMax = 20
 
-  // Invert Y axis
+  // 反轉 Y 軸
   tiltY.value = -1 * ((y - centerY) / centerY) * rotateXMax
   tiltX.value = ((x - centerX) / centerX) * rotateYMax
 }
@@ -198,7 +198,7 @@ function isImageUrl(url) {
   return url && (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('data:'))
 }
 
-// Helpers for Profile Card
+// 個人資料卡片輔助函數
 function formatTag(tag) {
   if (tag.startsWith('#')) {
     const parts = tag.split(':')
@@ -221,16 +221,16 @@ function openPack() {
   if (isFlipping.value || isPackHidden.value) return
   isFlipping.value = true
 
-  // Animation Sequence
+  // 動畫序列
   setTimeout(() => {
     isPackHidden.value = true
     showCards.value = true
 
-    // Spread card
+    // 展開卡片
     setTimeout(() => {
       isSpread.value = true
 
-      // Auto reveal after spread
+      // 展開後自動揭示
       setTimeout(() => {
         revealCard()
       }, 500)
@@ -242,7 +242,7 @@ function handleCardClick() {
   if (!isRevealed.value) {
     revealCard()
   } else {
-    // isFocused.value = !isFocused.value // No longer needed
+    // isFocused.value = !isFocused.value // 不再需要
   }
 }
 
@@ -253,35 +253,15 @@ function revealCard() {
 
   emit('opened')
 
-  // Trigger Focus Mode after 0.5s
+  // 0.5秒後觸發聚焦模式
   setTimeout(() => {
     isFocused.value = true
   }, 500)
 }
-
-function emitClose() {
-  emit('close')
-}
 </script>
 
 <style scoped>
-/* Copied styles from Carousel for consistency */
-.style-0 {
-  background: linear-gradient(135deg, #fbbf24, #d97706);
-} /* Gold */
-.style-1 {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-} /* Red */
-.style-2 {
-  background: linear-gradient(135deg, #60a5fa, #2563eb);
-} /* Blue */
-.style-3 {
-  background: linear-gradient(135deg, #34d399, #059669);
-} /* Green */
-.style-4 {
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-} /* Purple */
-
+/* 複製自 Carousel 的樣式以保持一致性 */
 .stage {
   position: relative;
   width: 100%;
@@ -289,10 +269,10 @@ function emitClose() {
   height: 600px;
   margin: 0 auto;
   perspective: 1500px;
-  overflow: visible; /* Changed from hidden to visible */
+  overflow: visible;
 }
 
-/* Glow Animation */
+/* 發光動畫 */
 @property --rotate {
   syntax: '<angle>';
   initial-value: 132deg;
@@ -308,14 +288,14 @@ function emitClose() {
   }
 }
 
-/* Pack Styles matching Carousel */
+/* 符合 Carousel 的卡包樣式 */
 .booster-pack {
   position: absolute;
   left: 50%;
   top: 40%;
   transform: translate(-50%, -50%);
-  width: 240px; /* Matched Card size */
-  height: 420px; /* Matched Card size */
+  width: 240px; /* 符合卡片尺寸 */
+  height: 420px; /* 符合卡片尺寸 */
   transition:
     transform 0.3s,
     opacity 0.3s;
@@ -363,18 +343,17 @@ function emitClose() {
   position: absolute;
   width: 100%;
   height: 100%;
-  border-radius: 24px; /* Increased Radius */
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  border-radius: 24px; /* 增加圓角 */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: visible; /* Changed to visible for glow */
+  overflow: visible; /* 改為 visible 以顯示發光 */
   backface-visibility: hidden;
-  /* Background set by style-X classes */
+  /* 背景由 style-X class 設定 */
 }
 
-/* Glow Effect */
+/* 發光效果 */
 .pack-back::after {
   content: '';
   position: absolute;
@@ -390,20 +369,13 @@ function emitClose() {
   opacity: 0.8;
 }
 
-/* Re-added pattern */
+/* 重新加入圖案 */
 .pack-pattern {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 255, 255, 0.1) 10px,
-    rgba(255, 255, 255, 0.1) 20px
-  );
   pointer-events: none;
-  border-radius: 24px; /* Ensure pattern stays within radius visually */
-  overflow: hidden; /* Local overflow for pattern */
+  border-radius: 24px; /* 確保圖案在視覺圓角內 */
+  overflow: hidden; /* 圖案局部溢出隱藏 */
 }
 
 .pack-inner-content {
@@ -424,7 +396,7 @@ function emitClose() {
   font-size: 4rem;
 }
 
-/* Card Reveal */
+/* 卡片揭示 */
 .cards-container {
   position: absolute;
   left: 50%;
@@ -440,20 +412,20 @@ function emitClose() {
 .cards-container.show {
   opacity: 1;
   pointer-events: auto;
-  z-index: 200; /* Ensure container is above overlay (150) */
+  z-index: 200; /* 確保容器在遮罩層 (150) 之上 */
 }
 
 .cards-container.has-focus {
-  z-index: 10000; /* Higher than reveal overlay (9990) */
+  z-index: 10000; /* 高於揭示遮罩層 (9990) */
 }
 
-/* Profile Card Styles (Scaled down from Result Card) */
+/* 個人資料卡片樣式 (從結果卡片縮小) */
 .card {
   position: absolute;
-  width: 240px; /* Reduced from 280px */
-  height: 420px; /* Increased from 340px to ~0.57 ratio (240 / 0.57) */
+  width: 240px; /* 從 280px 縮小 */
+  height: 420px; /* 從 340px 增加到 ~0.57 比例 (240 / 0.57) */
   left: 50%;
-  top: 50%; /* Moved down from 40% to 50% */
+  top: 50%; /* 從 40% 下移至 50% */
   transform: translate(-50%, -50%);
   cursor: pointer;
   transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -469,15 +441,15 @@ function emitClose() {
 }
 
 .card.revealed {
-  /* Fix: when revealed, we want to see front (rotateY 180deg) but simple flip logic needs proper faces */
+  /* 修正：當揭示時，我們想看到正面 (rotateY 180deg) 但簡單翻轉邏輯需要正確的面 */
   transform: translate(-50%, -50%) rotateY(180deg) scale(1);
 }
 
 .card.focused {
-  transform: translate(-50%, -50%) rotateY(180deg) scale(1.1); /* Reduced from 1.4 */
-  z-index: 9995; /* Higher than overlay (9990) */
-  position: fixed; /* Fix to viewport center when focused */
-  top: 40%; /* Match original position style but fixed */
+  transform: translate(-50%, -50%) rotateY(180deg) scale(1.1); /* 從 1.4 縮小 */
+  z-index: 9995; /* 高於遮罩層 (9990) */
+  position: fixed; /* 聚焦時固定於視窗中心 */
+  top: 40%; /* 符合原始位置樣式但固定 */
   left: 50%;
 }
 
@@ -510,13 +482,12 @@ function emitClose() {
 .card.revealed .card-back {
   opacity: 0;
   visibility: hidden;
-  /* Ensure it doesn't block clicks or visuals if z-fighting occurs */
+  /* 確保發生 z-fighting 時不會阻擋點擊或視覺 */
 }
 
 .card-back-pattern {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
 }
 
 .card-back-logo {
@@ -535,7 +506,7 @@ function emitClose() {
   justify-content: center;
   padding: 1.5rem;
   border-radius: 24px;
-  border: 4px solid #fff;
+  border: 4px solid var(--color-bg-surface);
 }
 
 .pet-info-wrapper {
@@ -566,7 +537,7 @@ function emitClose() {
   font-size: 1.5rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
-  color: #1f2937;
+  color: var(--color-fg-primary);
 }
 
 .species-badge {
@@ -583,7 +554,7 @@ function emitClose() {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  /* Removed scrollbar */
+  /* 移除捲軸 */
 }
 
 .tags-group {
@@ -608,14 +579,14 @@ function emitClose() {
 
 .tag-pill.optional {
   background: #f3f4f6;
-  color: #4b5563;
+  color: var(--color-fg-secondary);
   border: 1px solid #e5e7eb;
 }
 
 .pet-bio {
   margin-top: 1rem;
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--color-fg-muted);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -625,7 +596,7 @@ function emitClose() {
   -webkit-box-orient: vertical;
 }
 
-/* Holo Effects */
+/* 全息圖效果 */
 .holo-effect {
   position: absolute;
   inset: 0;
@@ -677,23 +648,6 @@ function emitClose() {
   }
 }
 
-/* Burst FX */
-.rare-burst {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 300px;
-  height: 300px;
-  pointer-events: none;
-  opacity: 0;
-  z-index: 150;
-}
-
-.rare-burst.show {
-  animation: burstEffect 1s ease-out forwards;
-}
-
 @keyframes burstEffect {
   0% {
     opacity: 1;
@@ -739,8 +693,8 @@ function emitClose() {
   }
 }
 
-/* Sparkles (Global for component) */
-/* Note: Since we use createElement/appendChild, we should probably style these globally or use :deep if scoped */
+/* 閃光 (組件全域) */
+/* 注意：因為我們使用 createElement/appendChild，可能需要全域樣式或使用 :deep 如果有範圍限制 */
 :deep(.sparkle-burst) {
   position: absolute;
   font-size: 1.5rem;
@@ -762,13 +716,13 @@ function emitClose() {
   }
 }
 
-/* Controls */
+/* 控制項 */
 .controls {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: 100px; /* Adjusted to be closer to new card center (at 40%) */
+  margin-top: 100px; /* 調整至更接近新卡片中心 (40%) */
   display: flex;
   gap: 15px;
   z-index: 300;
@@ -807,15 +761,15 @@ function emitClose() {
 
 .hint {
   position: absolute;
-  bottom: 10px; /* Aligned with CardCarousel */
+  bottom: 10px; /* 靠下對齊 CardCarousel */
   left: 50%;
   transform: translateX(-50%);
-  /* margin-top removed, positioning by bottom now */
-  width: auto; /* Allow auto width for pill shape */
+  /* 移除 margin-top，現在靠 bottom 定位 */
+  width: auto; /* 允許自動寬度以適應膠囊形狀 */
   white-space: nowrap;
 
-  /* Glassmorphism style from CardCarousel */
-  color: #1f2937; /* Darker text */
+  /* 來自 CardCarousel 的毛玻璃樣式 */
+  color: var(--color-fg-primary); /* 深色文字 */
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(8px);
   padding: 0.6rem 1.2rem;

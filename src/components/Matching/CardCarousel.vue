@@ -52,7 +52,6 @@ const emit = defineEmits(['select'])
 
 // 參考 (Refs)
 const containerRef = ref(null)
-const carouselRef = ref(null)
 
 // 狀態 (State)
 const internalPacks = computed(() => props.packs)
@@ -109,8 +108,6 @@ function getPackStyle(index) {
 
   // 計算修正值以確保正面卡包完全平坦
   // 壓平係數：
-  // 0.0 = 標準環形 (側面垂直朝外)
-  // 1.0 = 看板模式 (側面平坦朝向鏡頭)
   // 0.45 = 混合模式
   const flatteningFactor = 0.45
 
@@ -409,13 +406,6 @@ onUnmounted(() => {
 .carousel-pack-back .pack-pattern {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 10px,
-    rgba(255, 255, 255, 0.05) 10px,
-    rgba(255, 255, 255, 0.05) 20px
-  );
 }
 
 /* 內部設計 (Inner Design) */
@@ -430,25 +420,7 @@ onUnmounted(() => {
   border-radius: 16px;
   box-shadow: var(--shadow-card);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #333; /* Fallback */
 }
-
-/* 卡包顏色樣式 (Pack Colors) */
-.style-0 .carousel-pack-inner {
-  background: linear-gradient(135deg, #fbbf24, #d97706);
-} /* 金 */
-.style-1 .carousel-pack-inner {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-} /* 紅 */
-.style-2 .carousel-pack-inner {
-  background: linear-gradient(135deg, #60a5fa, #2563eb);
-} /* 藍 */
-.style-3 .carousel-pack-inner {
-  background: linear-gradient(135deg, #34d399, #059669);
-} /* 綠 */
-.style-4 .carousel-pack-inner {
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-} /* 紫 */
 
 /* 旋轉動畫變數 */
 @property --rotate {
@@ -488,7 +460,7 @@ onUnmounted(() => {
 
 .pack-emoji {
   font-size: 4rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0));
   z-index: 2;
 }
 
