@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import authApi from '@/api/auth'
 import profileApi from '@/api/profile'
 import { supabase } from '@/lib/supabase'
+import { useNotificationStore } from '@/stores/notification'
 import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -21,6 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Getters
   const isPetOwner = computed(() => hasPet.value)
+  const notificationStore = useNotificationStore()
 
   // Actions
   const initAuth = async () => {
@@ -47,6 +49,9 @@ export const useAuthStore = defineStore('auth', () => {
 
         console.log('✅ Token 驗證成功，已恢復登入狀態')
         console.log('🐶 寵物資料:', pet.value?.name)
+        if (userIdInt.value) {
+          notificationStore.startRealtime(userIdInt.value)
+        }
       } catch (err) {
         // Token 無效，清除狀態
         console.warn('⚠️ Token 無效或無法取得 Profile，清除登入狀態', err)
@@ -111,6 +116,9 @@ export const useAuthStore = defineStore('auth', () => {
         hasPet.value = data.has_pet ?? !!data.pet
 
         console.log('✅ 已取得完整 Profile')
+        if (userIdInt.value) {
+          notificationStore.startRealtime(userIdInt.value)
+        }
         return {
           ...response.data,
           needsRegistration: false
@@ -156,6 +164,8 @@ export const useAuthStore = defineStore('auth', () => {
       tags.value = []
       token.value = null
       hasPet.value = false
+      localStorage.removeItem('token')
+      notificationStore.stopRealtime()
       isLoading.value = false
 
       // 清除 LocalStorage (保留一些非用戶相關的設定如有需要，但目前全清最安全)
@@ -184,6 +194,9 @@ export const useAuthStore = defineStore('auth', () => {
   const setUserIdInt = (id) => {
     userIdInt.value = id
     console.log('📊 已設定 User ID (Int):', id)
+    if (userIdInt.value) {
+      notificationStore.startRealtime(userIdInt.value)
+    }
   }
 
   const setHasPet = (status) => {
@@ -269,6 +282,9 @@ export const useAuthStore = defineStore('auth', () => {
         hasPet.value = data.has_pet ?? !!data.pet
 
         console.log('✅ 已有 profile，登入成功')
+        if (userIdInt.value) {
+          notificationStore.startRealtime(userIdInt.value)
+        }
         router.push('/')
       } catch (e) {
         console.log('⚠️ 尚未建立 profile (或是 API 失敗)，導向註冊流程')
@@ -324,6 +340,9 @@ export const useAuthStore = defineStore('auth', () => {
       tags.value = data.tags || []
       userIdInt.value = data.profile?.user_id_int
       hasPet.value = data.has_pet ?? !!data.pet
+      if (userIdInt.value) {
+        notificationStore.startRealtime(userIdInt.value)
+      }
     } catch (e) {
       console.error('❌ 刷新 Profile 失敗', e)
     }
