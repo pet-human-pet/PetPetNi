@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 3000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 const corsOptions = {
-  origin: [FRONTEND_URL, "https://japanpetpetni.zeabur.app/", "https://petpetni.site."],
+  origin: [FRONTEND_URL, "https://japanpetpetni.zeabur.app", "https://petpetni.site"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
