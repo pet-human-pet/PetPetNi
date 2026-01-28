@@ -270,13 +270,12 @@ onUnmounted(() => {
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
   box-sizing: border-box;
 }
 
 @media (max-width: 480px) {
   .result-card {
-    padding: 0.5rem;
+    padding: 0.5rem 2rem 0.5rem 2rem;
   }
 }
 
