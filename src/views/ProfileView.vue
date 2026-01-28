@@ -381,7 +381,12 @@ const syncTagsToProfile = async () => {
 
 const { previewOpen, previewImages, previewIndex, openPreview, closePreview } = useImagePreview()
 const { isDesktop } = useScreen()
-const commentManager = useActiveItem({
+const {
+  activeId: activeCommentPostId,
+  activate: activateComments,
+  deactivate: deactivateComments,
+  registerRef: registerCommentRef
+} = useActiveItem({
   enableClickOutside: isDesktop
 })
 
@@ -482,25 +487,25 @@ const handleCommentDeleted = (postId) => postStore.updateCommentCount(postId, -1
 
 // 留言開啟/關閉
 const openComments = (postId) => {
-  if (commentManager.activeId.value === postId) {
-    commentManager.deactivate()
+  if (activeCommentPostId.value === postId) {
+    deactivateComments()
   } else {
-    commentManager.activate(postId)
+    activateComments(postId)
   }
 }
 
-const postCardEvents = {
+const postCardEvents = computed(() => ({
   update: handleUpdatePost,
   'preview-image': openPreview,
   like: toggleLike,
   'open-comments': openComments,
-  'close-comments': commentManager.deactivate,
+  'close-comments': deactivateComments,
   share: sharePost,
   bookmark: toggleBookmark,
   delete: handleDeletePost,
   'comment-added': handleCommentAdded,
   'comment-deleted': handleCommentDeleted
-}
+}))
 
 const handleFileChange = async (e) => {
   const file = e.target.files[0]
@@ -845,9 +850,9 @@ onUnmounted(() => {
                 <PostCard
                   v-for="post in displayedPosts"
                   :key="post.id"
-                  :ref="(el) => commentManager.registerRef(post.id, el)"
+                  :ref="(el) => registerCommentRef(post.id, el)"
                   :post="post"
-                  :show-comments="commentManager.activeId.value === post.id"
+                  :show-comments="activeCommentPostId === post.id"
                   v-on="postCardEvents"
                 />
 
