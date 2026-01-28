@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { INITIAL_AI_DB, AI_WELCOME_MESSAGES } from '@/utils/chatMockData'
 import { useAuthStore } from '@/stores/auth'
 
@@ -40,14 +40,35 @@ export const useAIStore = defineStore('ai', () => {
    */
   async function loadSessions() {
     try {
+      // 等待 authStore 準備完成
+      if (!authStore.isReady) {
+        console.log('⏳ 等待 authStore 準備完成...')
+        await new Promise((resolve) => {
+          // 使用 watch 監聽 isReady 變化
+          const unwatch = watch(
+            () => authStore.isReady,
+            (ready) => {
+              if (ready) {
+                unwatch()
+                resolve()
+              }
+            },
+            { immediate: true }
+          )
+        })
+      }
+
       const userId = authStore.userIdInt
       if (!userId) {
         console.warn('⚠️ 無法載入 AI 對話:用戶未登入或 userIdInt 不存在')
         return
       }
 
+      console.log('📥 載入 AI 對話紀錄,用戶 ID:', userId)
       const response = await fetch(`${API_BASE_URL}/sessions?userId=${userId}`)
       const rawSessions = await response.json()
+
+      console.log('✅ 成功載入', rawSessions.length, '個對話紀錄')
 
       // 轉換後端 session 格式
       aiDb.value.history = rawSessions.map((s) => ({
