@@ -52,7 +52,7 @@
           <transition name="fade">
             <div
               v-if="stage === 'opening'"
-              class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+              class="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm"
               @click="handleOverlayClick"
             >
               <!-- 階段 2: 開包儀式 -->
@@ -123,11 +123,23 @@ const authStore = useAuthStore()
 const chatStore = useChatStore()
 const toast = useToast()
 
-const tarotModules = import.meta.glob('@/assets/images/tarot/*.png*/', {
+const tarotModules = import.meta.glob('@/assets/images/tarot/**/*.webp', {
   eager: true,
   import: 'default'
 })
 const tarotImages = Object.values(tarotModules)
+
+// 洗牌演算法 (Fisher-Yates Shuffle) 以確保圖片不重複
+function getShuffledImages(images, count) {
+  const shuffled = [...images]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = (Math.floor(Math.random() * (i + 1))[(shuffled[i], shuffled[j])] = [
+      shuffled[j],
+      shuffled[i]
+    ])
+  }
+  return shuffled.slice(0, count)
+}
 
 const stage = ref('selection')
 const isLoading = ref(true)
@@ -137,17 +149,15 @@ const selectedPack = ref({ id: 1, bgImage: tarotImages[0] })
 const isPackOpened = ref(false)
 let timerInterval = null
 
-function getRandomTarotImage() {
-  return tarotImages[Math.floor(Math.random() * tarotImages.length)]
-}
+// 初始隨機選取 5 張不重複的圖片
+const initialImages = getShuffledImages(tarotImages, 5)
 
-const cardPacks = ref([
-  { id: 1, bgImage: getRandomTarotImage() },
-  { id: 2, bgImage: getRandomTarotImage() },
-  { id: 3, bgImage: getRandomTarotImage() },
-  { id: 4, bgImage: getRandomTarotImage() },
-  { id: 5, bgImage: getRandomTarotImage() }
-])
+const cardPacks = ref(
+  initialImages.map((img, index) => ({
+    id: index + 1,
+    bgImage: img
+  }))
+)
 
 const loadingPetData = {
   name: '召喚中...',
@@ -296,7 +306,7 @@ onMounted(async () => {
 
   try {
     await matchingStore.checkMatchStatus()
-  } catch (e) {
+  } catch {
     // 忽略錯誤
   } finally {
     isLoading.value = false
@@ -332,7 +342,7 @@ watch(
           stage.value = 'cooldown'
           calculateTimeUntilReset()
         }
-      } catch (e) {
+      } catch {
         // 忽略錯誤
       }
     }
