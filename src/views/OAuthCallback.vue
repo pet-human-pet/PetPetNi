@@ -46,7 +46,7 @@ onMounted(async () => {
       router.push(`/login?mode=social_bind&temp_token=${data.tempToken}`)
     } else {
       // 登入成功，儲存 JWT Token 並跳轉首頁
-      localStorage.setItem('token', data.token)
+      window.storage.set('token', data.token)
       router.push('/')
     }
   } catch (error) {
