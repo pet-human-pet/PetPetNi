@@ -170,12 +170,17 @@ const followingList = ref([])
 const myFollowersCount = ref(0)
 const myFollowingCount = ref(0)
 
-const eventTabs = [
-  { id: 'create', label: '發起活動', padding: 'px-4 md:px-8' },
-  { id: 'participated', label: '參加活動', padding: 'px-4 md:px-8' },
-  { id: 'follow', label: '收藏活動', padding: 'px-4 md:px-8' },
-  { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
-]
+const eventTabs = computed(() => {
+  if (!isOwnProfile.value) {
+    return [{ id: 'create', label: '發起活動', padding: 'px-4 md:px-8' }]
+  }
+  return [
+    { id: 'create', label: '發起活動', padding: 'px-4 md:px-8' },
+    { id: 'participated', label: '參加活動', padding: 'px-4 md:px-8' },
+    { id: 'follow', label: '收藏活動', padding: 'px-4 md:px-8' },
+    { id: 'history', label: '歷史活動', padding: 'px-4 md:px-8' }
+  ]
+})
 
 const eventStore = useEventMapStore()
 const favoritesStore = useFavoritesStore()
@@ -251,6 +256,13 @@ const historyEvents = computed(() => {
 
 // 根據當前選中的 tab 返回對應的活動列表
 const currentEvents = computed(() => {
+  if (!isOwnProfile.value) {
+    const targetId = targetUserIdInt.value
+    if (!targetId) return []
+    return eventStore.events.filter(
+      (evt) => String(evt.initiator?.id) === String(targetId)
+    )
+  }
   const eventsMap = {
     create: createdEvents.value,
     participated: participatedEvents.value,
@@ -420,6 +432,19 @@ const postTabs = computed(() => {
     { id: 'my', label: '我的貼文', padding: 'px-6 md:px-10' },
     { id: 'saved', label: '儲存的貼文', padding: 'px-6 md:px-10' }
   ]
+})
+
+const topTabs = computed(() => {
+  const eventsLabel = isOwnProfile.value ? '活動' : '發起的活動'
+  return [
+    { id: 'posts', n: '貼文' },
+    { id: 'events', n: eventsLabel }
+  ]
+})
+
+const showEventsTab = computed(() => {
+  if (!isOwnProfile.value) return true
+  return profileDisplay.value?.role === 'owner'
 })
 
 // 按讚
@@ -779,10 +804,7 @@ onUnmounted(() => {
             >
               <div class="text-fg-muted flex shrink-0 justify-around bg-white px-4 text-xl md:px-6">
                 <button
-                  v-for="tab in [
-                    { id: 'posts', n: '貼文' },
-                    { id: 'events', n: '活動' }
-                  ].filter((t) => (profileDisplay.role === 'owner' ? true : t.id !== 'events'))"
+                  v-for="tab in topTabs.filter((t) => (t.id !== 'events' ? true : showEventsTab))"
                   :key="tab.id"
                   class="group flex-1 cursor-pointer text-center text-base font-bold md:text-lg"
                   :class="{ 'text-btn-primary': activeTab === tab.id }"
@@ -858,13 +880,15 @@ onUnmounted(() => {
 
                 <div
                   v-if="
-                    (activeSubTab === 'my' && myPosts.length === 0) ||
-                    (activeSubTab === 'saved' && savedPosts.length === 0)
+                    isOwnProfile
+                      ? (activeSubTab === 'my' && myPosts.length === 0) ||
+                        (activeSubTab === 'saved' && savedPosts.length === 0)
+                      : displayedPosts.length === 0
                   "
                   class="text-fg-muted pt-10 text-center md:pt-40"
                 >
                   <i class="fa-solid fa-image mb-2 text-4xl opacity-30"></i>
-                  <p>{{ activeSubTab === 'my' ? '尚未發布任何貼文' : '尚未儲存任何貼文' }}</p>
+                  <p>{{ isOwnProfile ? (activeSubTab === 'my' ? '尚未發布任何貼文' : '尚未儲存任何貼文') : '尚未發布任何貼文' }}</p>
                 </div>
               </div>
               <div v-if="activeTab === 'events'" class="grid gap-4 pb-10 md:gap-5">
@@ -873,8 +897,8 @@ onUnmounted(() => {
                   :key="event.id"
                   :event="event"
                   :location-name="eventStore.baseLocations[event.locId]?.name"
-                  :show-delete="activeSubTab === 'create'"
-                  :show-leave="activeSubTab === 'participated'"
+                  :show-delete="isOwnProfile && activeSubTab === 'create'"
+                  :show-leave="isOwnProfile && activeSubTab === 'participated'"
                   @click="openDetail"
                   @delete="openDeleteConfirm"
                   @leave="handleLeaveEvent"

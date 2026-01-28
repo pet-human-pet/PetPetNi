@@ -194,12 +194,12 @@ const handleFollowClick = () => {
     <transition name="fade-slide">
       <div
         v-if="profile.role === 'owner' && (isAboutVisible || !isOwnProfile)"
-        class="u-no-tap-highlight mt-4 w-full md:mt-10"
+        class="u-no-tap-highlight mt-4 w-full md:mt-4"
         style="outline: none !important; -webkit-tap-highlight-color: transparent"
       >
         <!-- 寵物基本資訊：行動版置中，桌機版還原偏移位置 (優化 960px 空間) -->
-        <div class="flex w-full flex-col items-center md:items-start md:pl-6 lg:pl-12">
-          <div class="flex w-full max-w-[280px] flex-col gap-2 md:max-w-none md:gap-1">
+        <div class="flex w-full flex-col md:items-start">
+          <div class="flex w-full max-w-70 flex-col gap-2 md:max-w-none md:gap-1">
             <div v-for="field in petInfoFields" :key="field.label">
               <div
                 class="text-fg-muted mb-1 flex items-center gap-3 text-sm font-semibold tracking-wide uppercase md:gap-4"
@@ -216,7 +216,7 @@ const handleFollowClick = () => {
         </div>
 
         <!-- 標籤雲：同樣保持置中重心 -->
-        <div class="mt-8 flex w-full justify-center md:mt-12">
+        <div class="mt-3 flex w-full justify-center md:mt-4">
           <div class="grid w-full max-w-sm grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
             <span
               v-for="tag in profile.hashtags"
