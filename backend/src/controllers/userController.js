@@ -227,21 +227,12 @@ export const userController = {
       }
 
       // ========== 6. 建立 Pet ==========
-      const { data: petData, error: petError } = await supabase
-        .from('pets')
-        .insert({
-          user_id_int: profile.user_id_int, // 只使用自增 ID
-          name: sanitizeString(pet.name),
-          type: pet.type,
-          breed: pet.breed ? sanitizeString(pet.breed) : null,
-          birthday: pet.birthday || null,
-          gender: pet.gender || null
-        })
-        .select()
-        .single()
+      // ========== 6. 建立 Pet ==========
+      let petData = null
       let tagsResult = { success: true, count: 0 }
+
       if (pet) {
-        const { data: createdPet, error: petError } = await supabase
+        const { data, error: petError } = await supabase
           .from('pets')
           .insert({
             user_id_int: profile.user_id_int, // 只使用自增 ID
@@ -254,28 +245,34 @@ export const userController = {
           .select()
           .single()
 
-        // 回滾：刪除已建立的相關資料
-        const rollbackPromises = [supabase.from('profiles').delete().eq('user_id', user.id)]
+        if (petError) {
+          console.error('❌ Pet 建立失敗:', petError)
 
-        // 如果建立了頭像關聯，也一併回滾
-        if (avatarUrl) {
-          rollbackPromises.push(
-            supabase.from('profile_images').delete().eq('profile_id', profile.id)
-          )
+          // 回滾：刪除已建立的相關資料
+          const rollbackPromises = [supabase.from('profiles').delete().eq('user_id', user.id)]
+
+          // 如果建立了頭像關聯，也一併回滾
+          if (avatarUrl) {
+            rollbackPromises.push(
+              supabase.from('profile_images').delete().eq('profile_id', profile.id)
+            )
+          }
+
+          await Promise.allSettled(rollbackPromises)
+
+          return res.status(400).json({
+            error: '寵物資料建立失敗',
+            code: 'PET_CREATE_ERROR',
+            details: petError.message
+          })
         }
 
-        const results = await Promise.allSettled(rollbackPromises)
-        results.forEach((res, idx) => {
-          if (res.status === 'rejected') {
-            console.error(`⚠️ 回滾項 ${idx} 失敗:`, res.reason)
-          }
-        })
+        petData = data
 
-        return res.status(400).json({
-          error: '寵物資料建立失敗',
-          code: 'PET_CREATE_ERROR',
-          details: petError.message
-        })
+        // ========== 7. 建立 Tags ==========
+        if (optionalTags && optionalTags.length > 0) {
+          tagsResult = await createPetTags(petData.id, optionalTags)
+        }
       }
 
       // Tags 失敗不中斷流程，但記錄在回應中

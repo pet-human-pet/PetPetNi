@@ -2,9 +2,6 @@
 import { ref, watch, computed, watchEffect } from 'vue'
 import BaseInput from '@/components/Form/BaseInput.vue'
 import { taiwanLocations, cities } from '@/utils/taiwanLocations'
-import { useImageUpload } from '@/composables/useImageUpload'
-import { useToast } from '@/composables/useToast'
-import AvatarCropper from '@/components/Share/AvatarCropper.vue'
 
 const props = defineProps({
   email: {
@@ -22,15 +19,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['submit', 'back'])
-
-const { uploadToCloudinary } = useImageUpload()
-const { success, error, info } = useToast()
-
-const avatarUrl = ref('')
-const isUploading = ref(false)
-const showCropper = ref(false)
-const selectedFile = ref(null)
-const fileInput = ref(null)
 
 const realName = ref('')
 const nickname = ref('')
@@ -56,7 +44,6 @@ watchEffect(() => {
     district.value = props.initialData.district || ''
     gender.value = props.initialData.gender || ''
     birthday.value = props.initialData.birthday || ''
-    avatarUrl.value = props.initialData.avatarUrl || ''
   }
 })
 
@@ -94,39 +81,6 @@ const validatePhone = (phoneNumber) => {
   return phoneRegex.test(phoneNumber.replace(/-/g, '')) || phoneWithDashRegex.test(phoneNumber)
 }
 
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    if (!file.type.startsWith('image/')) {
-      error('請選擇圖片檔案')
-      return
-    }
-    selectedFile.value = file
-    showCropper.value = true
-  }
-}
-
-const handleCropSave = async (blob) => {
-  showCropper.value = false
-  isUploading.value = true
-  info('正在上傳頭像...')
-
-  try {
-    const result = await uploadToCloudinary(blob, { folder: 'petpetni/avatars' })
-    avatarUrl.value = result.url
-    success('頭像上傳成功')
-  } catch (err) {
-    error('頭像上傳失敗')
-    console.error(err)
-  } finally {
-    isUploading.value = false
-  }
-}
-
 const handleSubmit = () => {
   // 清空錯誤訊息
   phoneError.value = ''
@@ -155,8 +109,7 @@ const handleSubmit = () => {
     city: city.value,
     district: district.value,
     gender: gender.value,
-    birthday: birthday.value,
-    avatarUrl: avatarUrl.value
+    birthday: birthday.value
   })
 }
 </script>
@@ -174,50 +127,6 @@ const handleSubmit = () => {
       class="flex flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4"
       @submit.prevent="handleSubmit"
     >
-      <!-- 大頭貼上傳區 -->
-      <div class="mb-2 flex flex-col items-center gap-3">
-        <div
-          class="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-full border-2 border-gray-100 bg-gray-50 transition-all hover:border-orange-200"
-          @click="triggerFileInput"
-        >
-          <img
-            v-if="avatarUrl"
-            :src="avatarUrl"
-            class="h-full w-full object-cover"
-            alt="Avatar Preview"
-          />
-          <div v-else class="flex h-full w-full flex-col items-center justify-center text-gray-400">
-            <i class="fa-solid fa-camera text-2xl"></i>
-            <span class="mt-1 text-xs">上傳頭像</span>
-          </div>
-
-          <!-- Loading Overlay -->
-          <div
-            v-if="isUploading"
-            class="absolute inset-0 flex items-center justify-center bg-black/20"
-          >
-            <div
-              class="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"
-            ></div>
-          </div>
-
-          <!-- Hover Edit Overlay -->
-          <div
-            class="invisible absolute inset-0 flex items-center justify-center bg-black/10 transition-all group-hover:visible"
-          >
-            <i class="fa-solid fa-pen text-white"></i>
-          </div>
-        </div>
-        <input
-          ref="fileInput"
-          type="file"
-          accept="image/*"
-          class="hidden"
-          @change="handleFileChange"
-        />
-        <p v-if="!avatarUrl" class="text-[10px] text-gray-400">建議上傳清楚的個人照</p>
-      </div>
-
       <!-- Email（唯讀顯示） -->
       <div v-if="showEmail" class="space-y-2">
         <label class="text-sm font-medium text-gray-600">Email</label>
@@ -386,13 +295,5 @@ const handleSubmit = () => {
         </button>
       </div>
     </form>
-
-    <!-- 裁切組件 -->
-    <AvatarCropper
-      v-if="showCropper"
-      :file="selectedFile"
-      @close="showCropper = false"
-      @save="handleCropSave"
-    />
   </div>
 </template>
