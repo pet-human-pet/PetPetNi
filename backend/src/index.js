@@ -1,47 +1,52 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // 1. 導入路徑與服務 (New Structure)
-import chatRoutes from './routes/chat.js'
-import aiRoutes from './routes/ai.js'
-import authRoutes from './routes/auth.js'
-import userRoutes from './routes/user.js'
-import eventRoutes from './routes/event.js'
-import socialRoutes from './routes/social.js'
-import followRoutes from './routes/followRoutes.js'
-import matchRoutes from './routes/match.js'
-import { chatService } from './services/chatService.js'
+import chatRoutes from "./routes/chat.js";
+import aiRoutes from "./routes/ai.js";
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/user.js";
+import eventRoutes from "./routes/event.js";
+import socialRoutes from "./routes/social.js";
+import followRoutes from "./routes/followRoutes.js";
+import matchRoutes from "./routes/match.js";
+import { chatService } from "./services/chatService.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-dotenv.config({ path: path.resolve(__dirname, '../.env') })
-const app = express()
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+const app = express();
 
 // 配置
-const PORT = process.env.PORT || 3000
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
+const PORT = process.env.PORT || 3000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-app.use(cors({ origin: FRONTEND_URL }))
-app.use(express.json())
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://petpetni.zeabur.app", "http://localhost:3000"],
+    credentials: true,
+  }),
+);
+app.use(express.json());
 
 // 2. 註冊路由
-app.use('/api/chat', chatRoutes)
-app.use('/api/ai', aiRoutes)
-app.use('/api/auth', authRoutes)
-app.use('/api/user', userRoutes)
-app.use('/api/events', eventRoutes)
-app.use('/api/social', socialRoutes)
-app.use('/api/follow', followRoutes)
-app.use('/api/match', matchRoutes)
+app.use("/api/chat", chatRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/social", socialRoutes);
+app.use("/api/follow", followRoutes);
+app.use("/api/match", matchRoutes);
 
 // Health Check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PetPetNi API Server is ALIVE!' })
-})
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", message: "PetPetNi API Server is ALIVE!" });
+});
 
 // 3. 啟動伺服器
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
-})
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
