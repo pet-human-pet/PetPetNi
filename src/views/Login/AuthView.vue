@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { userApi } from '@/api/user'
+import { useToast } from '@/composables/useToast'
 import LoginForm from '@/components/login/LoginForm.vue'
 import RegisterForm from '@/components/login/RegisterForm.vue'
 
@@ -26,6 +27,9 @@ let countdownTimer = null
 const ownerData = ref(null) // 主人資料
 const petData = ref(null) // 單隻寵物資料
 const petTagsData = ref(null) // 寵物標籤資料
+
+const { error: showToastError } = useToast()
+const isSubmitting = ref(false)
 
 onMounted(() => {
   handleRouteQuery()
@@ -165,6 +169,7 @@ const handleComplete = async () => {
     }
 
     // 呼叫後端 API 建立 Profile
+    isSubmitting.value = true
     const response = await userApi.createProfile({
       realName: ownerData.value.realName,
       nickName: ownerData.value.nickname,
@@ -172,18 +177,9 @@ const handleComplete = async () => {
       city: ownerData.value.city,
       district: ownerData.value.district,
       gender: ownerData.value.gender, // 新增：傳遞性別
-      avatarUrl: ownerData.value.avatarUrl, // 新增：傳遞大頭貼
-      pet: {
-        name: petData.value.name,
-        type: petData.value.type,
-        breed: petData.value.breed,
-        birthday: petData.value.birthday,
-        gender: petData.value.gender
-      },
-      optionalTags: [
-        ...(petTagsData.value?.requiredTags || []),
-        ...(petTagsData.value?.optionalTags || [])
-      ]
+      avatarUrl: '', // 即使沒上傳也傳送空字串，避免後端驗證錯誤
+      pet: petPayload,
+      optionalTags: petTagsData.value?.optionalTags || []
     })
 
     console.log('✅ Profile 建立成功')
@@ -210,8 +206,9 @@ const handleComplete = async () => {
     startCountdown()
   } catch (error) {
     console.error('❌ Profile 建立失敗:', error)
-    // TODO: 顯示錯誤提示給用戶
-    // 可以考慮使用 Toast 或者在 UI 上顯示錯誤訊息
+    showToastError('註冊失敗，請稍後再試')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -315,7 +312,11 @@ onUnmounted(() => {
             key="pet_tags"
             class="max-h-[90vh] w-full max-w-md overflow-hidden rounded-3xl border-none bg-white shadow-xl md:h-[85vh]"
           >
-            <PetTagsSelection @submit="handlePetTagsSubmit" @back="handleGoBack" />
+            <PetTagsSelection
+              :loading="isSubmitting"
+              @submit="handlePetTagsSubmit"
+              @back="handleGoBack"
+            />
           </div>
 
           <!-- 註冊成功頁面 -->

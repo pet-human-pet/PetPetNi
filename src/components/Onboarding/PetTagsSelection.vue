@@ -4,6 +4,13 @@ import { requiredTagGroups } from '@/utils/profileData.js'
 import { useTagSelection } from '@/composables/useTagSelection.js'
 import TagSelector from '@/components/Share/TagSelector.vue'
 
+defineProps({
+  loading: {
+    type: Boolean,
+    default: false
+  }
+})
+
 const emit = defineEmits(['submit', 'back'])
 
 const {
@@ -248,10 +255,16 @@ const submitForm = () => {
         type="button"
         class="flex-1 rounded-xl py-4 font-bold text-white shadow-lg transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         style="background-color: #ffa75f"
-        :disabled="!allRequiredSelected"
+        :disabled="!allRequiredSelected || loading"
         @click="submitForm"
       >
-        完成註冊
+        <div v-if="loading" class="loader-container">
+          <svg class="ring-progress" viewBox="0 0 50 50">
+            <circle cx="25" cy="25" r="20"></circle>
+            <circle cx="25" cy="25" r="20"></circle>
+          </svg>
+        </div>
+        <span v-else>完成註冊</span>
       </button>
     </div>
   </div>
@@ -266,5 +279,38 @@ const submitForm = () => {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
+}
+
+/* Custom Loader Styles */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 24px; /* Adjust to button height */
+}
+
+.ring-progress {
+  width: 24px; /* Scaled down from 50px */
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+.ring-progress circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.3); /* Optimized background ring for white button text/orange bg */
+  stroke-width: 4;
+}
+
+.ring-progress circle:nth-child(2) {
+  stroke: #ffffff; /* White stroke to contrast with orange button */
+  stroke-dasharray: 150; /* Adjusted for smaller size logic? No, dasharray depends on viewBox radius (20*2*PI approx 125). 150 covers it. */
+  stroke-dashoffset: 50;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
