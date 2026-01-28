@@ -129,7 +129,7 @@ const getIconUrl = (name) => {
             ></div>
 
             <div
-              class="pointer-events-none absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-full opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              class="pointer-events-none absolute top-4 left-1/2 z-20 -translate-x-1/2 -translate-y-full opacity-0 transition-opacity duration-200 group-hover:opacity-100"
             >
               <div
                 class="border-brand-tertiary text-fg-muted relative rounded-2xl border-2 bg-white px-3 py-1.5 text-center text-xs font-semibold shadow-lg md:text-sm"

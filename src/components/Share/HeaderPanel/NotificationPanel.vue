@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useActiveItem } from '@/composables/useActiveItem'
 import { useNotificationStore } from '@/stores/notification'
 import { storeToRefs } from 'pinia'
@@ -9,7 +9,7 @@ import { useScrollLock } from '@/composables/useScrollLock'
 const { activeId, activate, deactivate, registerRef } = useActiveItem()
 const notificationStore = useNotificationStore()
 const { notifications, unreadCount } = storeToRefs(notificationStore)
-const { markRead, markAllRead, removeNotification } = notificationStore
+const { fetchNotifications, markRead, markAllRead, removeNotification } = notificationStore
 
 const PANEL_ID = 'notification-panel'
 
@@ -22,6 +22,19 @@ const toggle = () => {
     activate(PANEL_ID)
   }
 }
+
+onMounted(() => {
+  fetchNotifications()
+})
+
+watch(
+  () => isOpen.value,
+  (open) => {
+    if (open) {
+      fetchNotifications()
+    }
+  }
+)
 
 // Mobile check & Scroll Lock
 const { breakpoints } = useScreen()

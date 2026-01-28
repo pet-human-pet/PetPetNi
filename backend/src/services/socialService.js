@@ -16,6 +16,50 @@ const getProfileId = async (authUserId) => {
   return data.user_id_int
 }
 
+const getProfileNameByIdInt = async (userIdInt) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('nick_name')
+      .eq('user_id_int', userIdInt)
+      .single()
+
+    if (error) {
+      console.error('❌ 取得用戶名稱失敗:', error)
+      return '用戶'
+    }
+
+    return data?.nick_name || '用戶'
+  } catch (error) {
+    console.error('❌ 取得用戶名稱發生錯誤:', error)
+    return '用戶'
+  }
+}
+
+const createNotification = async ({
+  recipientIdInt,
+  actorIdInt,
+  type,
+  content,
+  targetPostId = null
+}) => {
+  if (!recipientIdInt || !actorIdInt) return
+  if (recipientIdInt === actorIdInt) return
+
+  const { error } = await supabase.from('notifications').insert({
+    recipient_id_int: recipientIdInt,
+    actor_id_int: actorIdInt,
+    type,
+    content,
+    target_post_id: targetPostId,
+    is_read: false
+  })
+
+  if (error) {
+    console.error('❌ 建立通知失敗:', error)
+  }
+}
+
 export const socialService = {
   // ==========================================
   // 取得貼文列表 API
@@ -261,6 +305,23 @@ export const socialService = {
 
       if (error && !error.message.includes('duplicate key')) {
         throw error
+      }
+
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .select('user_id_int')
+        .eq('id', postId)
+        .single()
+
+      if (!postError && post?.user_id_int && post.user_id_int !== userIdInt) {
+        const actorName = await getProfileNameByIdInt(userIdInt)
+        await createNotification({
+          recipientIdInt: post.user_id_int,
+          actorIdInt: userIdInt,
+          type: 'like',
+          content: `${actorName} 讚了你的貼文`,
+          targetPostId: postId
+        })
       }
 
       return { success: true }
@@ -691,6 +752,23 @@ export const socialService = {
         .single()
 
       if (error) throw error
+
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .select('user_id_int')
+        .eq('id', postId)
+        .single()
+
+      if (!postError && post?.user_id_int && post.user_id_int !== userIdInt) {
+        const actorName = data?.profiles?.nick_name || (await getProfileNameByIdInt(userIdInt))
+        await createNotification({
+          recipientIdInt: post.user_id_int,
+          actorIdInt: userIdInt,
+          type: 'comment',
+          content: `${actorName} 留言了你的貼文`,
+          targetPostId: postId
+        })
+      }
 
       return {
         id: data.id,
