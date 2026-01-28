@@ -85,7 +85,9 @@ export const aiService = {
         // 如果標題還是「新對話」，用用戶的第一條訊息更新標題
         let updatedTitle = null
         if (session?.title === '新對話') {
-          updatedTitle = message.substring(0, SESSION_TITLE_MAX_LENGTH) + (message.length > SESSION_TITLE_MAX_LENGTH ? '...' : '')
+          updatedTitle =
+            message.substring(0, SESSION_TITLE_MAX_LENGTH) +
+            (message.length > SESSION_TITLE_MAX_LENGTH ? '...' : '')
           updateData.title = updatedTitle
         }
 
@@ -153,16 +155,21 @@ export const aiService = {
 
   /**
    * 取得使用者的所有對話列表
-   * @param {number} userId - 用戶自增 ID
+   * @param {number} userId - 用戶自增 ID (必填)
    */
   async getUserSessions(userId = null) {
-    const query = supabase.from('ai_sessions').select('*').order('updated_at', { ascending: false })
-
-    if (userId) {
-      query.eq('user_id_int', userId)
+    // 🚨 安全性檢查:沒有 userId 時不回傳任何資料
+    if (!userId) {
+      console.warn('⚠️ getUserSessions 被呼叫時沒有提供 userId,拒絕回傳資料')
+      return []
     }
 
-    const { data, error } = await query
+    const { data, error } = await supabase
+      .from('ai_sessions')
+      .select('*')
+      .eq('user_id_int', userId)
+      .order('updated_at', { ascending: false })
+
     if (error) throw error
     return data
   },

@@ -12,7 +12,11 @@ export const aiController = {
         return res.status(400).json({ error: '請提供訊息內容' })
       }
 
-      const { reply, updatedTitle } = await aiService.getChatResponse(message, history || [], sessionId)
+      const { reply, updatedTitle } = await aiService.getChatResponse(
+        message,
+        history || [],
+        sessionId
+      )
 
       res.json({
         reply,
@@ -31,6 +35,11 @@ export const aiController = {
   async getSessions(req, res) {
     try {
       const { userId } = req.query
+
+      if (!userId) {
+        return res.status(400).json({ error: '缺少必要參數: userId' })
+      }
+
       const sessions = await aiService.getUserSessions(userId)
       res.json(sessions)
     } catch (error) {

@@ -40,7 +40,13 @@ export const useAIStore = defineStore('ai', () => {
    */
   async function loadSessions() {
     try {
-      const response = await fetch(`${API_BASE_URL}/sessions`)
+      const userId = authStore.userIdInt
+      if (!userId) {
+        console.warn('⚠️ 無法載入 AI 對話:用戶未登入或 userIdInt 不存在')
+        return
+      }
+
+      const response = await fetch(`${API_BASE_URL}/sessions?userId=${userId}`)
       const rawSessions = await response.json()
 
       // 轉換後端 session 格式
