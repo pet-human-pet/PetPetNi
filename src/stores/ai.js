@@ -289,6 +289,17 @@ export const useAIStore = defineStore('ai', () => {
     }
   }
 
+  /**
+   * 清除所有 AI 對話紀錄 (用於登出時)
+   */
+  function clear() {
+    aiDb.value.history = []
+    activeSessionId.value = null
+    isDrawerOpen.value = false
+    isLoading.value = false
+    console.log('🧹 已清除所有 AI 對話紀錄')
+  }
+
   return {
     isDrawerOpen,
     activeSessionId,
@@ -303,6 +314,7 @@ export const useAIStore = defineStore('ai', () => {
     createAiChat,
     startAiFeature,
     loadSessions,
-    deleteSession
+    deleteSession,
+    clear
   }
 })
