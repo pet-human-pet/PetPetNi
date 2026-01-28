@@ -50,6 +50,6 @@ app.get("/api/health", (req, res) => {
 });
 
 // 3. 啟動伺服器
-app.listen(PORT, () => {
+app.listen(PORT,"0.0.0.0", () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
