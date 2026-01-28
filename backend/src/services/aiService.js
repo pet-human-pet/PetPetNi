@@ -62,9 +62,12 @@ export const aiService = {
 
       // 3. 取得回應
       const result = await chat.sendMessage(message)
-      const replyText = result.response.text()
+      let replyText = result.response.text()
 
-      // 4. 如果有 sessionId，則自動存入資料庫
+      // 4. 移除字數統計標記 (例如: (59字), (100字) 等)
+      replyText = replyText.replace(/\(?\d+字\)?/g, '').trim()
+
+      // 5. 如果有 sessionId，則自動存入資料庫
       if (sessionId) {
         await this.saveMessage(sessionId, 'user', message)
         await this.saveMessage(sessionId, 'model', replyText)
