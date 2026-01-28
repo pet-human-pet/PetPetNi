@@ -23,12 +23,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://petpetni.zeabur.app", "http://localhost:3000"],
-    credentials: true,
-  }),
-);
+const corsOptions = {
+  origin: [FRONTEND_URL, "http://localhost:3000", "https://petpetni.zeabur.app"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 // 2. 註冊路由
