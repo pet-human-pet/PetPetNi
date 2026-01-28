@@ -182,6 +182,9 @@ export const useAuthStore = defineStore('auth', () => {
       import('@/stores/favorites').then(({ useFavoritesStore }) => {
         useFavoritesStore().clear()
       })
+      import('@/stores/ai').then(({ useAIStore }) => {
+        useAIStore().clear()
+      })
 
       console.log('🧹 已清除所有本地狀態與快取')
     }
