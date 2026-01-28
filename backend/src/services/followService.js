@@ -66,20 +66,18 @@ export const followService = {
    * @returns {Promise<boolean>}
    */
   async isFollowing(followerIdInt, followingIdInt) {
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from('follows')
-      .select('follower_id_int')
-      .select('id')
+      .select('*', { count: 'exact', head: true })
       .eq('follower_id_int', followerIdInt)
       .eq('following_id_int', followingIdInt)
-      .maybeSingle()
 
     if (error) {
       console.error('❌ 檢查追蹤狀態失敗:', error)
       throw error
     }
 
-    return !!data
+    return (count || 0) > 0
   },
 
   /**
