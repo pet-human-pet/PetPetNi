@@ -3,6 +3,11 @@ import { socialController } from '../controllers/socialController.js'
 
 const router = express.Router()
 
+// Health / root
+router.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Social API is alive' })
+})
+
 // 貼文
 router.get('/posts', socialController.getPosts)
 router.post('/posts', socialController.createPost)
