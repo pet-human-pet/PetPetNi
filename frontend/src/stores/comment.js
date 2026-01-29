@@ -25,7 +25,7 @@ export const useCommentStore = defineStore('comment', {
         // 假設 API 回傳的是 comment array
         this.commentsByPost[postId] = res.data || res
       } catch (error) {
-        console.error('Fetch comments failed:', error)
+
         showError(getErrorMessage(error, '留言載入失敗，請稍後再試'))
       }
     },
@@ -55,7 +55,7 @@ export const useCommentStore = defineStore('comment', {
 
         return newComment
       } catch (error) {
-        console.error('[CommentStore] Add comment failed:', error)
+
         showError(getErrorMessage(error, '留言新增失敗，請稍後再試'))
         throw error
       }
@@ -73,7 +73,7 @@ export const useCommentStore = defineStore('comment', {
           )
         }
       } catch (error) {
-        console.error('Delete comment failed:', error)
+
         showError(getErrorMessage(error, '留言刪除失敗，請稍後再試'))
         throw error
       }

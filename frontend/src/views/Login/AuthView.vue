@@ -83,7 +83,6 @@ function handleRouteQuery() {
         userEmail.value = res.data.user.email
         userRole.value = 'owner'
         authMode.value = 'pet'
-        console.log('✅ 已載入主人資料，進入寵物填寫模式')
       } catch (err) {
         console.error('❌ 無法載入個人檔案:', err)
         authMode.value = 'login' // 失敗則回登入頁
@@ -182,7 +181,6 @@ const handleComplete = async () => {
       optionalTags: petTagsData.value?.optionalTags || []
     })
 
-    console.log('✅ Profile 建立成功')
 
     // 從回應中取得 user_id_int 並儲存到 authStore
     // userController 回傳格式為 { success: true, data: { profile: ... } }
@@ -195,10 +193,8 @@ const handleComplete = async () => {
       // 如果有建立寵物資料，更新 store 狀態
       if (petData.value) {
         authStore.setHasPet(true)
-        console.log('🐶 已更新身份為飼主')
       }
 
-      console.log('📊 User ID (Int) 已儲存:', profileData.user_id_int)
     }
 
     // 顯示註冊完成頁面，3秒後自動跳轉首頁

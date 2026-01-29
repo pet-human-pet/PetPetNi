@@ -27,12 +27,10 @@ export function useRealtimeChat() {
           filter: `room_id=eq.${roomId}`
         },
         (payload) => {
-          console.log('📨 New message received:', payload.new)
           onNewMessage(payload.new)
         }
       )
       .subscribe((status) => {
-        console.log(`🔌 Subscription status for room ${roomId}:`, status)
         isConnected.value = status === 'SUBSCRIBED'
       })
 
@@ -49,7 +47,6 @@ export function useRealtimeChat() {
     if (channel) {
       supabase.removeChannel(channel)
       channels.value.delete(roomId)
-      console.log(`🔌 Unsubscribed from room ${roomId}`)
     }
   }
 
@@ -88,11 +85,10 @@ export function useRealtimeChat() {
         .single()
 
       if (error) {
-        console.error('❌ Supabase error:', error)
+        // console.error('❌ Supabase error:', error)
         throw error
       }
 
-      console.log('✅ Message sent successfully:', data)
       return data
     } catch (error) {
       console.error('❌ Failed to send message:', error)
@@ -115,7 +111,7 @@ export function useRealtimeChat() {
         .limit(limit)
 
       if (error) {
-        console.error('❌ Error fetching messages:', error)
+        // console.error('❌ Error fetching messages:', error)
         throw error
       }
 
@@ -141,11 +137,10 @@ export function useRealtimeChat() {
         .eq('read', false)
 
       if (error) {
-        console.error('❌ Error marking messages as read:', error)
+        // console.error('❌ Error marking messages as read:', error)
         throw error
       }
 
-      console.log(`✅ Messages marked as read in room ${roomId}`)
     } catch (error) {
       console.error('❌ Failed to mark messages as read:', error)
       throw error
@@ -214,7 +209,6 @@ export function useRealtimeChat() {
   const unsubscribeAll = () => {
     channels.value.forEach((channel, roomId) => {
       supabase.removeChannel(channel)
-      console.log(`🔌 Unsubscribed from room ${roomId}`)
     })
     channels.value.clear()
     isConnected.value = false

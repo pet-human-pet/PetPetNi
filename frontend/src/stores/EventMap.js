@@ -49,7 +49,6 @@ export const useEventMapStore = defineStore('event', () => {
         }))
       }
     } catch (err) {
-      console.error('❌ 載入活動失敗:', err)
       error.value = err.message
     } finally {
       isLoading.value = false
@@ -103,7 +102,6 @@ export const useEventMapStore = defineStore('event', () => {
         return formattedEvent
       }
     } catch (err) {
-      console.error('❌ 建立活動失敗:', err)
       error.value = err.message
       throw err
     } finally {
@@ -128,7 +126,6 @@ export const useEventMapStore = defineStore('event', () => {
         return { success: true, message: response.data.message }
       }
     } catch (err) {
-      console.error('❌ 參加活動失敗:', err)
       const errorMessage = err.response?.data?.message || '參加活動失敗，請稍後再試'
       throw new Error(errorMessage)
     }
@@ -151,7 +148,6 @@ export const useEventMapStore = defineStore('event', () => {
         return { success: true, message: response.data.message }
       }
     } catch (err) {
-      console.error('❌ 離開活動失敗:', err)
       const errorMessage = err.response?.data?.message || '離開活動失敗，請稍後再試'
       throw new Error(errorMessage)
     }
@@ -188,7 +184,6 @@ export const useEventMapStore = defineStore('event', () => {
       }
       return []
     } catch (err) {
-      console.error('❌ 載入我的活動失敗:', err)
       error.value = err.message
       throw err
     } finally {
@@ -213,7 +208,6 @@ export const useEventMapStore = defineStore('event', () => {
         return { success: true, message: response.data.message || '活動已刪除' }
       }
     } catch (err) {
-      console.error('❌ 刪除活動失敗:', err)
       const errorMessage = err.response?.data?.message || '刪除活動失敗，請稍後再試'
       throw new Error(errorMessage)
     }
@@ -250,7 +244,6 @@ export const useEventMapStore = defineStore('event', () => {
       }
       return []
     } catch (err) {
-      console.error('❌ 載入參加的活動失敗:', err)
       error.value = err.message
       throw err
     } finally {
@@ -270,7 +263,6 @@ export const useEventMapStore = defineStore('event', () => {
       }
       return false
     } catch (err) {
-      console.error('❌ 檢查參加狀態失敗:', err)
       return false
     }
   }

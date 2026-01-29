@@ -47,14 +47,12 @@ export const useAuthStore = defineStore('auth', () => {
         userIdInt.value = data.profile?.user_id_int
         hasPet.value = data.has_pet ?? !!data.pet
 
-        console.log('✅ Token 驗證成功，已恢復登入狀態')
-        console.log('🐶 寵物資料:', pet.value?.name)
         if (userIdInt.value) {
           notificationStore.startRealtime(userIdInt.value)
         }
       } catch (err) {
         // Token 無效，清除狀態
-        console.warn('⚠️ Token 無效或無法取得 Profile，清除登入狀態', err)
+
         logout(false) // 傳入 false 代表不呼叫 API，只清本地
       }
     }
@@ -79,10 +77,8 @@ export const useAuthStore = defineStore('auth', () => {
       tags.value = []
       hasPet.value = false
 
-      console.log('✅ 註冊成功:', user.value.email)
       return response.data
     } catch (err) {
-      console.error('❌ 註冊失敗:', err)
       error.value = err.response?.data?.error || '註冊失敗，請稍後再試'
       throw err
     } finally {
@@ -101,8 +97,6 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.session.access_token
       localStorage.setItem('token', token.value)
 
-      console.log('✅ 登入成功:', user.value.email)
-
       // 嘗試取得完整 Profile
       try {
         const profileRes = await profileApi.getProfile()
@@ -115,7 +109,6 @@ export const useAuthStore = defineStore('auth', () => {
 
         hasPet.value = data.has_pet ?? !!data.pet
 
-        console.log('✅ 已取得完整 Profile')
         if (userIdInt.value) {
           notificationStore.startRealtime(userIdInt.value)
         }
@@ -126,7 +119,6 @@ export const useAuthStore = defineStore('auth', () => {
       } catch (e) {
         // 如果抓不到 Profile，可能是還沒 Onboarding
         if (e.response?.status === 404) {
-          console.log('⚠️ 尚未建立 profile，需要完成註冊流程')
           return {
             ...response.data,
             needsRegistration: true
@@ -135,7 +127,6 @@ export const useAuthStore = defineStore('auth', () => {
         throw e
       }
     } catch (err) {
-      console.error('❌ 登入失敗:', err)
       error.value = err.response?.data?.error || '登入失敗，請檢查帳號密碼'
       throw err
     } finally {
@@ -150,10 +141,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (callApi) {
         await authApi.logout()
-        console.log('✅ 登出成功')
       }
     } catch (err) {
-      console.error('❌ 登出失敗:', err)
       error.value = err.response?.data?.error || '登出失敗，請稍後再試'
     } finally {
       // 無論 API 成功或失敗，都清除本地狀態
@@ -185,8 +174,6 @@ export const useAuthStore = defineStore('auth', () => {
       import('@/stores/ai').then(({ useAIStore }) => {
         useAIStore().clear()
       })
-
-      console.log('🧹 已清除所有本地狀態與快取')
     }
   }
 
@@ -196,7 +183,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setUserIdInt = (id) => {
     userIdInt.value = id
-    console.log('📊 已設定 User ID (Int):', id)
     if (userIdInt.value) {
       notificationStore.startRealtime(userIdInt.value)
     }
@@ -208,14 +194,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   // OAuth (TODO)
   const initiateOAuthLogin = (provider) => {
-    console.log(`[AuthStore] Initiating ${provider} login...`)
     // TODO: 之後實作
     alert(`${provider} 登入功能即將開放！`)
   }
 
   const handleOAuthCallback = async (code, provider) => {
-    console.log(`[AuthStore] Handling callback with code: ${code}`)
-
     return new Promise((resolve) => {
       setTimeout(() => {
         // 模擬：隨機決定是「新用戶」還是「老用戶」
@@ -246,7 +229,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const registerWithEmail = async (email) => {
-    console.log('[AuthStore] Registering with email:', email)
     // TODO: 之後實作
   }
 
@@ -260,8 +242,6 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const handleSupabaseSession = async (session) => {
     try {
-      console.log('[AuthStore] 處理 Supabase session')
-
       // 儲存 token
       token.value = session.access_token
       localStorage.setItem('token', token.value)
@@ -284,19 +264,14 @@ export const useAuthStore = defineStore('auth', () => {
         userIdInt.value = data.profile?.user_id_int
         hasPet.value = data.has_pet ?? !!data.pet
 
-        console.log('✅ 已有 profile，登入成功')
         if (userIdInt.value) {
           notificationStore.startRealtime(userIdInt.value)
         }
         router.push('/')
       } catch (e) {
-        console.log('⚠️ 尚未建立 profile (或是 API 失敗)，導向註冊流程')
         router.push({ name: 'login', query: { mode: 'role' } })
       }
-    } catch (error) {
-      console.error('❌ 處理 Supabase session 失敗:', error)
-      throw error
-    }
+    } catch (error) {}
   }
 
   /**
@@ -324,7 +299,6 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return false
     } catch (error) {
-      console.error('❌ 檢查 profile 失敗:', error)
       return false
     }
   }
@@ -346,9 +320,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (userIdInt.value) {
         notificationStore.startRealtime(userIdInt.value)
       }
-    } catch (e) {
-      console.error('❌ 刷新 Profile 失敗', e)
-    }
+    } catch (e) {}
   }
 
   return {

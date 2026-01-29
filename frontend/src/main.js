@@ -17,13 +17,11 @@ authStore.initAuth()
 
 // 初始化 Supabase Auth 監聽
 supabase.auth.onAuthStateChange(async (event, session) => {
-  console.log('[Supabase Auth]', event, session)
 
   if (event === 'SIGNED_IN' && session) {
     // OAuth 登入成功，處理 session
     await authStore.handleSupabaseSession(session)
   } else if (event === 'SIGNED_OUT') {
-    console.log('✅ Supabase 登出')
   }
 })
 

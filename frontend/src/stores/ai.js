@@ -42,7 +42,6 @@ export const useAIStore = defineStore('ai', () => {
     try {
       // 等待 authStore 準備完成
       if (!authStore.isReady) {
-        console.log('⏳ 等待 authStore 準備完成...')
         await new Promise((resolve) => {
           // 使用 watch 監聽 isReady 變化
           const unwatch = watch(
@@ -58,17 +57,8 @@ export const useAIStore = defineStore('ai', () => {
         })
       }
 
-      const userId = authStore.userIdInt
-      if (!userId) {
-        console.warn('⚠️ 無法載入 AI 對話:用戶未登入或 userIdInt 不存在')
-        return
-      }
-
-      console.log('📥 載入 AI 對話紀錄,用戶 ID:', userId)
       const response = await fetch(`${API_BASE_URL}/sessions?userId=${userId}`)
       const rawSessions = await response.json()
-
-      console.log('✅ 成功載入', rawSessions.length, '個對話紀錄')
 
       // 轉換後端 session 格式
       aiDb.value.history = rawSessions.map((s) => ({
@@ -82,9 +72,7 @@ export const useAIStore = defineStore('ai', () => {
         timestamp: new Date(s.updated_at).getTime(),
         loaded: false // 標記尚未加載訊息內容
       }))
-    } catch (error) {
-      console.error('❌ Failed to load AI sessions:', error)
-    }
+    } catch (error) {}
   }
 
   /**
@@ -101,9 +89,7 @@ export const useAIStore = defineStore('ai', () => {
         const msgs = await response.json()
         chat.msgs = msgs.map(formatMsgFromBackend)
         chat.loaded = true
-      } catch (error) {
-        console.error('❌ Failed to load messages for session:', id, error)
-      }
+      } catch (error) {}
     }
   }
 
@@ -185,7 +171,6 @@ export const useAIStore = defineStore('ai', () => {
         throw new Error(data.error || 'AI 回應格式錯誤')
       }
     } catch (error) {
-      console.error('❌ AI Chat Error:', error)
       currentChat.msgs.push({
         id: 'err_' + Date.now(),
         sender: 'them',
@@ -234,9 +219,7 @@ export const useAIStore = defineStore('ai', () => {
       aiDb.value.history.unshift(newChat)
       activeSessionId.value = session.id
       return session.id
-    } catch (error) {
-      console.error('❌ Failed to create AI session:', error)
-    }
+    } catch (error) {}
   }
 
   async function startAiFeature(featureText) {
@@ -284,9 +267,7 @@ export const useAIStore = defineStore('ai', () => {
           activeSessionId.value = null
         }
       }
-    } catch (error) {
-      console.error('❌ Failed to delete session:', error)
-    }
+    } catch (error) {}
   }
 
   /**
@@ -297,7 +278,6 @@ export const useAIStore = defineStore('ai', () => {
     activeSessionId.value = null
     isDrawerOpen.value = false
     isLoading.value = false
-    console.log('🧹 已清除所有 AI 對話紀錄')
   }
 
   return {

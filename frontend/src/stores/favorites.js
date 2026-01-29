@@ -53,20 +53,14 @@ export const useFavoritesStore = defineStore('favorites', () => {
 
       // 手動儲存
       saveToLocalStorage()
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('Toggle favorite failed:', e)
-    }
+    } catch (e) {}
   }
 
   async function clear() {
     try {
       items.value = []
       saveToLocalStorage()
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error('Clear favorites failed:', e)
-    }
+    } catch (e) {}
   }
 
   return { items, count, ids, has, toggle, clear }

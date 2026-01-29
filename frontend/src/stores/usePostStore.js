@@ -66,12 +66,10 @@ export const usePostStore = defineStore('post', () => {
   const fetchBookmarkedPosts = async () => {
     try {
       const res = await socialApi.getBookmarkedPosts()
-      console.log('[fetchBookmarkedPosts] API response:', res)
       const data = Array.isArray(res.data) ? res.data : res.data?.data || []
-      console.log('[fetchBookmarkedPosts] Processed data:', data)
       bookmarkedPosts.value = data
     } catch (err) {
-      console.error('[fetchBookmarkedPosts] Error:', err)
+
       showError(getErrorMessage(err, '收藏貼文載入失敗，請稍後再試'))
     }
   }
@@ -156,14 +154,13 @@ export const usePostStore = defineStore('post', () => {
     // 使用寬鬆比較以避免型別問題 (string vs number)
     const post = posts.value.find((p) => p.id == id)
     if (!post) {
-      console.warn('[bookmarkPost] Post not found in store:', id)
+
       return
     }
 
     const originalState = post.isBookmarked
     // 強制更新屬性，確保 Vue 偵測到變化
     post.isBookmarked = !originalState
-    console.log(`[bookmarkPost] Toggling bookmark for ${id} to ${post.isBookmarked}`)
 
     try {
       if (post.isBookmarked) {

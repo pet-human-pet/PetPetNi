@@ -42,7 +42,8 @@ export const useNotificationStore = defineStore('notification', () => {
   const normalizeNotification = (notification) => {
     const type = notification.type || 'system'
     const title =
-      notification.title || (type === 'comment' ? '留言通知' : type === 'like' ? '按讚通知' : '系統通知')
+      notification.title ||
+      (type === 'comment' ? '留言通知' : type === 'like' ? '按讚通知' : '系統通知')
     const read = notification.read ?? notification.is_read ?? false
     const time =
       notification.time || formatRelativeTime(notification.created_at || notification.createdAt)
@@ -88,7 +89,6 @@ export const useNotificationStore = defineStore('notification', () => {
       .limit(limit)
 
     if (error) {
-      console.error('❌ 取得通知失敗:', error)
       return []
     }
 
@@ -107,7 +107,6 @@ export const useNotificationStore = defineStore('notification', () => {
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('id', id)
       if (error) {
-        console.error('❌ 通知已讀更新失敗:', error)
       }
     }
   }
@@ -125,7 +124,6 @@ export const useNotificationStore = defineStore('notification', () => {
         .eq('recipient_id_int', userIdInt)
         .eq('is_read', false)
       if (error) {
-        console.error('❌ 全部已讀更新失敗:', error)
       }
     }
   }

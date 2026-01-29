@@ -50,7 +50,7 @@ export function useMatching() {
   function goToChat(roomId) {
     if (!roomId) {
       // eslint-disable-next-line no-console
-      console.error('No roomId provided for chat navigation')
+      // console.error('No roomId provided for chat navigation')
       return
     }
     // 跳轉並帶入 roomId

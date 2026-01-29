@@ -345,7 +345,6 @@ export const useChatStore = defineStore('chat', () => {
         replyTo?.id || null
       )
       .catch((error) => {
-        console.error('❌ Failed to send message:', error)
         // 發送失敗時可以加入錯誤處理邏輯
         const index = chat.msgs.findIndex((m) => m.id === tempMsg.id)
         if (index !== -1) {
@@ -406,7 +405,6 @@ export const useChatStore = defineStore('chat', () => {
       }
 
       if (!targetUserIdInt) {
-        console.error('❌ 找不到目標好友的數字 ID')
         return { success: false, error: '找不到好友資訊' }
       }
 
@@ -429,8 +427,6 @@ export const useChatStore = defineStore('chat', () => {
 
       return { success: true }
     } catch (error) {
-      console.error('❌ 解除好友失敗 (Store Action):', error)
-      console.error('詳細錯誤資訊:', error.response?.data)
       return { success: false, error: error.response?.data?.message || '解除好友失敗' }
     }
   }
@@ -518,7 +514,6 @@ export const useChatStore = defineStore('chat', () => {
    */
   async function loadUserRooms() {
     if (!currentUserIdInt.value) {
-      console.warn('⚠️ 尚未登入，無法載入聊天室')
       return
     }
 
@@ -558,8 +553,6 @@ export const useChatStore = defineStore('chat', () => {
       if (friendRooms.length > 0) {
         db.value.match = [...friendRooms, ...db.value.match.filter((c) => c.id.startsWith('m'))]
       }
-
-      console.log('✅ 聊天室列表已載入:', rooms.length, '個房間')
 
       // 4. 自動為所有房間建立 Realtime 訂閱（確保不打開視窗也能收到更新）
       rooms.forEach((r) => {
@@ -657,7 +650,6 @@ export const useChatStore = defineStore('chat', () => {
 
       return { success: true, room: formattedRoom, isNew }
     } catch (error) {
-      console.error('❌ 開始私訊失敗:', error)
       return { success: false, error: error.response?.data?.message || '開始私訊失敗' }
     }
   }

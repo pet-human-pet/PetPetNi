@@ -43,9 +43,7 @@ export const useMatchingStore = defineStore('matching', () => {
           currentMatch.value = matchData
         }
       }
-    } catch (e) {
-      console.error('Failed to check match status:', e)
-    }
+    } catch (e) {}
   }
 
   /**
