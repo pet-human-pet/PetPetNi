@@ -61,7 +61,7 @@ Petpetni 的解決方案
 <table>
 <tr>
 <td align="center" width="33%">
-<img src="https://img.icons8.com/color/96/000000/pet-commands-train.png" width="64"/>
+<img src="https://img.icons8.com/color/96/000000/dog.png" width="64"/>
 <br><b>寵物專屬社群</b>
 <br>以毛孩人格化視角<br>打造沉浸感體驗
 </td>
